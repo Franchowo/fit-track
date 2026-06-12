@@ -6,12 +6,11 @@
     <title>FitTrack</title>
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FitTrack">
-    
     <link rel="manifest" href="manifest.json">
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -57,21 +56,23 @@
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .hidden { display: none !important; }
 
-        .profile-selector { display: flex; flex-direction: column; gap: 20px; margin-top: 30px; }
-        .profile-btn { padding: 40px 20px; font-size: 2rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; cursor: pointer; text-align: center; border: 2px solid transparent; transition: 0.3s; }
-        .profile-btn i { display: block; font-size: 3rem; margin-bottom: 15px; }
+        .profile-selector { display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
+        .profile-btn { padding: 35px 20px; font-size: 2rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; cursor: pointer; text-align: center; border: 2px solid transparent; transition: 0.3s; }
+        .profile-btn i { display: block; font-size: 2.5rem; margin-bottom: 10px; }
+        
         .btn-fran { background: rgba(0, 243, 255, 0.05); border-color: rgba(0, 243, 255, 0.2); }
         .btn-fran i { color: #00f3ff; }
         .btn-mama { background: rgba(255, 0, 234, 0.05); border-color: rgba(255, 0, 234, 0.2); }
         .btn-mama i { color: #ff00ea; }
+        .btn-claudia { background: rgba(249, 115, 22, 0.05); border-color: rgba(249, 115, 22, 0.2); }
+        .btn-claudia i { color: #f97316; }
+        
         .profile-btn:active { transform: scale(0.98); }
 
         .form-group { margin-bottom: 25px; }
         .form-group label { display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 1rem; font-weight: 500; }
         
-        .input-large {
-            width: 100%; min-height: 60px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; font-size: 1.2rem; font-weight: 600; transition: all 0.3s;
-        }
+        .input-large { width: 100%; min-height: 60px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; font-size: 1.2rem; font-weight: 600; transition: all 0.3s; }
         .input-large:focus { outline: none; border-color: var(--theme); box-shadow: 0 0 12px rgba(var(--theme-rgb), 0.2); background: rgba(var(--theme-rgb), 0.05); }
         select.input-large { appearance: none; }
         
@@ -81,10 +82,7 @@
         .step-dot { width: 45px; height: 6px; border-radius: 6px; background: var(--glass-border); transition: 0.4s; }
         .step-dot.active { background: var(--theme); box-shadow: 0 0 8px var(--theme); }
 
-        .btn-save {
-            width: 100%; min-height: 65px; border-radius: 16px; border: 2px solid var(--theme); background: rgba(var(--theme-rgb), 0.05); color: var(--theme); font-size: 1.3rem; font-weight: 800;
-            margin-top: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
+        .btn-save { width: 100%; min-height: 65px; border-radius: 16px; border: 2px solid var(--theme); background: rgba(var(--theme-rgb), 0.05); color: var(--theme); font-size: 1.3rem; font-weight: 800; margin-top: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .btn-save:active { transform: scale(0.97); background: var(--theme); color: #000; box-shadow: 0 0 20px rgba(var(--theme-rgb), 0.4); }
 
         #btn-submit { background: var(--theme); color: #000; }
@@ -101,17 +99,12 @@
         
         .chart-container { margin-bottom: 25px; padding: 20px; border-radius: 20px; }
 
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; display: flex; justify-content: space-around; align-items: center;
-            background: rgba(2, 6, 23, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(15px); z-index: 1000;
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; display: flex; justify-content: space-around; align-items: center; background: rgba(2, 6, 23, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(15px); z-index: 1000; }
         .nav-item { color: var(--text-muted); text-align: center; font-size: 1.8rem; flex: 1; padding: 15px 0; cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--theme); text-shadow: 0 0 15px rgba(var(--theme-rgb), 0.5); transform: translateY(-4px); }
 
         .loader { border: 3px solid rgba(0,0,0,0.1); border-left-color: currentColor; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Loader grande para métricas */
         .big-loader { width: 50px; height: 50px; border-width: 5px; margin: 40px auto; display: block; border-left-color: var(--theme);}
     </style>
 </head>
@@ -130,6 +123,9 @@
             <div class="glass profile-btn btn-mama" onclick="selectProfile('MAMÁ')">
                 <i class="fa-solid fa-user-astronaut"></i> MAMÁ
             </div>
+            <div class="glass profile-btn btn-claudia" onclick="selectProfile('CLAUDIA')">
+                <i class="fa-solid fa-fire"></i> CLAUDIA
+            </div>
         </div>
     </div>
 
@@ -142,7 +138,6 @@
                 <div class="step-dot" id="dot3"></div>
             </div>
 
-            <!-- Paso 1 -->
             <div id="step1" class="glass" style="padding: 30px 20px;">
                 <h3 style="margin-bottom: 25px; color: var(--theme); font-size: 1.4rem;"><i class="fa-solid fa-calendar-day"></i> Datos Base</h3>
                 <div class="form-group"><label>Fecha</label><input type="date" class="input-large" id="f_fecha"></div>
@@ -157,12 +152,11 @@
                 <button class="btn-save" onclick="nextStep(2)">Continuar <i class="fa-solid fa-angle-right"></i></button>
             </div>
 
-            <!-- Paso 2 -->
             <div id="step2" class="glass hidden" style="padding: 30px 20px;">
                 <h3 style="margin-bottom: 25px; color: var(--theme); font-size: 1.4rem;"><i class="fa-solid fa-weight-scale"></i> Composición</h3>
                 <div class="grid-2">
                     <div class="form-group"><label>Peso (kg)</label><input type="number" step="0.1" class="input-large" id="f_peso" placeholder="0.0"></div>
-                    <div class="form-group"><label>IMC (%)</label><input type="text" class="input-large" id="f_imc" placeholder="Ej: 30,8%"></div>
+                    <div class="form-group"><label>Porcentaje Graso (%)</label><input type="text" class="input-large" id="f_imc" placeholder="Ej: 30,8%"></div>
                     <div class="form-group"><label>Músculo (kg)</label><input type="number" step="0.1" class="input-large" id="f_musculo" placeholder="0.0"></div>
                     <div class="form-group"><label>Hueso (kg)</label><input type="number" step="0.1" class="input-large" id="f_hueso" placeholder="0.0"></div>
                     <div class="form-group"><label>Víscera</label><input type="number" step="0.1" class="input-large" id="f_viscera" placeholder="0"></div>
@@ -171,7 +165,6 @@
                 <button class="btn-save" onclick="nextStep(3)">Continuar <i class="fa-solid fa-angle-right"></i></button>
             </div>
 
-            <!-- Paso 3 -->
             <div id="step3" class="glass hidden" style="padding: 30px 20px;">
                 <h3 style="margin-bottom: 25px; color: var(--theme); font-size: 1.4rem;"><i class="fa-solid fa-ruler"></i> Perímetros (cm)</h3>
                 <div class="grid-2">
@@ -219,7 +212,7 @@
 
                 <div class="glass chart-container"><canvas id="weightChart"></canvas></div>
                 <div class="glass chart-container"><canvas id="compChart"></canvas></div>
-                <div class="glass chart-container"><canvas id="radarChart"></canvas></div>
+                <div class="glass chart-container"><canvas id="perimetersChart"></canvas></div>
             </div>
         </div>
 
@@ -232,12 +225,12 @@
 
     <script>
         // PEGA AQUÍ TU NUEVA URL DEL APPS SCRIPT
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRBQoSib2g68fEs9Wy0K-DdawIVgw5UO5I7cSsY4tpCv5lkezcgkNiXH8Bk9dUgp07Kg/exec';
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AQUIPONERLANUEVAURL/exec';
 
         document.getElementById('f_fecha').valueAsDate = new Date();
         let currentProfile = '';
         let chartsInstance = {}; 
-        let historyDataCache = null; // Almacenará los datos reales del excel
+        let historyDataCache = null; 
 
         function selectProfile(profile) {
             currentProfile = profile;
@@ -252,9 +245,12 @@
             if (profile === 'FRAN') {
                 root.style.setProperty('--theme', '#00f3ff');
                 root.style.setProperty('--theme-rgb', '0, 243, 255');
-            } else {
+            } else if (profile === 'MAMÁ') {
                 root.style.setProperty('--theme', '#ff00ea');
                 root.style.setProperty('--theme-rgb', '255, 0, 234');
+            } else if (profile === 'CLAUDIA') {
+                root.style.setProperty('--theme', '#f97316'); // Naranja Claudia
+                root.style.setProperty('--theme-rgb', '249, 115, 22');
             }
 
             nextStep(1);
@@ -286,19 +282,18 @@
             document.getElementById('nav-' + tab).classList.add('active');
 
             if (tab === 'dashboard') {
-                await fetchRealData(); // Solicita datos si no hay caché
+                await fetchRealData(); 
                 renderCharts();
             }
         }
 
         async function fetchRealData() {
-            if (historyDataCache) return; // Si ya los descargó en esta sesión, no vuelve a pedirlos
+            if (historyDataCache) return; 
             
             document.getElementById('dashboard-content').classList.add('hidden');
             document.getElementById('dashboard-loading').classList.remove('hidden');
 
             try {
-                // Hacer petición GET a tu Excel
                 const response = await fetch(APPS_SCRIPT_URL);
                 const result = await response.json();
                 
@@ -328,7 +323,7 @@
                 mesociclo: document.getElementById('f_mesociclo').value,
                 edad: document.getElementById('f_edad').value,
                 peso: document.getElementById('f_peso').value,
-                imc: document.getElementById('f_imc').value,
+                imc: document.getElementById('f_imc').value, // Sigue mapeando a la columna original E
                 musculo: document.getElementById('f_musculo').value,
                 hueso: document.getElementById('f_hueso').value,
                 viscera: document.getElementById('f_viscera').value,
@@ -350,7 +345,6 @@
                 
                 alert('¡Datos sincronizados correctamente!');
                 
-                // Forzar que la analítica vuelva a descargar el Excel para ver el cambio
                 historyDataCache = null; 
                 switchTab('dashboard');
                 
@@ -363,7 +357,7 @@
         }
 
         function renderCharts() {
-            if(!historyDataCache) return; // Precaución si no hay datos
+            if(!historyDataCache) return; 
 
             const profileData = historyDataCache[currentProfile];
             if(!profileData || profileData.length === 0) {
@@ -376,32 +370,31 @@
             const themeColor = rootStyle.getPropertyValue('--theme').trim();
             const themeColorBg = `rgba(${rootStyle.getPropertyValue('--theme-rgb').trim()}, 0.15)`;
 
-            // Extraer las fechas y datos reales del historial
             let labels = profileData.map(d => d.fecha);
             let weightData = profileData.map(d => d.peso);
             let muscleData = profileData.map(d => d.musculo);
             let fatData = profileData.map(d => d.grasa);
             
-            // Buscar las últimas medidas que no sean 0 (yendo del registro más reciente al más viejo)
-            let medidas = [0, 0, 0, 0, 0];
-            for (let i = profileData.length - 1; i >= 0; i--) {
-                let d = profileData[i];
-                if (d.pecho > 0 || d.abdomen > 0) {
-                    medidas = [d.pecho, d.hombros, d.biceps, d.abdomen, d.pierna];
-                    break;
-                }
-            }
+            // Extracción de todos los datos históricos para el gráfico evolutivo lineal
+            let pechoData = profileData.map(d => d.pecho);
+            let hombrosData = profileData.map(d => d.hombros);
+            let bicepsData = profileData.map(d => d.biceps);
+            let abdomenData = profileData.map(d => d.abdomen);
+            let piernaData = profileData.map(d => d.pierna);
 
-            // Aplicar Filtro de tiempo
             if(filterVal !== 'all') {
                 const limit = parseInt(filterVal);
                 labels = labels.slice(-limit);
                 weightData = weightData.slice(-limit);
                 muscleData = muscleData.slice(-limit);
                 fatData = fatData.slice(-limit);
+                pechoData = pechoData.slice(-limit);
+                hombrosData = hombrosData.slice(-limit);
+                bicepsData = bicepsData.slice(-limit);
+                abdomenData = abdomenData.slice(-limit);
+                piernaData = piernaData.slice(-limit);
             }
 
-            // Actualizar KPIs superiores
             const currentWeight = weightData[weightData.length-1];
             const prevWeight = weightData.length > 1 ? weightData[weightData.length-2] : currentWeight;
             const diff = (currentWeight - prevWeight).toFixed(1);
@@ -419,12 +412,12 @@
 
             if(chartsInstance.w) chartsInstance.w.destroy();
             if(chartsInstance.c) chartsInstance.c.destroy();
-            if(chartsInstance.r) chartsInstance.r.destroy();
+            if(chartsInstance.p) chartsInstance.p.destroy();
 
             // Gráfico 1: Peso
             chartsInstance.w = new Chart(document.getElementById('weightChart'), {
                 type: 'line',
-                data: { labels, datasets: [{ label: 'Peso Total (kg)', data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true, borderWidth: 3, pointRadius: 5, pointBackgroundColor: '#fff' }] },
+                data: { labels, datasets: [{ label: 'Peso Total (kg)', data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true, borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#fff' }] },
                 options: { responsive: true, scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor } } }, plugins: { title: { display: true, text: 'Curva de Peso', color: '#fff', font: { size: 14 } } } }
             });
 
@@ -435,11 +428,24 @@
                 options: { responsive: true, scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor } } }, plugins: { title: { display: true, text: 'Masa Magra vs Grasa', color: '#fff', font: { size: 14 } } } }
             });
 
-            // Gráfico 3: Radar
-            chartsInstance.r = new Chart(document.getElementById('radarChart'), {
-                type: 'radar',
-                data: { labels: ['Pecho', 'Hombros', 'Bíceps', 'Abdomen', 'Pierna'], datasets: [{ label: 'Últimas Medidas', data: medidas, backgroundColor: themeColorBg, borderColor: themeColor, pointBackgroundColor: '#fff', borderWidth: 2 }] },
-                options: { responsive: true, scales: { r: { angleLines: { color: gridColor }, grid: { color: gridColor }, pointLabels: { color: '#fff', font: { size: 12 } } } }, plugins: { title: { display: true, text: 'Simetría Corporal', color: '#fff', font: { size: 14 } } } }
+            // Gráfico 3: Evolución Lineal de Perímetros
+            chartsInstance.p = new Chart(document.getElementById('perimetersChart'), {
+                type: 'line',
+                data: { 
+                    labels: labels, 
+                    datasets: [
+                        { label: 'Pecho', data: pechoData, borderColor: '#f43f5e', backgroundColor: '#f43f5e', tension: 0.3, borderWidth: 2, pointRadius: 3 },
+                        { label: 'Hombros', data: hombrosData, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, borderWidth: 2, pointRadius: 3 },
+                        { label: 'Bíceps', data: bicepsData, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, borderWidth: 2, pointRadius: 3 },
+                        { label: 'Abdomen', data: abdomenData, borderColor: '#eab308', backgroundColor: '#eab308', tension: 0.3, borderWidth: 2, pointRadius: 3 },
+                        { label: 'Pierna', data: piernaData, borderColor: '#a855f7', backgroundColor: '#a855f7', tension: 0.3, borderWidth: 2, pointRadius: 3 }
+                    ] 
+                },
+                options: { 
+                    responsive: true, 
+                    scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor } } }, 
+                    plugins: { title: { display: true, text: 'Evolución de Perímetros (cm)', color: '#fff', font: { size: 14 } } } 
+                }
             });
         }
     </script>

@@ -27,31 +27,15 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
 
-        body {
-            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
-            color: var(--text-main);
-            min-height: 100vh;
-            padding-bottom: 90px;
-            overflow-x: hidden;
-        }
+        body { background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%); color: var(--text-main); min-height: 100vh; padding-bottom: 90px; overflow-x: hidden; }
 
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-        }
+        .glass { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
 
         header { padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); }
         h1 { font-weight: 800; font-size: 1.8rem; letter-spacing: 1px; color: #ffffff; display: flex; justify-content: center; align-items: center; gap: 10px; }
         h1 i { color: #ffffff; font-size: 1.5rem; transform: rotate(15deg); }
 
-        .profile-badge { 
-            display: inline-block; padding: 6px 18px; border-radius: 30px; font-size: 0.9rem; margin-top: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;
-            background: rgba(var(--theme-rgb), 0.15); border: 1px solid var(--theme); color: var(--theme); box-shadow: 0 0 10px rgba(var(--theme-rgb), 0.2); transition: all 0.3s ease;
-        }
+        .profile-badge { display: inline-block; padding: 6px 18px; border-radius: 30px; font-size: 0.9rem; margin-top: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; background: rgba(var(--theme-rgb), 0.15); border: 1px solid var(--theme); color: var(--theme); box-shadow: 0 0 10px rgba(var(--theme-rgb), 0.2); transition: all 0.3s ease; }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .hidden { display: none !important; }
@@ -66,7 +50,6 @@
         .btn-mama i { color: #ff00ea; }
         .btn-claudia { background: rgba(249, 115, 22, 0.05); border-color: rgba(249, 115, 22, 0.2); }
         .btn-claudia i { color: #f97316; }
-        
         .profile-btn:active { transform: scale(0.98); }
 
         .form-group { margin-bottom: 25px; }
@@ -84,7 +67,6 @@
 
         .btn-save { width: 100%; min-height: 65px; border-radius: 16px; border: 2px solid var(--theme); background: rgba(var(--theme-rgb), 0.05); color: var(--theme); font-size: 1.3rem; font-weight: 800; margin-top: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .btn-save:active { transform: scale(0.97); background: var(--theme); color: #000; box-shadow: 0 0 20px rgba(var(--theme-rgb), 0.4); }
-
         #btn-submit { background: var(--theme); color: #000; }
         #btn-submit:active { background: transparent; color: var(--theme); }
 
@@ -99,6 +81,14 @@
         
         .chart-container { margin-bottom: 25px; padding: 20px; border-radius: 20px; }
 
+        /* Estilos Tabla Detalles */
+        .table-container { overflow-x: auto; padding: 0; border-radius: 20px; }
+        .data-table { width: 100%; border-collapse: collapse; text-align: center; min-width: 800px; }
+        .data-table th { padding: 15px; border-bottom: 2px solid var(--theme); color: var(--theme); font-size: 0.85rem; text-transform: uppercase; white-space: nowrap; background: rgba(0,0,0,0.2); }
+        .data-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); font-size: 0.95rem; white-space: nowrap; }
+        .data-table tr:hover { background: rgba(var(--theme-rgb), 0.1); }
+        
+        /* Modificación Navbar para 4 iconos */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; display: flex; justify-content: space-around; align-items: center; background: rgba(2, 6, 23, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(15px); z-index: 1000; }
         .nav-item { color: var(--text-muted); text-align: center; font-size: 1.8rem; flex: 1; padding: 15px 0; cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--theme); text-shadow: 0 0 15px rgba(var(--theme-rgb), 0.5); transform: translateY(-4px); }
@@ -115,6 +105,7 @@
         <div id="active-profile-badge" class="profile-badge hidden"></div>
     </header>
 
+    <!-- VISTA PERFILES -->
     <div id="view-profiles" class="container">
         <div class="profile-selector">
             <div class="glass profile-btn btn-fran" onclick="selectProfile('FRAN')">
@@ -129,8 +120,10 @@
         </div>
     </div>
 
+    <!-- APP -->
     <div id="view-app" class="hidden">
         
+        <!-- PESTAÑA 1: FORMULARIO -->
         <div id="tab-form" class="container">
             <div class="step-indicators">
                 <div class="step-dot active" id="dot1"></div>
@@ -181,6 +174,7 @@
             </div>
         </div>
 
+        <!-- PESTAÑA 2: DASHBOARD GRÁFICOS -->
         <div id="tab-dashboard" class="container hidden">
             <div class="analytics-header">
                 <h2 style="font-size: 1.4rem; margin:0;"><i class="fa-solid fa-chart-pie"></i> Métricas</h2>
@@ -190,35 +184,56 @@
                     <option value="all">Todos</option>
                 </select>
             </div>
-            
-            <div id="dashboard-loading" class="hidden">
-                <div class="loader big-loader"></div>
-                <p style="text-align:center; color: var(--theme);">Cargando historial real...</p>
-            </div>
-
+            <div id="dashboard-loading" class="hidden"><div class="loader big-loader"></div><p style="text-align:center; color: var(--theme);">Cargando historial real...</p></div>
             <div id="dashboard-content">
                 <div class="kpi-grid">
-                    <div class="glass kpi-card">
-                        <div class="kpi-label">Evolución Peso</div>
-                        <div class="kpi-value" id="kpi-peso">--</div>
-                        <div id="kpi-peso-sub" style="color: var(--text-muted); font-size: 0.85rem;">-- kg dif</div>
-                    </div>
-                    <div class="glass kpi-card">
-                        <div class="kpi-label">Grasa Actual</div>
-                        <div class="kpi-value" id="kpi-grasa">--</div>
-                        <div id="kpi-grasa-sub" style="color: var(--text-muted); font-size: 0.85rem;">kg totales</div>
-                    </div>
+                    <div class="glass kpi-card"><div class="kpi-label">Evolución Peso</div><div class="kpi-value" id="kpi-peso">--</div><div id="kpi-peso-sub" style="color: var(--text-muted); font-size: 0.85rem;">-- kg dif</div></div>
+                    <div class="glass kpi-card"><div class="kpi-label">Grasa Actual</div><div class="kpi-value" id="kpi-grasa">--</div><div id="kpi-grasa-sub" style="color: var(--text-muted); font-size: 0.85rem;">kg totales</div></div>
                 </div>
-
                 <div class="glass chart-container"><canvas id="weightChart"></canvas></div>
                 <div class="glass chart-container"><canvas id="compChart"></canvas></div>
                 <div class="glass chart-container"><canvas id="perimetersChart"></canvas></div>
             </div>
         </div>
 
+        <!-- PESTAÑA 3: DETALLE TABLA -->
+        <div id="tab-detalle" class="container hidden" style="max-width: 900px;">
+            <div class="analytics-header">
+                <h2 style="font-size: 1.4rem; margin:0;"><i class="fa-solid fa-table-list"></i> Historial Completo</h2>
+            </div>
+            <div id="detalle-loading" class="hidden"><div class="loader big-loader"></div></div>
+            <div class="glass table-container" id="detalle-content">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Meso.</th>
+                            <th>Edad</th>
+                            <th>Peso</th>
+                            <th>% Graso</th>
+                            <th>Músculo</th>
+                            <th>Hueso</th>
+                            <th>Víscera</th>
+                            <th>Grasa</th>
+                            <th>Pecho</th>
+                            <th>Hombros</th>
+                            <th>Bíceps</th>
+                            <th>Abdomen</th>
+                            <th>Pierna</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Rellenado por JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- NAVBAR 4 ICONOS -->
         <nav class="bottom-nav">
             <div class="nav-item active" onclick="switchTab('form')" id="nav-form"><i class="fa-solid fa-layer-group"></i></div>
             <div class="nav-item" onclick="switchTab('dashboard')" id="nav-dashboard"><i class="fa-solid fa-chart-column"></i></div>
+            <div class="nav-item" onclick="switchTab('detalle')" id="nav-detalle"><i class="fa-solid fa-table-list"></i></div>
             <div class="nav-item" onclick="resetApp()"><i class="fa-solid fa-power-off"></i></div>
         </nav>
     </div>
@@ -249,7 +264,7 @@
                 root.style.setProperty('--theme', '#ff00ea');
                 root.style.setProperty('--theme-rgb', '255, 0, 234');
             } else if (profile === 'CLAUDIA') {
-                root.style.setProperty('--theme', '#f97316'); // Naranja Claudia
+                root.style.setProperty('--theme', '#f97316'); 
                 root.style.setProperty('--theme-rgb', '249, 115, 22');
             }
 
@@ -273,25 +288,31 @@
         }
 
         async function switchTab(tab) {
-            document.getElementById('tab-form').classList.add('hidden');
-            document.getElementById('tab-dashboard').classList.add('hidden');
-            document.getElementById('nav-form').classList.remove('active');
-            document.getElementById('nav-dashboard').classList.remove('active');
+            ['form', 'dashboard', 'detalle'].forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('nav-' + t).classList.remove('active');
+            });
 
             document.getElementById('tab-' + tab).classList.remove('hidden');
             document.getElementById('nav-' + tab).classList.add('active');
 
-            if (tab === 'dashboard') {
-                await fetchRealData(); 
-                renderCharts();
+            if (tab === 'dashboard' || tab === 'detalle') {
+                await fetchRealData(tab); 
+                if(tab === 'dashboard') renderCharts();
+                if(tab === 'detalle') renderTable();
             }
         }
 
-        async function fetchRealData() {
+        async function fetchRealData(tab) {
             if (historyDataCache) return; 
             
-            document.getElementById('dashboard-content').classList.add('hidden');
-            document.getElementById('dashboard-loading').classList.remove('hidden');
+            if(tab === 'dashboard') {
+                document.getElementById('dashboard-content').classList.add('hidden');
+                document.getElementById('dashboard-loading').classList.remove('hidden');
+            } else {
+                document.getElementById('detalle-content').classList.add('hidden');
+                document.getElementById('detalle-loading').classList.remove('hidden');
+            }
 
             try {
                 const response = await fetch(APPS_SCRIPT_URL);
@@ -304,11 +325,16 @@
                 }
             } catch (e) {
                 console.error("Error conectando con la BBDD:", e);
-                alert("No se pudieron cargar los datos reales. Inténtalo de nuevo más tarde.");
+                alert("No se pudieron cargar los datos reales.");
             }
 
-            document.getElementById('dashboard-loading').classList.add('hidden');
-            document.getElementById('dashboard-content').classList.remove('hidden');
+            if(tab === 'dashboard') {
+                document.getElementById('dashboard-loading').classList.add('hidden');
+                document.getElementById('dashboard-content').classList.remove('hidden');
+            } else {
+                document.getElementById('detalle-loading').classList.add('hidden');
+                document.getElementById('detalle-content').classList.remove('hidden');
+            }
         }
 
         async function saveDataToSheet() {
@@ -323,7 +349,7 @@
                 mesociclo: document.getElementById('f_mesociclo').value,
                 edad: document.getElementById('f_edad').value,
                 peso: document.getElementById('f_peso').value,
-                imc: document.getElementById('f_imc').value, // Sigue mapeando a la columna original E
+                imc: document.getElementById('f_imc').value,
                 musculo: document.getElementById('f_musculo').value,
                 hueso: document.getElementById('f_hueso').value,
                 viscera: document.getElementById('f_viscera').value,
@@ -344,7 +370,6 @@
                 });
                 
                 alert('¡Datos sincronizados correctamente!');
-                
                 historyDataCache = null; 
                 switchTab('dashboard');
                 
@@ -356,6 +381,44 @@
             }
         }
 
+        // --- Renderizar Tabla de Detalle ---
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            if(!historyDataCache || !historyDataCache[currentProfile]) return;
+            
+            // Invertimos para mostrar el registro más reciente arriba
+            const profileData = [...historyDataCache[currentProfile]].reverse();
+            
+            if(profileData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="14">No hay registros disponibles.</td></tr>';
+                return;
+            }
+
+            profileData.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:bold; color:var(--theme);">${d.fecha}</td>
+                    <td>${d.mesociclo}</td>
+                    <td>${d.edad}</td>
+                    <td style="font-weight:bold;">${d.peso}</td>
+                    <td>${d.imc}</td>
+                    <td>${d.musculo}</td>
+                    <td>${d.hueso}</td>
+                    <td>${d.viscera}</td>
+                    <td>${d.grasa}</td>
+                    <td>${d.pecho || '-'}</td>
+                    <td>${d.hombros || '-'}</td>
+                    <td>${d.biceps || '-'}</td>
+                    <td>${d.abdomen || '-'}</td>
+                    <td>${d.pierna || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- Renderizar Gráficos ---
         function renderCharts() {
             if(!historyDataCache) return; 
 
@@ -375,7 +438,6 @@
             let muscleData = profileData.map(d => d.musculo);
             let fatData = profileData.map(d => d.grasa);
             
-            // Extracción de todos los datos históricos para el gráfico evolutivo lineal
             let pechoData = profileData.map(d => d.pecho);
             let hombrosData = profileData.map(d => d.hombros);
             let bicepsData = profileData.map(d => d.biceps);
@@ -414,21 +476,18 @@
             if(chartsInstance.c) chartsInstance.c.destroy();
             if(chartsInstance.p) chartsInstance.p.destroy();
 
-            // Gráfico 1: Peso
             chartsInstance.w = new Chart(document.getElementById('weightChart'), {
                 type: 'line',
                 data: { labels, datasets: [{ label: 'Peso Total (kg)', data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true, borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#fff' }] },
                 options: { responsive: true, scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor } } }, plugins: { title: { display: true, text: 'Curva de Peso', color: '#fff', font: { size: 14 } } } }
             });
 
-            // Gráfico 2: Composición
             chartsInstance.c = new Chart(document.getElementById('compChart'), {
                 type: 'bar',
                 data: { labels, datasets: [ { label: 'Músculo (kg)', data: muscleData, backgroundColor: themeColor, borderRadius: 6 }, { label: 'Grasa (kg)', data: fatData, backgroundColor: '#cbd5e1', borderRadius: 6 } ] },
                 options: { responsive: true, scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor } } }, plugins: { title: { display: true, text: 'Masa Magra vs Grasa', color: '#fff', font: { size: 14 } } } }
             });
 
-            // Gráfico 3: Evolución Lineal de Perímetros
             chartsInstance.p = new Chart(document.getElementById('perimetersChart'), {
                 type: 'line',
                 data: { 

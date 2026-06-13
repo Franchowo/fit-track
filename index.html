@@ -3,39 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitTrack</title>
+    <title>FitTrack Pro</title>
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="FitTrack">
     <link rel="manifest" href="manifest.json">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0f172a;
-            --bg-darker: #020617;
-            --glass-bg: rgba(30, 41, 59, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --theme: #00f3ff;
-            --theme-rgb: 0, 243, 255;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-dark: #0f172a; --bg-darker: #020617; --glass-bg: rgba(30, 41, 59, 0.6); --glass-border: rgba(255, 255, 255, 0.08);
+            --theme: #00f3ff; --theme-rgb: 0, 243, 255; --text-main: #f8fafc; --text-muted: #94a3b8;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-
         body { background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%); color: var(--text-main); min-height: 100vh; padding-bottom: 90px; overflow-x: hidden; }
-
-        .glass { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
+        .glass { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
 
         header { padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); }
         h1 { font-weight: 800; font-size: 1.8rem; letter-spacing: 1px; color: #ffffff; display: flex; justify-content: center; align-items: center; gap: 10px; }
         h1 i { color: #ffffff; font-size: 1.5rem; transform: rotate(15deg); }
-
-        .profile-badge { display: inline-block; padding: 6px 18px; border-radius: 30px; font-size: 0.9rem; margin-top: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; background: rgba(var(--theme-rgb), 0.15); border: 1px solid var(--theme); color: var(--theme); box-shadow: 0 0 10px rgba(var(--theme-rgb), 0.2); transition: all 0.3s ease; }
+        .profile-badge { display: inline-block; padding: 6px 18px; border-radius: 30px; font-size: 0.9rem; margin-top: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; background: rgba(var(--theme-rgb), 0.15); border: 1px solid var(--theme); color: var(--theme); }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .hidden { display: none !important; }
@@ -43,23 +33,32 @@
         .profile-selector { display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
         .profile-btn { padding: 35px 20px; font-size: 2rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; cursor: pointer; text-align: center; border: 2px solid transparent; transition: 0.3s; }
         .profile-btn i { display: block; font-size: 2.5rem; margin-bottom: 10px; }
+        .btn-fran { background: rgba(0, 243, 255, 0.05); border-color: rgba(0, 243, 255, 0.2); } .btn-fran i { color: #00f3ff; }
+        .btn-mama { background: rgba(255, 0, 234, 0.05); border-color: rgba(255, 0, 234, 0.2); } .btn-mama i { color: #ff00ea; }
+        .btn-claudia { background: rgba(249, 115, 22, 0.05); border-color: rgba(249, 115, 22, 0.2); } .btn-claudia i { color: #f97316; }
         
-        .btn-fran { background: rgba(0, 243, 255, 0.05); border-color: rgba(0, 243, 255, 0.2); }
-        .btn-fran i { color: #00f3ff; }
-        .btn-mama { background: rgba(255, 0, 234, 0.05); border-color: rgba(255, 0, 234, 0.2); }
-        .btn-mama i { color: #ff00ea; }
-        .btn-claudia { background: rgba(249, 115, 22, 0.05); border-color: rgba(249, 115, 22, 0.2); }
-        .btn-claudia i { color: #f97316; }
-        .profile-btn:active { transform: scale(0.98); }
+        /* Sub-Navegación Interna (Scrollable) */
+        .sub-nav { 
+            display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.3); 
+            padding: 5px; border-radius: 15px; border: 1px solid var(--glass-border); 
+            overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+        }
+        .sub-nav::-webkit-scrollbar { display: none; }
+        .sub-nav-btn { 
+            flex: 1 0 auto; padding: 12px 15px; text-align: center; border-radius: 10px; 
+            cursor: pointer; color: var(--text-muted); font-weight: bold; font-size: 0.95rem; 
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; 
+        }
+        .sub-nav-btn.active { background: var(--theme); color: #000; box-shadow: 0 0 10px rgba(var(--theme-rgb), 0.4); }
 
         .form-group { margin-bottom: 25px; }
         .form-group label { display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 1rem; font-weight: 500; }
         
-        .input-large { width: 100%; min-height: 60px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: white; font-size: 1.2rem; font-weight: 600; transition: all 0.3s; }
+        .input-large { width: 100%; min-height: 60px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); color: white; font-size: 1.2rem; font-weight: 600; transition: all 0.3s; }
         .input-large:focus { outline: none; border-color: var(--theme); box-shadow: 0 0 12px rgba(var(--theme-rgb), 0.2); background: rgba(var(--theme-rgb), 0.05); }
         select.input-large { appearance: none; }
-        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .grid-reps { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
 
         .step-indicators { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
         .step-dot { width: 45px; height: 6px; border-radius: 6px; background: var(--glass-border); transition: 0.4s; }
@@ -67,28 +66,24 @@
 
         .btn-save { width: 100%; min-height: 65px; border-radius: 16px; border: 2px solid var(--theme); background: rgba(var(--theme-rgb), 0.05); color: var(--theme); font-size: 1.3rem; font-weight: 800; margin-top: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .btn-save:active { transform: scale(0.97); background: var(--theme); color: #000; box-shadow: 0 0 20px rgba(var(--theme-rgb), 0.4); }
-        #btn-submit { background: var(--theme); color: #000; }
-        #btn-submit:active { background: transparent; color: var(--theme); }
+        .btn-solid { background: var(--theme); color: #000; }
 
         .analytics-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .analytics-header h2 i { color: var(--theme); }
-        .filter-select { background: var(--glass-bg); color: #fff; border: 1px solid var(--theme); padding: 10px; border-radius: 10px; outline: none; }
+        .filter-select { background: var(--glass-bg); color: #fff; border: 1px solid var(--theme); padding: 10px; border-radius: 10px; outline: none; font-weight:bold; }
 
         .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
         .kpi-card { padding: 20px 15px; text-align: center; border-top: 3px solid var(--theme); }
         .kpi-value { font-size: 2rem; font-weight: 900; margin: 10px 0 5px 0; color: #fff; }
         .kpi-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; }
         
-        .chart-container { margin-bottom: 25px; padding: 20px; border-radius: 20px; }
+        .chart-container { margin-bottom: 25px; padding: 20px; border-radius: 20px; position: relative; }
+        .chart-title { text-align: center; color: var(--theme); font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; }
 
-        /* Estilos Tabla Detalles */
         .table-container { overflow-x: auto; padding: 0; border-radius: 20px; }
-        .data-table { width: 100%; border-collapse: collapse; text-align: center; min-width: 800px; }
+        .data-table { width: 100%; border-collapse: collapse; text-align: center; min-width: 600px; }
         .data-table th { padding: 15px; border-bottom: 2px solid var(--theme); color: var(--theme); font-size: 0.85rem; text-transform: uppercase; white-space: nowrap; background: rgba(0,0,0,0.2); }
         .data-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); font-size: 0.95rem; white-space: nowrap; }
-        .data-table tr:hover { background: rgba(var(--theme-rgb), 0.1); }
         
-        /* Modificación Navbar para 4 iconos */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; display: flex; justify-content: space-around; align-items: center; background: rgba(2, 6, 23, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(15px); z-index: 1000; }
         .nav-item { color: var(--text-muted); text-align: center; font-size: 1.8rem; flex: 1; padding: 15px 0; cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--theme); text-shadow: 0 0 15px rgba(var(--theme-rgb), 0.5); transform: translateY(-4px); }
@@ -105,131 +100,143 @@
         <div id="active-profile-badge" class="profile-badge hidden"></div>
     </header>
 
-    <!-- VISTA PERFILES -->
     <div id="view-profiles" class="container">
         <div class="profile-selector">
-            <div class="glass profile-btn btn-fran" onclick="selectProfile('FRAN')">
-                <i class="fa-solid fa-user-ninja"></i> FRAN
-            </div>
-            <div class="glass profile-btn btn-mama" onclick="selectProfile('MAMÁ')">
-                <i class="fa-solid fa-user-astronaut"></i> MAMÁ
-            </div>
-            <div class="glass profile-btn btn-claudia" onclick="selectProfile('CLAUDIA')">
-                <i class="fa-solid fa-fire"></i> CLAUDIA
-            </div>
+            <div class="glass profile-btn btn-fran" onclick="selectProfile('FRAN')"><i class="fa-solid fa-user-ninja"></i> FRAN</div>
+            <div class="glass profile-btn btn-mama" onclick="selectProfile('MAMÁ')"><i class="fa-solid fa-user-astronaut"></i> MAMÁ</div>
+            <div class="glass profile-btn btn-claudia" onclick="selectProfile('CLAUDIA')"><i class="fa-solid fa-fire"></i> CLAUDIA</div>
         </div>
     </div>
 
-    <!-- APP -->
     <div id="view-app" class="hidden">
         
-        <!-- PESTAÑA 1: FORMULARIO -->
         <div id="tab-form" class="container">
-            <div class="step-indicators">
-                <div class="step-dot active" id="dot1"></div>
-                <div class="step-dot" id="dot2"></div>
-                <div class="step-dot" id="dot3"></div>
+            <div class="sub-nav">
+                <div class="sub-nav-btn active" id="btn-reg-fisico" onclick="switchFormMode('fisico')">Físico</div>
+                <div class="sub-nav-btn" id="btn-reg-marcas" onclick="switchFormMode('marcas')">Marcas</div>
             </div>
 
-            <div id="step1" class="glass" style="padding: 30px 20px;">
-                <h3 style="margin-bottom: 25px; color: var(--theme); font-size: 1.4rem;"><i class="fa-solid fa-calendar-day"></i> Datos Base</h3>
-                <div class="form-group"><label>Fecha</label><input type="date" class="input-large" id="f_fecha"></div>
-                <div class="grid-2">
-                    <div class="form-group"><label>Edad Metabólica</label><input type="number" class="input-large" id="f_edad" placeholder="Años"></div>
-                    <div class="form-group"><label>Mesociclo</label>
-                        <select class="input-large" id="f_mesociclo">
-                            <option>-</option><option>Hipertrofia</option><option>Fuerza Base</option><option>Volumen</option><option>Peaking</option>
-                        </select>
+            <div id="form-fisico">
+                <div class="step-indicators"><div class="step-dot active" id="dot1"></div><div class="step-dot" id="dot2"></div><div class="step-dot" id="dot3"></div></div>
+                <div id="step1" class="glass" style="padding: 30px 20px;">
+                    <div class="form-group"><label>Fecha</label><input type="date" class="input-large" id="f_fecha"></div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Edad Metabólica</label><input type="text" inputmode="decimal" class="input-large" id="f_edad"></div>
+                        <div class="form-group"><label>Mesociclo</label>
+                            <select class="input-large" id="f_mesociclo"><option>-</option><option>Hipertrofia</option><option>Fuerza Base</option><option>Volumen</option><option>Peaking</option></select>
+                        </div>
+                    </div>
+                    <button class="btn-save" onclick="nextStep(2)">Continuar</button>
+                </div>
+                <div id="step2" class="glass hidden" style="padding: 30px 20px;">
+                    <div class="grid-2">
+                        <div class="form-group"><label>Peso (kg)</label><input type="text" inputmode="decimal" class="input-large" id="f_peso"></div>
+                        <div class="form-group"><label>% Graso</label><input type="text" inputmode="decimal" class="input-large" id="f_imc"></div>
+                        <div class="form-group"><label>Músculo (kg)</label><input type="text" inputmode="decimal" class="input-large" id="f_musculo"></div>
+                        <div class="form-group"><label>Hueso (kg)</label><input type="text" inputmode="decimal" class="input-large" id="f_hueso"></div>
+                        <div class="form-group"><label>Víscera</label><input type="text" inputmode="decimal" class="input-large" id="f_viscera"></div>
+                        <div class="form-group"><label>Grasa (kg)</label><input type="text" inputmode="decimal" class="input-large" id="f_grasa"></div>
+                    </div>
+                    <button class="btn-save" onclick="nextStep(3)">Continuar</button>
+                </div>
+                <div id="step3" class="glass hidden" style="padding: 30px 20px;">
+                    <div class="grid-2">
+                        <div class="form-group"><label>Pecho</label><input type="text" inputmode="decimal" class="input-large" id="f_pecho"></div>
+                        <div class="form-group"><label>Hombros</label><input type="text" inputmode="decimal" class="input-large" id="f_hombros"></div>
+                        <div class="form-group"><label>Bíceps</label><input type="text" inputmode="decimal" class="input-large" id="f_biceps"></div>
+                        <div class="form-group"><label>Pierna</label><input type="text" inputmode="decimal" class="input-large" id="f_pierna"></div>
+                    </div>
+                    <div class="form-group"><label>Abdomen</label><input type="text" inputmode="decimal" class="input-large" id="f_abdomen"></div>
+                    <button class="btn-save btn-solid" id="btn-submit-fis" onclick="saveDataToSheet()"><i class="fa-solid fa-database"></i> Sincronizar Físico</button>
+                </div>
+            </div>
+
+            <div id="form-marcas" class="hidden glass" style="padding: 30px 20px;">
+                <div class="form-group"><label>Fecha Toma de Marcas</label><input type="date" class="input-large" id="m_fecha"></div>
+                <div class="form-group">
+                    <label>Mesociclo a registrar</label>
+                    <select class="input-large" id="m_mesociclo" onchange="toggleRepsInputs()">
+                        <option value="FB">Fuerza Base (FB)</option>
+                        <option value="VL">Volumen (VL)</option>
+                        <option value="PK">Peaking (PK)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-arrows-up-down"></i> Sentadilla</label>
+                    <div class="grid-reps">
+                        <input type="text" inputmode="decimal" class="input-large" id="m_ex1_kg" placeholder="Kg levantados">
+                        <input type="number" class="input-large reps-input hidden" id="m_ex1_reps" placeholder="Reps">
                     </div>
                 </div>
-                <button class="btn-save" onclick="nextStep(2)">Continuar <i class="fa-solid fa-angle-right"></i></button>
-            </div>
-
-            <div id="step2" class="glass hidden" style="padding: 30px 20px;">
-                <h3 style="margin-bottom: 25px; color: var(--theme); font-size: 1.4rem;"><i class="fa-solid fa-weight-scale"></i> Composición</h3>
-                <div class="grid-2">
-                    <div class="form-group"><label>Peso (kg)</label><input type="number" step="0.1" class="input-large" id="f_peso" placeholder="0.0"></div>
-                    <div class="form-group"><label>Porcentaje Graso (%)</label><input type="text" class="input-large" id="f_imc" placeholder="Ej: 30,8%"></div>
-                    <div class="form-group"><label>Músculo (kg)</label><input type="number" step="0.1" class="input-large" id="f_musculo" placeholder="0.0"></div>
-                    <div class="form-group"><label>Hueso (kg)</label><input type="number" step="0.1" class="input-large" id="f_hueso" placeholder="0.0"></div>
-                    <div class="form-group"><label>Víscera</label><input type="number" step="0.1" class="input-large" id="f_viscera" placeholder="0"></div>
-                    <div class="form-group"><label>Grasa (kg)</label><input type="number" step="0.1" class="input-large" id="f_grasa" placeholder="0.0"></div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-dumbbell"></i> <span id="lbl-ex2">Press Banca</span></label>
+                    <div class="grid-reps">
+                        <input type="text" inputmode="decimal" class="input-large" id="m_ex2_kg" placeholder="Kg levantados">
+                        <input type="number" class="input-large reps-input hidden" id="m_ex2_reps" placeholder="Reps">
+                    </div>
                 </div>
-                <button class="btn-save" onclick="nextStep(3)">Continuar <i class="fa-solid fa-angle-right"></i></button>
-            </div>
-
-            <div id="step3" class="glass hidden" style="padding: 30px 20px;">
-                <h3 style="margin-bottom: 25px; color: var(--theme); font-size: 1.4rem;"><i class="fa-solid fa-ruler"></i> Perímetros (cm)</h3>
-                <div class="grid-2">
-                    <div class="form-group"><label>Pecho</label><input type="number" class="input-large" id="f_pecho" placeholder="0"></div>
-                    <div class="form-group"><label>Hombros</label><input type="number" class="input-large" id="f_hombros" placeholder="0"></div>
-                    <div class="form-group"><label>Bíceps</label><input type="number" class="input-large" id="f_biceps" placeholder="0"></div>
-                    <div class="form-group"><label>Pierna</label><input type="number" class="input-large" id="f_pierna" placeholder="0"></div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-weight-hanging"></i> Peso Muerto</label>
+                    <div class="grid-reps">
+                        <input type="text" inputmode="decimal" class="input-large" id="m_ex3_kg" placeholder="Kg levantados">
+                        <input type="number" class="input-large reps-input hidden" id="m_ex3_reps" placeholder="Reps">
+                    </div>
                 </div>
-                <div class="form-group"><label>Abdomen</label><input type="number" class="input-large" id="f_abdomen" placeholder="0"></div>
                 
-                <button class="btn-save" id="btn-submit" onclick="saveDataToSheet()">
-                    <i class="fa-solid fa-database"></i> Sincronizar
-                </button>
+                <button class="btn-save btn-solid" id="btn-submit-marcas" onclick="saveDataToSheet()"><i class="fa-solid fa-database"></i> Sincronizar Marcas</button>
             </div>
         </div>
 
-        <!-- PESTAÑA 2: DASHBOARD GRÁFICOS -->
         <div id="tab-dashboard" class="container hidden">
-            <div class="analytics-header">
-                <h2 style="font-size: 1.4rem; margin:0;"><i class="fa-solid fa-chart-pie"></i> Métricas</h2>
-                <select class="filter-select" id="chartFilter" onchange="renderCharts()">
-                    <option value="6">Últimos 6</option>
-                    <option value="12">Últimos 12</option>
-                    <option value="all">Todos</option>
-                </select>
+            <div class="sub-nav">
+                <div class="sub-nav-btn active" id="btn-dash-fisico" onclick="switchDashMode('fisico')">Físico</div>
+                <div class="sub-nav-btn" id="btn-dash-marcas" onclick="switchDashMode('marcas')">Marcas</div>
             </div>
-            <div id="dashboard-loading" class="hidden"><div class="loader big-loader"></div><p style="text-align:center; color: var(--theme);">Cargando historial real...</p></div>
-            <div id="dashboard-content">
+            <div id="dashboard-loading" class="hidden"><div class="loader big-loader"></div><p style="text-align:center; color: var(--theme);">Cargando historial...</p></div>
+            
+            <div id="dash-fisico">
+                <div class="analytics-header"><select class="filter-select" id="chartFilter" onchange="renderChartsFisico()"><option value="6">Últimos 6</option><option value="12">Últimos 12</option><option value="all">Todos</option></select></div>
                 <div class="kpi-grid">
-                    <div class="glass kpi-card"><div class="kpi-label">Evolución Peso</div><div class="kpi-value" id="kpi-peso">--</div><div id="kpi-peso-sub" style="color: var(--text-muted); font-size: 0.85rem;">-- kg dif</div></div>
+                    <div class="glass kpi-card"><div class="kpi-label">Evolución Peso</div><div class="kpi-value" id="kpi-peso">--</div><div id="kpi-peso-sub" style="color: var(--text-muted); font-size: 0.85rem;">--</div></div>
                     <div class="glass kpi-card"><div class="kpi-label">Grasa Actual</div><div class="kpi-value" id="kpi-grasa">--</div><div id="kpi-grasa-sub" style="color: var(--text-muted); font-size: 0.85rem;">kg totales</div></div>
                 </div>
-                <div class="glass chart-container"><canvas id="weightChart"></canvas></div>
-                <div class="glass chart-container"><canvas id="compChart"></canvas></div>
+                <div class="glass chart-container"><div class="chart-title">Peso</div><canvas id="weightChart"></canvas></div>
+                <div class="glass chart-container"><div class="chart-title">Músculo vs Grasa</div><canvas id="compChart"></canvas></div>
+                <div class="analytics-header"><select class="filter-select" id="perimeterFilter" onchange="renderChartsFisico()"><option value="all">Todos Perímetros</option><option value="pecho">Pecho</option><option value="hombros">Hombros</option><option value="biceps">Bíceps</option><option value="abdomen">Abdomen</option><option value="pierna">Pierna</option></select></div>
                 <div class="glass chart-container"><canvas id="perimetersChart"></canvas></div>
+            </div>
+
+            <div id="dash-marcas" class="hidden">
+                <div class="analytics-header" style="justify-content:center;">
+                    <select class="filter-select" id="marcasFilter" onchange="renderChartsMarcas()">
+                        <option value="FB">Fuerza Base</option>
+                        <option value="VL">Volumen</option>
+                        <option value="PK">Peaking</option>
+                    </select>
+                </div>
+                <div class="glass chart-container"><div class="chart-title">Sentadilla</div><canvas id="chartEx1"></canvas></div>
+                <div class="glass chart-container"><div class="chart-title" id="title-ex2">Press Banca</div><canvas id="chartEx2"></canvas></div>
+                <div class="glass chart-container"><div class="chart-title">Peso Muerto</div><canvas id="chartEx3"></canvas></div>
             </div>
         </div>
 
-        <!-- PESTAÑA 3: DETALLE TABLA -->
         <div id="tab-detalle" class="container hidden" style="max-width: 900px;">
-            <div class="analytics-header">
-                <h2 style="font-size: 1.4rem; margin:0;"><i class="fa-solid fa-table-list"></i> Historial Completo</h2>
+            <div class="sub-nav">
+                <div class="sub-nav-btn active" id="btn-det-fisico" onclick="switchDetalleMode('fisico')">Físico</div>
+                <div class="sub-nav-btn" id="btn-det-fb" onclick="switchDetalleMode('FB')">Fuerza Base</div>
+                <div class="sub-nav-btn" id="btn-det-vl" onclick="switchDetalleMode('VL')">Volumen</div>
+                <div class="sub-nav-btn" id="btn-det-pk" onclick="switchDetalleMode('PK')">Peaking</div>
             </div>
             <div id="detalle-loading" class="hidden"><div class="loader big-loader"></div></div>
             <div class="glass table-container" id="detalle-content">
                 <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Meso.</th>
-                            <th>Edad</th>
-                            <th>Peso</th>
-                            <th>% Graso</th>
-                            <th>Músculo</th>
-                            <th>Hueso</th>
-                            <th>Víscera</th>
-                            <th>Grasa</th>
-                            <th>Pecho</th>
-                            <th>Hombros</th>
-                            <th>Bíceps</th>
-                            <th>Abdomen</th>
-                            <th>Pierna</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Rellenado por JS -->
-                    </tbody>
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- NAVBAR 4 ICONOS -->
         <nav class="bottom-nav">
             <div class="nav-item active" onclick="switchTab('form')" id="nav-form"><i class="fa-solid fa-layer-group"></i></div>
             <div class="nav-item" onclick="switchTab('dashboard')" id="nav-dashboard"><i class="fa-solid fa-chart-column"></i></div>
@@ -243,30 +250,33 @@
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRBQoSib2g68fEs9Wy0K-DdawIVgw5UO5I7cSsY4tpCv5lkezcgkNiXH8Bk9dUgp07Kg/exec';
 
         document.getElementById('f_fecha').valueAsDate = new Date();
+        document.getElementById('m_fecha').valueAsDate = new Date();
+        
         let currentProfile = '';
+        let activeFormMode = 'fisico';
+        let activeDashMode = 'fisico';
+        let activeDetalleMode = 'fisico'; 
         let chartsInstance = {}; 
         let historyDataCache = null; 
+
+        function formatNumUI(val) { return (val == null || val === '') ? '-' : val.toString().replace('.', ','); }
+        function sanitize(val) { return (!val) ? "" : val.toString().replace('.', ','); }
+        function getEx2Name() { return currentProfile === 'CLAUDIA' ? 'Fondos' : 'Press Banca'; }
 
         function selectProfile(profile) {
             currentProfile = profile;
             document.getElementById('view-profiles').classList.add('hidden');
             document.getElementById('view-app').classList.remove('hidden');
-            
-            const badge = document.getElementById('active-profile-badge');
-            badge.innerText = profile;
-            badge.classList.remove('hidden');
+            document.getElementById('active-profile-badge').innerText = profile;
+            document.getElementById('active-profile-badge').classList.remove('hidden');
             
             const root = document.documentElement;
-            if (profile === 'FRAN') {
-                root.style.setProperty('--theme', '#00f3ff');
-                root.style.setProperty('--theme-rgb', '0, 243, 255');
-            } else if (profile === 'MAMÁ') {
-                root.style.setProperty('--theme', '#ff00ea');
-                root.style.setProperty('--theme-rgb', '255, 0, 234');
-            } else if (profile === 'CLAUDIA') {
-                root.style.setProperty('--theme', '#f97316'); 
-                root.style.setProperty('--theme-rgb', '249, 115, 22');
-            }
+            if (profile === 'FRAN') { root.style.setProperty('--theme', '#00f3ff'); root.style.setProperty('--theme-rgb', '0, 243, 255'); }
+            else if (profile === 'MAMÁ') { root.style.setProperty('--theme', '#ff00ea'); root.style.setProperty('--theme-rgb', '255, 0, 234'); }
+            else if (profile === 'CLAUDIA') { root.style.setProperty('--theme', '#f97316'); root.style.setProperty('--theme-rgb', '249, 115, 22'); }
+
+            document.getElementById('lbl-ex2').innerText = getEx2Name();
+            document.getElementById('title-ex2').innerText = getEx2Name();
 
             nextStep(1);
             switchTab('form');
@@ -276,15 +286,7 @@
             document.getElementById('view-app').classList.add('hidden');
             document.getElementById('view-profiles').classList.remove('hidden');
             document.getElementById('active-profile-badge').classList.add('hidden');
-        }
-
-        function nextStep(step) {
-            [1, 2, 3].forEach(s => {
-                document.getElementById('step' + s).classList.add('hidden');
-                document.getElementById('dot' + s).classList.remove('active');
-            });
-            document.getElementById('step' + step).classList.remove('hidden');
-            document.getElementById('dot' + step).classList.add('active');
+            historyDataCache = null;
         }
 
         async function switchTab(tab) {
@@ -292,220 +294,216 @@
                 document.getElementById('tab-' + t).classList.add('hidden');
                 document.getElementById('nav-' + t).classList.remove('active');
             });
-
             document.getElementById('tab-' + tab).classList.remove('hidden');
             document.getElementById('nav-' + tab).classList.add('active');
 
             if (tab === 'dashboard' || tab === 'detalle') {
-                await fetchRealData(tab); 
-                if(tab === 'dashboard') renderCharts();
+                await fetchRealData(); 
+                if(tab === 'dashboard') {
+                    if(activeDashMode === 'fisico') renderChartsFisico(); else renderChartsMarcas();
+                }
                 if(tab === 'detalle') renderTable();
             }
         }
 
-        async function fetchRealData(tab) {
-            if (historyDataCache) return; 
+        function switchFormMode(mode) {
+            activeFormMode = mode;
+            document.getElementById('btn-reg-fisico').classList.remove('active');
+            document.getElementById('btn-reg-marcas').classList.remove('active');
+            document.getElementById('btn-reg-' + mode).classList.add('active');
             
-            if(tab === 'dashboard') {
-                document.getElementById('dashboard-content').classList.add('hidden');
-                document.getElementById('dashboard-loading').classList.remove('hidden');
-            } else {
-                document.getElementById('detalle-content').classList.add('hidden');
-                document.getElementById('detalle-loading').classList.remove('hidden');
-            }
+            if(mode === 'fisico') { document.getElementById('form-fisico').classList.remove('hidden'); document.getElementById('form-marcas').classList.add('hidden'); }
+            else { document.getElementById('form-fisico').classList.add('hidden'); document.getElementById('form-marcas').classList.remove('hidden'); toggleRepsInputs(); }
+        }
 
+        function switchDashMode(mode) {
+            activeDashMode = mode;
+            document.getElementById('btn-dash-fisico').classList.remove('active');
+            document.getElementById('btn-dash-marcas').classList.remove('active');
+            document.getElementById('btn-dash-' + mode).classList.add('active');
+            
+            if(mode === 'fisico') { document.getElementById('dash-fisico').classList.remove('hidden'); document.getElementById('dash-marcas').classList.add('hidden'); renderChartsFisico(); }
+            else { document.getElementById('dash-fisico').classList.add('hidden'); document.getElementById('dash-marcas').classList.remove('hidden'); renderChartsMarcas(); }
+        }
+
+        function switchDetalleMode(mode) {
+            activeDetalleMode = mode;
+            ['fisico', 'fb', 'vl', 'pk'].forEach(m => document.getElementById('btn-det-' + m).classList.remove('active'));
+            document.getElementById('btn-det-' + mode.toLowerCase()).classList.add('active');
+            renderTable();
+        }
+
+        function nextStep(step) {
+            [1, 2, 3].forEach(s => { document.getElementById('step' + s).classList.add('hidden'); document.getElementById('dot' + s).classList.remove('active'); });
+            document.getElementById('step' + step).classList.remove('hidden'); document.getElementById('dot' + step).classList.add('active');
+        }
+
+        function toggleRepsInputs() {
+            const meso = document.getElementById('m_mesociclo').value;
+            const repInputs = document.querySelectorAll('.reps-input');
+            if (meso === 'VL') repInputs.forEach(el => el.classList.remove('hidden'));
+            else repInputs.forEach(el => { el.classList.add('hidden'); el.value = ''; });
+        }
+
+        async function fetchRealData() {
+            if (historyDataCache) return; 
+            document.getElementById('dashboard-loading').classList.remove('hidden');
+            document.getElementById('detalle-loading').classList.remove('hidden');
             try {
                 const response = await fetch(APPS_SCRIPT_URL);
                 const result = await response.json();
-                
-                if (result.status === 'success') {
-                    historyDataCache = result.data;
-                } else {
-                    console.error("Error en Apps Script:", result.message);
-                }
-            } catch (e) {
-                console.error("Error conectando con la BBDD:", e);
-                alert("No se pudieron cargar los datos reales.");
-            }
-
-            if(tab === 'dashboard') {
-                document.getElementById('dashboard-loading').classList.add('hidden');
-                document.getElementById('dashboard-content').classList.remove('hidden');
-            } else {
-                document.getElementById('detalle-loading').classList.add('hidden');
-                document.getElementById('detalle-content').classList.remove('hidden');
-            }
+                if (result.status === 'success') historyDataCache = result.data;
+            } catch (e) { alert("Error al cargar historial."); }
+            document.getElementById('dashboard-loading').classList.add('hidden');
+            document.getElementById('detalle-loading').classList.add('hidden');
         }
 
         async function saveDataToSheet() {
-            const btn = document.getElementById('btn-submit');
+            const btnId = activeFormMode === 'fisico' ? 'btn-submit-fis' : 'btn-submit-marcas';
+            const btn = document.getElementById(btnId);
             const originalText = btn.innerHTML;
             btn.innerHTML = '<span class="loader"></span> Guardando...';
             btn.disabled = true;
 
-            const payload = {
-                profile: currentProfile,
-                fecha: document.getElementById('f_fecha').value,
-                mesociclo: document.getElementById('f_mesociclo').value,
-                edad: document.getElementById('f_edad').value,
-                peso: document.getElementById('f_peso').value,
-                imc: document.getElementById('f_imc').value,
-                musculo: document.getElementById('f_musculo').value,
-                hueso: document.getElementById('f_hueso').value,
-                viscera: document.getElementById('f_viscera').value,
-                grasa: document.getElementById('f_grasa').value,
-                pecho: document.getElementById('f_pecho').value,
-                hombros: document.getElementById('f_hombros').value,
-                biceps: document.getElementById('f_biceps').value,
-                abdomen: document.getElementById('f_abdomen').value,
-                pierna: document.getElementById('f_pierna').value
-            };
+            let payload = { profile: currentProfile, type: activeFormMode };
+
+            if (activeFormMode === 'fisico') {
+                payload.fecha = document.getElementById('f_fecha').value;
+                payload.mesociclo = document.getElementById('f_mesociclo').value;
+                payload.edad = sanitize(document.getElementById('f_edad').value);
+                payload.peso = sanitize(document.getElementById('f_peso').value);
+                payload.imc = sanitize(document.getElementById('f_imc').value);
+                payload.musculo = sanitize(document.getElementById('f_musculo').value);
+                payload.hueso = sanitize(document.getElementById('f_hueso').value);
+                payload.viscera = sanitize(document.getElementById('f_viscera').value);
+                payload.grasa = sanitize(document.getElementById('f_grasa').value);
+                payload.pecho = sanitize(document.getElementById('f_pecho').value);
+                payload.hombros = sanitize(document.getElementById('f_hombros').value);
+                payload.biceps = sanitize(document.getElementById('f_biceps').value);
+                payload.abdomen = sanitize(document.getElementById('f_abdomen').value);
+                payload.pierna = sanitize(document.getElementById('f_pierna').value);
+            } else {
+                payload.fecha = document.getElementById('m_fecha').value;
+                payload.mesociclo_marca = document.getElementById('m_mesociclo').value;
+                payload.ex1_kg = sanitize(document.getElementById('m_ex1_kg').value);
+                payload.ex2_kg = sanitize(document.getElementById('m_ex2_kg').value);
+                payload.ex3_kg = sanitize(document.getElementById('m_ex3_kg').value);
+                if (payload.mesociclo_marca === 'VL') {
+                    payload.ex1_reps = document.getElementById('m_ex1_reps').value;
+                    payload.ex2_reps = document.getElementById('m_ex2_reps').value;
+                    payload.ex3_reps = document.getElementById('m_ex3_reps').value;
+                }
+            }
 
             try {
-                await fetch(APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
+                await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 alert('¡Datos sincronizados correctamente!');
                 historyDataCache = null; 
                 switchTab('dashboard');
-                
-            } catch (error) {
-                alert('Error al conectar con Google Sheets: ' + error);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
+                if(activeFormMode === 'fisico') switchDashMode('fisico'); else switchDashMode('marcas');
+            } catch (error) { alert('Error: ' + error); } 
+            finally { btn.innerHTML = originalText; btn.disabled = false; }
         }
 
-        // --- Renderizar Tabla de Detalle ---
         function renderTable() {
+            if(!historyDataCache) return;
+            const thead = document.getElementById('tableHead');
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             
-            if(!historyDataCache || !historyDataCache[currentProfile]) return;
+            const profileData = historyDataCache[currentProfile];
+            const dataToRender = [...profileData[activeDetalleMode]].reverse();
             
-            // Invertimos para mostrar el registro más reciente arriba
-            const profileData = [...historyDataCache[currentProfile]].reverse();
-            
-            if(profileData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="14">No hay registros disponibles.</td></tr>';
-                return;
+            if(activeDetalleMode === 'fisico') {
+                thead.innerHTML = `<tr><th>Fecha</th><th>Meso.</th><th>Edad</th><th>Peso</th><th>% Graso</th><th>Músculo</th><th>Hueso</th><th>Víscera</th><th>Grasa</th><th>Pecho</th><th>Hombros</th><th>Bíceps</th><th>Abdomen</th><th>Pierna</th></tr>`;
+                dataToRender.forEach(d => {
+                    tbody.innerHTML += `<tr><td style="color:var(--theme); font-weight:bold;">${d.fecha}</td><td>${d.mesociclo}</td><td>${d.edad}</td><td style="font-weight:bold;">${formatNumUI(d.peso)}</td><td>${d.imc}</td><td>${formatNumUI(d.musculo)}</td><td>${formatNumUI(d.hueso)}</td><td>${formatNumUI(d.viscera)}</td><td>${formatNumUI(d.grasa)}</td><td>${formatNumUI(d.pecho)}</td><td>${formatNumUI(d.hombros)}</td><td>${formatNumUI(d.biceps)}</td><td>${formatNumUI(d.abdomen)}</td><td>${formatNumUI(d.pierna)}</td></tr>`;
+                });
+            } else {
+                const isVL = activeDetalleMode === 'VL';
+                const ex2Name = getEx2Name();
+                thead.innerHTML = `<tr><th>Fecha</th><th>Sentadilla (kg)</th>${isVL?'<th>Reps</th>':''}<th>${ex2Name} (kg)</th>${isVL?'<th>Reps</th>':''}<th>Peso M. (kg)</th>${isVL?'<th>Reps</th>':''}</tr>`;
+                dataToRender.forEach(d => {
+                    tbody.innerHTML += `<tr><td style="color:var(--theme); font-weight:bold;">${d.fecha}</td><td style="font-weight:bold;">${formatNumUI(d.ex1_kg)}</td>${isVL?`<td>${d.ex1_reps||'-'}</td>`:''} <td style="font-weight:bold;">${formatNumUI(d.ex2_kg)}</td>${isVL?`<td>${d.ex2_reps||'-'}</td>`:''} <td style="font-weight:bold;">${formatNumUI(d.ex3_kg)}</td>${isVL?`<td>${d.ex3_reps||'-'}</td>`:''}</tr>`;
+                });
             }
-
-            profileData.forEach(d => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight:bold; color:var(--theme);">${d.fecha}</td>
-                    <td>${d.mesociclo}</td>
-                    <td>${d.edad}</td>
-                    <td style="font-weight:bold;">${d.peso}</td>
-                    <td>${d.imc}</td>
-                    <td>${d.musculo}</td>
-                    <td>${d.hueso}</td>
-                    <td>${d.viscera}</td>
-                    <td>${d.grasa}</td>
-                    <td>${d.pecho || '-'}</td>
-                    <td>${d.hombros || '-'}</td>
-                    <td>${d.biceps || '-'}</td>
-                    <td>${d.abdomen || '-'}</td>
-                    <td>${d.pierna || '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
         }
 
-        // --- Renderizar Gráficos ---
-        function renderCharts() {
-            if(!historyDataCache) return; 
+        function renderChartsFisico() {
+            if(!historyDataCache) return;
+            const fullData = historyDataCache[currentProfile].fisico;
+            if(!fullData || fullData.length === 0) return;
 
-            const profileData = historyDataCache[currentProfile];
-            if(!profileData || profileData.length === 0) {
-                alert(`No hay registros aún para ${currentProfile} en el Excel.`);
-                return;
-            }
+            const limit = document.getElementById('chartFilter').value;
+            const pFilter = document.getElementById('perimeterFilter').value;
+            const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme').trim();
+            const themeColorBg = `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--theme-rgb').trim()}, 0.15)`;
 
-            const filterVal = document.getElementById('chartFilter').value;
-            const rootStyle = getComputedStyle(document.documentElement);
-            const themeColor = rootStyle.getPropertyValue('--theme').trim();
-            const themeColorBg = `rgba(${rootStyle.getPropertyValue('--theme-rgb').trim()}, 0.15)`;
+            let pd = limit === 'all' ? fullData : fullData.slice(-parseInt(limit));
+            let labels = pd.map(d => d.fecha), weightData = pd.map(d => d.peso), muscleData = pd.map(d => d.musculo), fatData = pd.map(d => d.grasa);
 
-            let labels = profileData.map(d => d.fecha);
-            let weightData = profileData.map(d => d.peso);
-            let muscleData = profileData.map(d => d.musculo);
-            let fatData = profileData.map(d => d.grasa);
+            const currW = weightData[weightData.length-1], prevW = weightData.length>1?weightData[weightData.length-2]:currW, diff = (currW-prevW).toFixed(1);
+            document.getElementById('kpi-peso').innerText = formatNumUI(currW) + ' kg';
+            document.getElementById('kpi-peso-sub').innerText = (diff>0?'+':'') + formatNumUI(diff) + ' kg vs anterior';
+            document.getElementById('kpi-grasa').innerText = formatNumUI(fatData[fatData.length-1]) + ' kg';
+
+            Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = "'Segoe UI', sans-serif";
+            if(chartsInstance.w) chartsInstance.w.destroy(); if(chartsInstance.c) chartsInstance.c.destroy(); if(chartsInstance.p) chartsInstance.p.destroy();
+
+            chartsInstance.w = new Chart(document.getElementById('weightChart'), { type: 'line', data: { labels, datasets: [{ data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true }] }, options: { plugins: { legend: { display: false } } }});
+            chartsInstance.c = new Chart(document.getElementById('compChart'), { type: 'bar', data: { labels, datasets: [{ label: 'Músculo', data: muscleData, backgroundColor: themeColor }, { label: 'Grasa', data: fatData, backgroundColor: '#cbd5e1' }] }});
+
+            let pDts = [];
+            const addP = (lbl, key, col) => pDts.push({ label: lbl, data: pd.map(d=>d[key]), borderColor: col, backgroundColor: col, spanGaps: true });
+            if (pFilter === 'all' || pFilter === 'pecho') addP('Pecho', 'pecho', '#f43f5e');
+            if (pFilter === 'all' || pFilter === 'hombros') addP('Hombros', 'hombros', '#3b82f6');
+            if (pFilter === 'all' || pFilter === 'biceps') addP('Bíceps', 'biceps', '#10b981');
+            if (pFilter === 'all' || pFilter === 'abdomen') addP('Abdomen', 'abdomen', '#eab308');
+            if (pFilter === 'all' || pFilter === 'pierna') addP('Pierna', 'pierna', '#a855f7');
+            chartsInstance.p = new Chart(document.getElementById('perimetersChart'), { type: 'line', data: { labels, datasets: pDts }, options: { spanGaps: true }});
+        }
+
+        function renderChartsMarcas() {
+            if(!historyDataCache) return;
+            const meso = document.getElementById('marcasFilter').value;
+            const data = historyDataCache[currentProfile][meso];
+            const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme').trim();
+            const themeColorBg = `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--theme-rgb').trim()}, 0.15)`;
             
-            let pechoData = profileData.map(d => d.pecho);
-            let hombrosData = profileData.map(d => d.hombros);
-            let bicepsData = profileData.map(d => d.biceps);
-            let abdomenData = profileData.map(d => d.abdomen);
-            let piernaData = profileData.map(d => d.pierna);
-
-            if(filterVal !== 'all') {
-                const limit = parseInt(filterVal);
-                labels = labels.slice(-limit);
-                weightData = weightData.slice(-limit);
-                muscleData = muscleData.slice(-limit);
-                fatData = fatData.slice(-limit);
-                pechoData = pechoData.slice(-limit);
-                hombrosData = hombrosData.slice(-limit);
-                bicepsData = bicepsData.slice(-limit);
-                abdomenData = abdomenData.slice(-limit);
-                piernaData = piernaData.slice(-limit);
-            }
-
-            const currentWeight = weightData[weightData.length-1];
-            const prevWeight = weightData.length > 1 ? weightData[weightData.length-2] : currentWeight;
-            const diff = (currentWeight - prevWeight).toFixed(1);
-
-            document.getElementById('kpi-peso').innerText = currentWeight + ' kg';
-            document.getElementById('kpi-peso-sub').innerText = (diff > 0 ? '+' : '') + diff + ' kg vs anterior';
-            document.getElementById('kpi-peso-sub').style.color = themeColor;
+            if(chartsInstance.m1) chartsInstance.m1.destroy(); if(chartsInstance.m2) chartsInstance.m2.destroy(); if(chartsInstance.m3) chartsInstance.m3.destroy();
             
-            document.getElementById('kpi-grasa').innerText = fatData[fatData.length-1] + ' kg';
-            document.getElementById('kpi-grasa').style.color = themeColor;
+            if(!data || data.length === 0) return;
 
-            Chart.defaults.color = '#94a3b8';
-            Chart.defaults.font.family = "'Segoe UI', sans-serif";
-            const gridColor = 'rgba(255, 255, 255, 0.05)';
-
-            if(chartsInstance.w) chartsInstance.w.destroy();
-            if(chartsInstance.c) chartsInstance.c.destroy();
-            if(chartsInstance.p) chartsInstance.p.destroy();
-
-            chartsInstance.w = new Chart(document.getElementById('weightChart'), {
-                type: 'line',
-                data: { labels, datasets: [{ label: 'Peso Total (kg)', data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true, borderWidth: 3, pointRadius: 4, pointBackgroundColor: '#fff' }] },
-                options: { responsive: true, scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor } } }, plugins: { title: { display: true, text: 'Curva de Peso', color: '#fff', font: { size: 14 } } } }
-            });
-
-            chartsInstance.c = new Chart(document.getElementById('compChart'), {
-                type: 'bar',
-                data: { labels, datasets: [ { label: 'Músculo (kg)', data: muscleData, backgroundColor: themeColor, borderRadius: 6 }, { label: 'Grasa (kg)', data: fatData, backgroundColor: '#cbd5e1', borderRadius: 6 } ] },
-                options: { responsive: true, scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor } } }, plugins: { title: { display: true, text: 'Masa Magra vs Grasa', color: '#fff', font: { size: 14 } } } }
-            });
-
-            chartsInstance.p = new Chart(document.getElementById('perimetersChart'), {
-                type: 'line',
-                data: { 
-                    labels: labels, 
-                    datasets: [
-                        { label: 'Pecho', data: pechoData, borderColor: '#f43f5e', backgroundColor: '#f43f5e', tension: 0.3, borderWidth: 2, pointRadius: 3 },
-                        { label: 'Hombros', data: hombrosData, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, borderWidth: 2, pointRadius: 3 },
-                        { label: 'Bíceps', data: bicepsData, borderColor: '#10b981', backgroundColor: '#10b981', tension: 0.3, borderWidth: 2, pointRadius: 3 },
-                        { label: 'Abdomen', data: abdomenData, borderColor: '#eab308', backgroundColor: '#eab308', tension: 0.3, borderWidth: 2, pointRadius: 3 },
-                        { label: 'Pierna', data: piernaData, borderColor: '#a855f7', backgroundColor: '#a855f7', tension: 0.3, borderWidth: 2, pointRadius: 3 }
-                    ] 
-                },
-                options: { 
-                    responsive: true, 
-                    scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor } } }, 
-                    plugins: { title: { display: true, text: 'Evolución de Perímetros (cm)', color: '#fff', font: { size: 14 } } } 
+            let labels = data.map(d => d.fecha);
+            
+            const tooltipOpts = {
+                callbacks: {
+                    label: function(ctx) {
+                        let base = ctx.parsed.y + ' kg';
+                        if (meso === 'VL') {
+                            const dataPoint = data[ctx.dataIndex];
+                            let reps = '';
+                            if (ctx.dataset.label.includes('Sentadilla')) reps = dataPoint.ex1_reps;
+                            if (ctx.dataset.label.includes(getEx2Name())) reps = dataPoint.ex2_reps;
+                            if (ctx.dataset.label.includes('Peso Muerto')) reps = dataPoint.ex3_reps;
+                            if (reps) base += ` (${reps} reps)`;
+                        }
+                        return base;
+                    }
                 }
-            });
+            };
+
+            const buildChart = (id, label, keyData) => {
+                return new Chart(document.getElementById(id), {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ label: label, data: data.map(d => d[keyData]), borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true, pointRadius: 5, pointBackgroundColor: '#fff' }] },
+                    options: { responsive: true, plugins: { legend: { display: false }, tooltip: tooltipOpts } }
+                });
+            };
+
+            chartsInstance.m1 = buildChart('chartEx1', 'Sentadilla', 'ex1_kg');
+            chartsInstance.m2 = buildChart('chartEx2', getEx2Name(), 'ex2_kg');
+            chartsInstance.m3 = buildChart('chartEx3', 'Peso Muerto', 'ex3_kg');
         }
     </script>
 </body>

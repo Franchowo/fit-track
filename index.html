@@ -31,13 +31,13 @@
         .hidden { display: none !important; }
 
         .profile-selector { display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
-        .profile-btn { padding: 35px 20px; font-size: 2rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; cursor: pointer; text-align: center; border: 2px solid transparent; transition: 0.3s; }
-        .profile-btn i { display: block; font-size: 2.5rem; margin-bottom: 10px; }
+        .profile-btn { padding: 25px 20px; font-size: 1.8rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; cursor: pointer; text-align: center; border: 2px solid transparent; transition: 0.3s; }
+        .profile-btn i { display: block; font-size: 2.2rem; margin-bottom: 10px; }
         .btn-fran { background: rgba(0, 243, 255, 0.05); border-color: rgba(0, 243, 255, 0.2); } .btn-fran i { color: #00f3ff; }
         .btn-mama { background: rgba(255, 0, 234, 0.05); border-color: rgba(255, 0, 234, 0.2); } .btn-mama i { color: #ff00ea; }
         .btn-claudia { background: rgba(249, 115, 22, 0.05); border-color: rgba(249, 115, 22, 0.2); } .btn-claudia i { color: #f97316; }
+        .btn-miguel { background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); } .btn-miguel i { color: #10b981; }
         
-        /* Sub-Navegación Interna (Scrollable) */
         .sub-nav { 
             display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.3); 
             padding: 5px; border-radius: 15px; border: 1px solid var(--glass-border); 
@@ -105,17 +105,20 @@
             <div class="glass profile-btn btn-fran" onclick="selectProfile('FRAN')"><i class="fa-solid fa-user-ninja"></i> FRAN</div>
             <div class="glass profile-btn btn-mama" onclick="selectProfile('MAMÁ')"><i class="fa-solid fa-user-astronaut"></i> MAMÁ</div>
             <div class="glass profile-btn btn-claudia" onclick="selectProfile('CLAUDIA')"><i class="fa-solid fa-fire"></i> CLAUDIA</div>
+            <div class="glass profile-btn btn-miguel" onclick="selectProfile('MIGUEL')"><i class="fa-solid fa-hand-back-fist"></i> MIGUEL</div>
         </div>
     </div>
 
     <div id="view-app" class="hidden">
         
+        <!-- PESTAÑA FORMULARIO -->
         <div id="tab-form" class="container">
             <div class="sub-nav">
                 <div class="sub-nav-btn active" id="btn-reg-fisico" onclick="switchFormMode('fisico')">Físico</div>
                 <div class="sub-nav-btn" id="btn-reg-marcas" onclick="switchFormMode('marcas')">Marcas</div>
             </div>
 
+            <!-- FÍSICO FORM -->
             <div id="form-fisico">
                 <div class="step-indicators"><div class="step-dot active" id="dot1"></div><div class="step-dot" id="dot2"></div><div class="step-dot" id="dot3"></div></div>
                 <div id="step1" class="glass" style="padding: 30px 20px;">
@@ -151,6 +154,7 @@
                 </div>
             </div>
 
+            <!-- MARCAS FORM -->
             <div id="form-marcas" class="hidden glass" style="padding: 30px 20px;">
                 <div class="form-group"><label>Fecha Toma de Marcas</label><input type="date" class="input-large" id="m_fecha"></div>
                 <div class="form-group">
@@ -163,7 +167,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fa-solid fa-arrows-up-down"></i> Sentadilla</label>
+                    <label><i class="fa-solid fa-arrows-up-down"></i> <span id="lbl-ex1">Sentadilla</span></label>
                     <div class="grid-reps">
                         <input type="text" inputmode="decimal" class="input-large" id="m_ex1_kg" placeholder="Kg levantados">
                         <input type="number" class="input-large reps-input hidden" id="m_ex1_reps" placeholder="Reps">
@@ -177,10 +181,19 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label><i class="fa-solid fa-weight-hanging"></i> Peso Muerto</label>
+                    <label><i class="fa-solid fa-weight-hanging"></i> <span id="lbl-ex3">Peso Muerto</span></label>
                     <div class="grid-reps">
                         <input type="text" inputmode="decimal" class="input-large" id="m_ex3_kg" placeholder="Kg levantados">
                         <input type="number" class="input-large reps-input hidden" id="m_ex3_reps" placeholder="Reps">
+                    </div>
+                </div>
+                
+                <!-- EJERCICIO 4 EXTRA (SOLO MIGUEL) -->
+                <div class="form-group hidden" id="group-ex4">
+                    <label><i class="fa-solid fa-arrows-up-down"></i> <span id="lbl-ex4">Sentadilla</span></label>
+                    <div class="grid-reps">
+                        <input type="text" inputmode="decimal" class="input-large" id="m_ex4_kg" placeholder="Kg levantados">
+                        <input type="number" class="input-large reps-input hidden" id="m_ex4_reps" placeholder="Reps">
                     </div>
                 </div>
                 
@@ -188,6 +201,7 @@
             </div>
         </div>
 
+        <!-- PESTAÑA DASHBOARD -->
         <div id="tab-dashboard" class="container hidden">
             <div class="sub-nav">
                 <div class="sub-nav-btn active" id="btn-dash-fisico" onclick="switchDashMode('fisico')">Físico</div>
@@ -215,12 +229,14 @@
                         <option value="PK">Peaking</option>
                     </select>
                 </div>
-                <div class="glass chart-container"><div class="chart-title">Sentadilla</div><canvas id="chartEx1"></canvas></div>
+                <div class="glass chart-container"><div class="chart-title" id="title-ex1">Sentadilla</div><canvas id="chartEx1"></canvas></div>
                 <div class="glass chart-container"><div class="chart-title" id="title-ex2">Press Banca</div><canvas id="chartEx2"></canvas></div>
-                <div class="glass chart-container"><div class="chart-title">Peso Muerto</div><canvas id="chartEx3"></canvas></div>
+                <div class="glass chart-container"><div class="chart-title" id="title-ex3">Peso Muerto</div><canvas id="chartEx3"></canvas></div>
+                <div class="glass chart-container hidden" id="container-chart4"><div class="chart-title" id="title-ex4">Sentadilla</div><canvas id="chartEx4"></canvas></div>
             </div>
         </div>
 
+        <!-- PESTAÑA DETALLE -->
         <div id="tab-detalle" class="container hidden" style="max-width: 900px;">
             <div class="sub-nav">
                 <div class="sub-nav-btn active" id="btn-det-fisico" onclick="switchDetalleMode('fisico')">Físico</div>
@@ -261,7 +277,31 @@
 
         function formatNumUI(val) { return (val == null || val === '') ? '-' : val.toString().replace('.', ','); }
         function sanitize(val) { return (!val) ? "" : val.toString().replace('.', ','); }
-        function getEx2Name() { return currentProfile === 'CLAUDIA' ? 'Fondos' : 'Press Banca'; }
+
+        function updateExerciseLabels() {
+            const isMiguel = currentProfile === 'MIGUEL';
+            const isClaudia = currentProfile === 'CLAUDIA';
+            
+            document.getElementById('lbl-ex1').innerText = isMiguel ? 'Pull-up' : 'Sentadilla';
+            document.getElementById('title-ex1').innerText = isMiguel ? 'Pull-up' : 'Sentadilla';
+            
+            let ex2Name = 'Press Banca';
+            if (isMiguel) ex2Name = 'Muscle-up';
+            else if (isClaudia) ex2Name = 'Fondos';
+            document.getElementById('lbl-ex2').innerText = ex2Name;
+            document.getElementById('title-ex2').innerText = ex2Name;
+
+            document.getElementById('lbl-ex3').innerText = isMiguel ? 'Fondos' : 'Peso Muerto';
+            document.getElementById('title-ex3').innerText = isMiguel ? 'Fondos' : 'Peso Muerto';
+
+            if (isMiguel) {
+                document.getElementById('group-ex4').classList.remove('hidden');
+                document.getElementById('container-chart4').classList.remove('hidden');
+            } else {
+                document.getElementById('group-ex4').classList.add('hidden');
+                document.getElementById('container-chart4').classList.add('hidden');
+            }
+        }
 
         function selectProfile(profile) {
             currentProfile = profile;
@@ -274,9 +314,9 @@
             if (profile === 'FRAN') { root.style.setProperty('--theme', '#00f3ff'); root.style.setProperty('--theme-rgb', '0, 243, 255'); }
             else if (profile === 'MAMÁ') { root.style.setProperty('--theme', '#ff00ea'); root.style.setProperty('--theme-rgb', '255, 0, 234'); }
             else if (profile === 'CLAUDIA') { root.style.setProperty('--theme', '#f97316'); root.style.setProperty('--theme-rgb', '249, 115, 22'); }
+            else if (profile === 'MIGUEL') { root.style.setProperty('--theme', '#10b981'); root.style.setProperty('--theme-rgb', '16, 185, 129'); }
 
-            document.getElementById('lbl-ex2').innerText = getEx2Name();
-            document.getElementById('title-ex2').innerText = getEx2Name();
+            updateExerciseLabels();
 
             nextStep(1);
             switchTab('form');
@@ -388,10 +428,13 @@
                 payload.ex1_kg = sanitize(document.getElementById('m_ex1_kg').value);
                 payload.ex2_kg = sanitize(document.getElementById('m_ex2_kg').value);
                 payload.ex3_kg = sanitize(document.getElementById('m_ex3_kg').value);
+                if (currentProfile === 'MIGUEL') payload.ex4_kg = sanitize(document.getElementById('m_ex4_kg').value);
+                
                 if (payload.mesociclo_marca === 'VL') {
                     payload.ex1_reps = document.getElementById('m_ex1_reps').value;
                     payload.ex2_reps = document.getElementById('m_ex2_reps').value;
                     payload.ex3_reps = document.getElementById('m_ex3_reps').value;
+                    if (currentProfile === 'MIGUEL') payload.ex4_reps = document.getElementById('m_ex4_reps').value;
                 }
             }
 
@@ -421,10 +464,20 @@
                 });
             } else {
                 const isVL = activeDetalleMode === 'VL';
-                const ex2Name = getEx2Name();
-                thead.innerHTML = `<tr><th>Fecha</th><th>Sentadilla (kg)</th>${isVL?'<th>Reps</th>':''}<th>${ex2Name} (kg)</th>${isVL?'<th>Reps</th>':''}<th>Peso M. (kg)</th>${isVL?'<th>Reps</th>':''}</tr>`;
+                const isMiguel = currentProfile === 'MIGUEL';
+                
+                if (isMiguel) {
+                    thead.innerHTML = `<tr><th>Fecha</th><th>Pull-up (kg)</th>${isVL?'<th>Reps</th>':''}<th>Muscle-up (kg)</th>${isVL?'<th>Reps</th>':''}<th>Fondos (kg)</th>${isVL?'<th>Reps</th>':''}<th>Sentadilla (kg)</th>${isVL?'<th>Reps</th>':''}</tr>`;
+                } else {
+                    const ex2Name = currentProfile === 'CLAUDIA' ? 'Fondos' : 'Press Banca';
+                    thead.innerHTML = `<tr><th>Fecha</th><th>Sentadilla (kg)</th>${isVL?'<th>Reps</th>':''}<th>${ex2Name} (kg)</th>${isVL?'<th>Reps</th>':''}<th>Peso M. (kg)</th>${isVL?'<th>Reps</th>':''}</tr>`;
+                }
+                
                 dataToRender.forEach(d => {
-                    tbody.innerHTML += `<tr><td style="color:var(--theme); font-weight:bold;">${d.fecha}</td><td style="font-weight:bold;">${formatNumUI(d.ex1_kg)}</td>${isVL?`<td>${d.ex1_reps||'-'}</td>`:''} <td style="font-weight:bold;">${formatNumUI(d.ex2_kg)}</td>${isVL?`<td>${d.ex2_reps||'-'}</td>`:''} <td style="font-weight:bold;">${formatNumUI(d.ex3_kg)}</td>${isVL?`<td>${d.ex3_reps||'-'}</td>`:''}</tr>`;
+                    let tdHtml = `<tr><td style="color:var(--theme); font-weight:bold;">${d.fecha}</td><td style="font-weight:bold;">${formatNumUI(d.ex1_kg)}</td>${isVL?`<td>${d.ex1_reps||'-'}</td>`:''} <td style="font-weight:bold;">${formatNumUI(d.ex2_kg)}</td>${isVL?`<td>${d.ex2_reps||'-'}</td>`:''} <td style="font-weight:bold;">${formatNumUI(d.ex3_kg)}</td>${isVL?`<td>${d.ex3_reps||'-'}</td>`:''}`;
+                    if (isMiguel) tdHtml += ` <td style="font-weight:bold;">${formatNumUI(d.ex4_kg)}</td>${isVL?`<td>${d.ex4_reps||'-'}</td>`:''}`;
+                    tdHtml += `</tr>`;
+                    tbody.innerHTML += tdHtml;
                 });
             }
         }
@@ -470,7 +523,7 @@
             const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme').trim();
             const themeColorBg = `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--theme-rgb').trim()}, 0.15)`;
             
-            if(chartsInstance.m1) chartsInstance.m1.destroy(); if(chartsInstance.m2) chartsInstance.m2.destroy(); if(chartsInstance.m3) chartsInstance.m3.destroy();
+            if(chartsInstance.m1) chartsInstance.m1.destroy(); if(chartsInstance.m2) chartsInstance.m2.destroy(); if(chartsInstance.m3) chartsInstance.m3.destroy(); if(chartsInstance.m4) chartsInstance.m4.destroy();
             
             if(!data || data.length === 0) return;
 
@@ -483,9 +536,10 @@
                         if (meso === 'VL') {
                             const dataPoint = data[ctx.dataIndex];
                             let reps = '';
-                            if (ctx.dataset.label.includes('Sentadilla')) reps = dataPoint.ex1_reps;
-                            if (ctx.dataset.label.includes(getEx2Name())) reps = dataPoint.ex2_reps;
-                            if (ctx.dataset.label.includes('Peso Muerto')) reps = dataPoint.ex3_reps;
+                            if (ctx.dataset.label === document.getElementById('title-ex1').innerText) reps = dataPoint.ex1_reps;
+                            if (ctx.dataset.label === document.getElementById('title-ex2').innerText) reps = dataPoint.ex2_reps;
+                            if (ctx.dataset.label === document.getElementById('title-ex3').innerText) reps = dataPoint.ex3_reps;
+                            if (ctx.dataset.label === document.getElementById('title-ex4').innerText) reps = dataPoint.ex4_reps;
                             if (reps) base += ` (${reps} reps)`;
                         }
                         return base;
@@ -501,9 +555,16 @@
                 });
             };
 
-            chartsInstance.m1 = buildChart('chartEx1', 'Sentadilla', 'ex1_kg');
-            chartsInstance.m2 = buildChart('chartEx2', getEx2Name(), 'ex2_kg');
-            chartsInstance.m3 = buildChart('chartEx3', 'Peso Muerto', 'ex3_kg');
+            const isMiguel = currentProfile === 'MIGUEL';
+            const exNames = isMiguel ? ['Pull-up', 'Muscle-up', 'Fondos', 'Sentadilla'] : ['Sentadilla', currentProfile === 'CLAUDIA' ? 'Fondos' : 'Press Banca', 'Peso Muerto'];
+
+            chartsInstance.m1 = buildChart('chartEx1', exNames[0], 'ex1_kg');
+            chartsInstance.m2 = buildChart('chartEx2', exNames[1], 'ex2_kg');
+            chartsInstance.m3 = buildChart('chartEx3', exNames[2], 'ex3_kg');
+            
+            if (isMiguel) {
+                chartsInstance.m4 = buildChart('chartEx4', exNames[3], 'ex4_kg');
+            }
         }
     </script>
 </body>

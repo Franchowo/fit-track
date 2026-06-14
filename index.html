@@ -167,30 +167,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fa-solid fa-arrows-up-down"></i> <span id="lbl-ex1">Sentadilla</span></label>
+                    <label><i class="fa-solid fa-arrows-up-down" id="icon-ex1"></i> <span id="lbl-ex1">Sentadilla</span></label>
                     <div class="grid-reps">
                         <input type="text" inputmode="decimal" class="input-large" id="m_ex1_kg" placeholder="Kg levantados">
                         <input type="number" class="input-large reps-input hidden" id="m_ex1_reps" placeholder="Reps">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label><i class="fa-solid fa-dumbbell"></i> <span id="lbl-ex2">Press Banca</span></label>
+                    <label><i class="fa-solid fa-dumbbell" id="icon-ex2"></i> <span id="lbl-ex2">Press Banca</span></label>
                     <div class="grid-reps">
                         <input type="text" inputmode="decimal" class="input-large" id="m_ex2_kg" placeholder="Kg levantados">
                         <input type="number" class="input-large reps-input hidden" id="m_ex2_reps" placeholder="Reps">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label><i class="fa-solid fa-weight-hanging"></i> <span id="lbl-ex3">Peso Muerto</span></label>
+                    <label><i class="fa-solid fa-weight-hanging" id="icon-ex3"></i> <span id="lbl-ex3">Peso Muerto</span></label>
                     <div class="grid-reps">
                         <input type="text" inputmode="decimal" class="input-large" id="m_ex3_kg" placeholder="Kg levantados">
                         <input type="number" class="input-large reps-input hidden" id="m_ex3_reps" placeholder="Reps">
                     </div>
                 </div>
                 
-                <!-- EJERCICIO 4 EXTRA (SOLO MIGUEL) -->
                 <div class="form-group hidden" id="group-ex4">
-                    <label><i class="fa-solid fa-arrows-up-down"></i> <span id="lbl-ex4">Sentadilla</span></label>
+                    <label><i class="fa-solid fa-arrows-up-down" id="icon-ex4"></i> <span id="lbl-ex4">Sentadilla</span></label>
                     <div class="grid-reps">
                         <input type="text" inputmode="decimal" class="input-large" id="m_ex4_kg" placeholder="Kg levantados">
                         <input type="number" class="input-large reps-input hidden" id="m_ex4_reps" placeholder="Reps">
@@ -282,19 +281,36 @@
             const isMiguel = currentProfile === 'MIGUEL';
             const isClaudia = currentProfile === 'CLAUDIA';
             
+            const i1 = document.getElementById('icon-ex1');
+            const i2 = document.getElementById('icon-ex2');
+            const i3 = document.getElementById('icon-ex3');
+            const i4 = document.getElementById('icon-ex4');
+            
+            // Ejercicio 1
             document.getElementById('lbl-ex1').innerText = isMiguel ? 'Pull-up' : 'Sentadilla';
             document.getElementById('title-ex1').innerText = isMiguel ? 'Pull-up' : 'Sentadilla';
+            i1.className = isMiguel ? 'fa-solid fa-arrow-up' : 'fa-solid fa-arrows-up-down';
             
+            // Ejercicio 2
             let ex2Name = 'Press Banca';
-            if (isMiguel) ex2Name = 'Muscle-up';
-            else if (isClaudia) ex2Name = 'Fondos';
+            let ex2Icon = 'fa-solid fa-dumbbell';
+            if (isMiguel) { ex2Name = 'Muscle-up'; ex2Icon = 'fa-solid fa-angles-up'; }
+            else if (isClaudia) { ex2Name = 'Fondos'; ex2Icon = 'fa-solid fa-arrow-down'; }
+            
             document.getElementById('lbl-ex2').innerText = ex2Name;
             document.getElementById('title-ex2').innerText = ex2Name;
+            i2.className = ex2Icon;
 
+            // Ejercicio 3
             document.getElementById('lbl-ex3').innerText = isMiguel ? 'Fondos' : 'Peso Muerto';
             document.getElementById('title-ex3').innerText = isMiguel ? 'Fondos' : 'Peso Muerto';
+            i3.className = isMiguel ? 'fa-solid fa-arrow-down' : 'fa-solid fa-weight-hanging';
 
+            // Ejercicio 4 (Solo Miguel)
             if (isMiguel) {
+                document.getElementById('lbl-ex4').innerText = 'Sentadilla';
+                document.getElementById('title-ex4').innerText = 'Sentadilla';
+                i4.className = 'fa-solid fa-arrows-up-down';
                 document.getElementById('group-ex4').classList.remove('hidden');
                 document.getElementById('container-chart4').classList.remove('hidden');
             } else {

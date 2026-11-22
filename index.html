@@ -178,9 +178,36 @@
         .btn-danger:disabled, .btn-save:disabled { opacity: 0.5; }
         .record-confirm p { text-align: center; margin-bottom: 16px; font-weight: 600; }
 
+        /* Resumen */
+        .res-hero { padding: 20px; margin-bottom: 20px; }
+        .res-hero h2 { font-size: 1.3rem; margin-bottom: 12px; }
+        .res-line { color: var(--text-muted); margin-bottom: 6px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+        .res-line strong { color: var(--text-main); }
+        .chip-warn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.45); color: var(--warning); font-weight: 700; font-size: 0.85rem; margin: 6px 0 4px; }
+        .res-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+        .res-actions .btn-cta { margin-top: 0; flex: 1 1 140px; justify-content: center; }
+        .res-card { padding: 18px 20px; margin-bottom: 20px; }
+        .res-card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .res-card h3 { font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--theme); }
+        .res-note { color: var(--text-muted); font-size: 0.8rem; }
+        .btn-link { min-height: 44px; padding: 0 6px; color: var(--theme); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+        .res-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
+        .res-row:last-child { border-bottom: none; }
+        .res-row .res-sub { display: block; color: var(--text-muted); font-size: 0.8rem; margin-top: 2px; }
+        .res-row .res-val { font-weight: 800; font-size: 1.1rem; white-space: nowrap; text-align: right; }
+        .res-empty { color: var(--text-muted); font-size: 0.95rem; padding: 4px 0; }
+        .goal-row { padding: 10px 0 14px; border-bottom: 1px solid var(--glass-border); }
+        .goal-row:last-child { border-bottom: none; }
+        .goal-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; font-weight: 600; }
+        .progress { height: 10px; border-radius: 10px; background: rgba(148, 163, 184, 0.15); overflow: hidden; }
+        .progress > div { height: 100%; border-radius: 10px; background: var(--theme); transition: width 0.4s; }
+        .progress.done > div { background: var(--success); }
+        .goal-foot { color: var(--text-muted); font-size: 0.85rem; margin-top: 6px; }
+        .kpi-card .kpi-value.small { font-size: 1.6rem; }
+
         /* Hoja inferior de perfiles */
         .sheet-backdrop { position: fixed; inset: 0; z-index: 3000; background: rgba(2, 6, 23, 0.7); display: flex; align-items: flex-end; justify-content: center; }
-        .sheet { width: 100%; max-width: 600px; border-radius: 24px 24px 0 0; padding: 12px 20px calc(28px + env(safe-area-inset-bottom)); background: rgba(15, 23, 42, 0.98); animation: sheet-in 0.25s ease-out; }
+        .sheet { width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; border-radius: 24px 24px 0 0; padding: 12px 20px calc(28px + env(safe-area-inset-bottom)); background: rgba(15, 23, 42, 0.98); animation: sheet-in 0.25s ease-out; }
         .sheet-handle { width: 44px; height: 5px; border-radius: 5px; background: var(--glass-border); margin: 0 auto 16px; }
         .sheet h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 16px; text-align: center; }
         .sheet-profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -232,7 +259,38 @@
     <div id="view-app" class="hidden">
 
         <!-- PESTAÑA REGISTRAR -->
-        <section id="tab-registrar" class="container" aria-label="Registrar">
+        <!-- PESTAÑA INICIO (RESUMEN) -->
+        <section id="tab-resumen" class="container hidden" aria-label="Resumen">
+            <div id="res-skeleton" class="hidden" aria-busy="true" aria-label="Cargando resumen">
+                <div class="skeleton skeleton-chart"></div>
+                <div class="kpi-grid"><div class="skeleton skeleton-kpi"></div><div class="skeleton skeleton-kpi"></div></div>
+                <div class="skeleton skeleton-chart"></div>
+            </div>
+            <div id="res-error" class="glass empty-state hidden">
+                <i class="fa-solid fa-wifi" aria-hidden="true"></i>
+                <p>No se pudo cargar el historial.</p>
+                <button type="button" class="btn-cta" onclick="retryLoad()"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reintentar</button>
+            </div>
+            <div id="res-content">
+                <div class="glass res-hero" id="res-hero"></div>
+                <div class="kpi-grid" id="res-kpis"></div>
+                <div class="glass res-card">
+                    <div class="res-card-head"><h3>Objetivos</h3><button type="button" class="btn-link" onclick="openGoalsSheet()">Editar</button></div>
+                    <div id="res-goals"></div>
+                </div>
+                <div class="glass res-card">
+                    <div class="res-card-head"><h3>Récords</h3><span class="res-note">1RM estimado</span></div>
+                    <div id="res-records"></div>
+                </div>
+                <div class="glass res-card">
+                    <div class="res-card-head"><h3>Récords recientes</h3><span class="res-note">últimos 60 días</span></div>
+                    <div id="res-prs"></div>
+                </div>
+                <p class="table-hint">En Fuerza Base y Peaking la marca se toma como tu máximo; en Volumen el 1RM se estima con la fórmula de Epley (hasta 12 reps).</p>
+            </div>
+        </section>
+
+        <section id="tab-registrar" class="container hidden" aria-label="Registrar">
             <div class="sub-nav" role="tablist" aria-label="Tipo de registro">
                 <button type="button" role="tab" class="sub-nav-btn" data-mode="fisico" onclick="setMode('fisico')">Físico</button>
                 <button type="button" role="tab" class="sub-nav-btn" data-mode="marcas" onclick="setMode('marcas')">Marcas</button>
@@ -356,8 +414,10 @@
                         <option value="FB">Fuerza Base</option>
                         <option value="VL">Volumen</option>
                         <option value="PK">Peaking</option>
+                        <option value="ALL">Todos · 1RM estimado</option>
                     </select>
                 </div>
+                <p class="table-hint hidden" id="e1rm-note">Comparativa de mesociclos. FB y PK: la marca como máximo · VL: 1RM estimado (Epley, hasta 12 reps).</p>
                 <div id="marcas-empty" class="glass empty-state hidden">
                     <i class="fa-solid fa-dumbbell" aria-hidden="true"></i>
                     <p id="marcas-empty-text">Aún no hay marcas registradas.</p>
@@ -388,9 +448,11 @@
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
+            <div style="text-align:center;"><button type="button" class="btn-cta secondary hidden" id="btn-export" onclick="exportCsv()"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV</button></div>
         </section>
 
         <nav class="bottom-nav" aria-label="Navegación principal">
+            <button type="button" class="nav-item" data-tab="resumen" onclick="setTab('resumen')"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Inicio</span></button>
             <button type="button" class="nav-item" data-tab="registrar" onclick="setTab('registrar')"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i><span>Registrar</span></button>
             <button type="button" class="nav-item" data-tab="progreso" onclick="setTab('progreso')"><i class="fa-solid fa-chart-line" aria-hidden="true"></i><span>Progreso</span></button>
             <button type="button" class="nav-item" data-tab="historial" onclick="setTab('historial')"><i class="fa-solid fa-table-list" aria-hidden="true"></i><span>Historial</span></button>
@@ -430,6 +492,21 @@
         </div>
     </div>
 
+    <!-- Hoja inferior: objetivos -->
+    <div id="goals-sheet" class="sheet-backdrop hidden" onclick="if (event.target === this) closeSheet('goals-sheet')">
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="goals-title">
+            <div class="sheet-handle" aria-hidden="true"></div>
+            <h2 id="goals-title">Objetivos</h2>
+            <p class="record-note">Deja un campo vacío para quitar ese objetivo.</p>
+            <div id="goals-fields"></div>
+            <div class="form-error hidden" id="form-error-goals" role="alert"></div>
+            <div class="record-actions" style="margin-top: 10px;">
+                <button type="button" class="btn-back" onclick="closeSheet('goals-sheet')">Cancelar</button>
+                <button type="button" class="btn-save btn-solid" id="btn-goals-save" onclick="saveGoalsForm()"><i class="fa-solid fa-check" aria-hidden="true"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
     <script>
@@ -448,7 +525,7 @@
             'MAMÁ':    { slug: 'mama',    color: '#ff00ea', rgb: '255, 0, 234',   icon: 'fa-user-astronaut',  lifts: ['squat', 'bench', 'deadlift'] }
         };
         const MESO_NAMES = { FB: 'Fuerza Base', VL: 'Volumen', PK: 'Peaking' };
-        const TABS = { registrar: ['fisico', 'marcas'], progreso: ['fisico', 'marcas'], historial: ['fisico', 'fb', 'vl', 'pk'] };
+        const TABS = { resumen: ['general'], registrar: ['fisico', 'marcas'], progreso: ['fisico', 'marcas'], historial: ['fisico', 'fb', 'vl', 'pk'] };
         // Campos del formulario físico ↔ clave en los datos del servidor
         const FISICO_FIELDS = {
             f_edad: 'edad', f_peso: 'peso', f_grasa_pct: 'grasa_pct', f_musculo: 'musculo', f_hueso: 'hueso',
@@ -460,7 +537,7 @@
         // ---- ESTADO ----
         let currentProfile = '';
         let currentTab = 'registrar';
-        const tabModes = { registrar: 'fisico', progreso: 'fisico', historial: 'fisico' };
+        const tabModes = { resumen: 'general', registrar: 'fisico', progreso: 'fisico', historial: 'fisico' };
         let currentStep = 1;
         let editing = null;      // registro que se está editando: { mode, bucket, row, rev, qid, fecha, ret }
         let recordCtx = null;    // registro abierto en la hoja de detalle: { d, bucket }
@@ -729,7 +806,7 @@
             const profile = Object.keys(PROFILES).find(k => PROFILES[k].slug === s);
             if (!profile) { currentProfile = ''; showView('view-profiles'); return; }
 
-            const tab = TABS[tabRaw] ? tabRaw : 'registrar';
+            const tab = TABS[tabRaw] ? tabRaw : 'resumen';
             const mode = TABS[tab].includes(modeRaw) ? modeRaw : tabModes[tab];
             if (s !== rawSlug || tab !== tabRaw || mode !== modeRaw) history.replaceState(null, '', routeHash([s, tab, mode]));
 
@@ -742,17 +819,17 @@
 
         function setTab(tab) { navigate([slug(), tab, tabModes[tab]]); }
         function setMode(mode) { navigate([slug(), currentTab, mode], { replace: true }); }
-        function chooseProfile(name) { navigate([PROFILES[name].slug, currentProfile ? currentTab : 'registrar', currentProfile ? tabModes[currentTab] : tabModes.registrar]); }
+        function chooseProfile(name) { navigate([PROFILES[name].slug, currentProfile ? currentTab : 'resumen', currentProfile ? tabModes[currentTab] : 'general']); }
 
         function goRegister(mode, meso) {
-            if (meso) { $('m_mesociclo').value = meso; onMesoChange(); }
+            if (meso && MESO_NAMES[meso]) { $('m_mesociclo').value = meso; onMesoChange(); }
             navigate([slug(), 'registrar', mode]);
         }
 
         function routeOnStart() {
             if (location.hash.length > 2) { applyRoute(); return; }
             const last = storeGet(LAST_PROFILE_STORAGE);
-            if (last && PROFILES[last]) navigate([PROFILES[last].slug, 'registrar', 'fisico'], { replace: true });
+            if (last && PROFILES[last]) navigate([PROFILES[last].slug, 'resumen', 'general'], { replace: true });
             else applyRoute();
         }
 
@@ -777,7 +854,8 @@
 
         function renderCurrent() {
             if (!currentProfile) return;
-            if (currentTab === 'registrar') renderRegistrar();
+            if (currentTab === 'resumen') renderResumen();
+            else if (currentTab === 'registrar') renderRegistrar();
             else if (currentTab === 'progreso') renderProgreso();
             else renderHistorial();
         }
@@ -1260,7 +1338,7 @@
             if (openSheetEl) {
                 if (e.key === 'Escape') { closeSheet(openSheetEl.id); return; }
                 if (e.key === 'Tab') {
-                    const f = [...openSheetEl.querySelectorAll('button')].filter(b => b.offsetParent !== null && !b.disabled);
+                    const f = [...openSheetEl.querySelectorAll('button, input, select')].filter(b => b.offsetParent !== null && !b.disabled);
                     const i = f.indexOf(document.activeElement);
                     if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
                     else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
@@ -1590,6 +1668,7 @@
             const dataToRender = [...(profileData()[key] || [])].reverse();
             tableRecords = dataToRender;
             $('table-hint').classList.toggle('hidden', dataToRender.length === 0);
+            $('btn-export').classList.toggle('hidden', dataToRender.length === 0);
             const tr = i => `<tr class="row-click" tabindex="0" data-idx="${i}" aria-describedby="table-hint">`;
             const n = v => esc(formatNumUI(v));
             const emptyRow = (cols, regMode) => `<tr><td colspan="${cols}" class="td-empty">Aún no hay registros${regMode === 'marcas' ? ' de ' + MESO_NAMES[key] : ''}.<br><button type="button" class="btn-cta" onclick="goRegister('${regMode}'${regMode === 'marcas' ? `, '${key}'` : ''})"><i class="fa-solid fa-plus" aria-hidden="true"></i> Registrar</button></td></tr>`;
@@ -1632,7 +1711,9 @@
             const ts = points.map(p => p.x);
             const min = Math.min(...ts), max = Math.max(...ts);
             const axis = { type: 'linear', ticks: { maxTicksLimit: 5, callback: v => fmtTs(v) } };
-            if (min === max) { axis.min = min - 3 * DAY; axis.max = max + 3 * DAY; } else { axis.min = min; axis.max = max; }
+            // Margen a cada lado para que los puntos de los extremos no se corten
+            const pad = min === max ? 3 * DAY : Math.max((max - min) * 0.04, DAY / 2);
+            axis.min = min - pad; axis.max = max + pad;
             return axis;
         }
         const tooltipTitle = items => items.length ? fmtTs(items[0].parsed.x) : '';
@@ -1707,7 +1788,16 @@
             const xAxis = timeAxis(pts('peso'));
             const opts = legend => ({ scales: { x: xAxis }, plugins: { legend: { display: legend }, tooltip: { callbacks: { title: tooltipTitle } } } });
 
-            chartsInstance.w = new Chart($('weightChart'), { type: 'line', data: { datasets: [{ label: 'Peso', data: pts('peso'), borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true }] }, options: opts(false) });
+            // Peso + tendencia suavizada (EWMA sobre todo el historial) + línea de objetivo
+            const allW = dated.filter(d => toNum(d.peso) != null);
+            const trendAll = ewma(allW.map(d => toNum(d.peso)));
+            const firstTs = pd.length ? dateTs(pd[0]) : 0;
+            const trendPts = allW.map((d, i) => ({ x: dateTs(d), y: trendAll[i] })).filter(p => p.x >= firstTs);
+            const wDatasets = [{ label: 'Peso', data: pts('peso'), borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true }];
+            if (trendPts.length > 1) wDatasets.push({ label: 'Tendencia', data: trendPts, borderColor: 'rgba(226, 232, 240, 0.8)', backgroundColor: 'rgba(226, 232, 240, 0.8)', borderDash: [6, 4], pointRadius: 0, tension: 0.3, fill: false });
+            const wGoal = goalLine('peso', xAxis);
+            if (wGoal) wDatasets.push(wGoal);
+            chartsInstance.w = new Chart($('weightChart'), { type: 'line', data: { datasets: wDatasets }, options: opts(wDatasets.length > 1) });
             chartsInstance.c = new Chart($('compChart'), { type: 'line', data: { datasets: [
                 { label: 'Músculo', data: pts('musculo'), borderColor: themeColor, backgroundColor: themeColor, tension: 0.3, spanGaps: true },
                 { label: 'Grasa', data: pts('grasa'), borderColor: '#cbd5e1', backgroundColor: '#cbd5e1', tension: 0.3, spanGaps: true }
@@ -1731,8 +1821,10 @@
 
         function renderChartsMarcas() {
             const meso = $('marcasFilter').value;
-            const data = datedOnly(profileData()[meso]);
             Object.keys(chartsInstance).filter(k => k.startsWith('m')).forEach(k => { if (chartsInstance[k]) chartsInstance[k].destroy(); delete chartsInstance[k]; });
+            $('e1rm-note').classList.toggle('hidden', meso !== 'ALL');
+            if (meso === 'ALL') { renderMesoComparison(); return; }
+            const data = datedOnly(profileData()[meso]);
 
             const isEmpty = !data || data.length === 0;
             $('marcas-empty-text').innerText = `Aún no hay marcas de ${MESO_NAMES[meso]} para este perfil.`;
@@ -1754,6 +1846,330 @@
                     } } } } }
                 });
             });
+        }
+
+        // Comparativa: 1RM estimado de cada ejercicio, con una serie por mesociclo
+        function renderMesoComparison() {
+            const series = lifts().map((_, i) => liftSeries(i + 1).filter(p => p.e1rm != null));
+            const isEmpty = series.every(s => !s.length);
+            $('marcas-empty-text').innerText = 'Aún no hay marcas para este perfil.';
+            $('marcas-empty').classList.toggle('hidden', !isEmpty);
+            $('marcas-charts').classList.toggle('hidden', isEmpty);
+            if (isEmpty || !setupChartDefaults()) return;
+            const { color: themeColor } = themeColors();
+            const colors = { FB: themeColor, VL: '#a855f7', PK: '#f59e0b' };
+            lifts().forEach((key, i) => {
+                const n = i + 1;
+                const all = series[i].map(p => ({ x: p.ts, y: p.e1rm, p }));
+                if (!all.length) return;
+                const xAxis = timeAxis(all);
+                const datasets = ['FB', 'VL', 'PK'].map(m => ({
+                    label: MESO_NAMES[m], data: all.filter(a => a.p.meso === m),
+                    borderColor: colors[m], backgroundColor: colors[m], tension: 0.3, pointRadius: 5
+                })).filter(d => d.data.length);
+                const g = goalLine('ex' + n, xAxis);
+                if (g) datasets.push(g);
+                chartsInstance['m' + n] = new Chart($('chartEx' + n), {
+                    type: 'line', data: { datasets },
+                    options: { responsive: true, scales: { x: xAxis }, plugins: { legend: { display: true }, tooltip: { callbacks: { title: tooltipTitle, label: ctx => {
+                        const p = ctx.raw && ctx.raw.p;
+                        if (!p) return `${ctx.dataset.label}: ${formatNumUI(ctx.parsed.y)} kg`;
+                        return p.meso === 'VL'
+                            ? `VL: ${formatNumUI(p.kg)} kg × ${p.reps} → 1RM ≈ ${formatNumUI(p.e1rm)} kg`
+                            : `${p.meso}: ${formatNumUI(p.kg)} kg`;
+                    } } } } }
+                });
+            });
+        }
+
+        // ---- ANÁLISIS: 1RM estimado, récords, tendencia y objetivos ----
+        const MAX_E1RM_REPS = 12;
+        const EWMA_ALPHA = 0.3;
+
+        // 1RM estimado (Epley). Con 1 rep (o sin reps) es la propia marca; más de 12 reps no se estima.
+        function e1rm(kg, reps) {
+            const w = toNum(kg);
+            if (w == null) return null;
+            const r = parseInt(reps, 10);
+            if (!r || r <= 1) return w;
+            if (r > MAX_E1RM_REPS) return null;
+            return Math.round(w * (1 + r / 30) * 10) / 10;
+        }
+
+        // Serie cronológica de un ejercicio con todos los mesociclos.
+        // En FB y PK no se registran reps: la marca se toma como máximo.
+        function liftSeries(n) {
+            const pd = profileData();
+            const out = [];
+            ['FB', 'VL', 'PK'].forEach(m => (pd[m] || []).forEach(d => {
+                const kg = toNum(d['ex' + n + '_kg']);
+                const ts = dateTs(d);
+                if (kg == null || isNaN(ts)) return;
+                const reps = m === 'VL' ? d['ex' + n + '_reps'] : null;
+                out.push({ ts, meso: m, kg, reps, e1rm: m === 'VL' ? e1rm(kg, reps) : kg, fecha: d.fecha });
+            }));
+            return out.sort((a, b) => a.ts - b.ts);
+        }
+
+        function bestLift(n) {
+            let best = null;
+            liftSeries(n).forEach(p => { if (p.e1rm != null && (!best || p.e1rm > best.e1rm)) best = p; });
+            return best;
+        }
+
+        function strengthTotal() {
+            const bests = lifts().map((_, i) => bestLift(i + 1));
+            if (!bests.length || bests.some(b => !b)) return null;
+            return { value: Math.round(bests.reduce((sum, b) => sum + b.e1rm, 0) * 10) / 10, bests };
+        }
+
+        // Cada vez que un ejercicio supera su mejor 1RM estimado anterior
+        function prEvents() {
+            const ev = [];
+            lifts().forEach((key, i) => {
+                let best = null;
+                liftSeries(i + 1).forEach(p => {
+                    if (p.e1rm == null) return;
+                    if (best != null && p.e1rm > best) ev.push(Object.assign({ lift: LIFTS[key].name, prev: best }, p));
+                    if (best == null || p.e1rm > best) best = p.e1rm;
+                });
+            });
+            return ev.sort((a, b) => b.ts - a.ts);
+        }
+
+        function weightSeries() {
+            return datedOnly(profileData().fisico).map(d => ({ ts: dateTs(d), v: toNum(d.peso) })).filter(p => p.v != null);
+        }
+
+        // Media móvil exponencial: suaviza el ruido de la báscula
+        function ewma(values) {
+            let t = null;
+            return values.map(v => { if (v != null) t = t == null ? v : t + EWMA_ALPHA * (v - t); return t == null ? null : Math.round(t * 100) / 100; });
+        }
+
+        // Pendiente diaria (regresión lineal) con los puntos de los últimos "days" días
+        function slopePerDay(points, days) {
+            if (points.length < 2) return null;
+            const last = points[points.length - 1].ts;
+            const pts = points.filter(p => p.ts >= last - days * DAY);
+            if (pts.length < 2 || pts[pts.length - 1].ts - pts[0].ts < 7 * DAY) return null;
+            const xs = pts.map(p => (p.ts - pts[0].ts) / DAY), ys = pts.map(p => p.v);
+            const mx = xs.reduce((a, b) => a + b, 0) / xs.length, my = ys.reduce((a, b) => a + b, 0) / ys.length;
+            let num = 0, den = 0;
+            xs.forEach((x, i) => { num += (x - mx) * (ys[i] - my); den += (x - mx) * (x - mx); });
+            return den ? num / den : null;
+        }
+
+        function startOfToday() { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
+        function daysSince(ts) { return Math.round((startOfToday() - ts) / DAY); }
+        function agoText(ts) { const n = daysSince(ts); return n <= 0 ? 'hoy' : n === 1 ? 'ayer' : `hace ${n} días`; }
+
+        // ---- OBJETIVOS ----
+        function goalKeys() { return ['peso'].concat(lifts().map((_, i) => 'ex' + (i + 1))); }
+        function goalLabel(key) { return key === 'peso' ? 'Peso' : LIFTS[lifts()[+key.slice(2) - 1]].name; }
+        function goals() { return profileData().goals || {}; }
+
+        function goalCurrent(key) {
+            if (key === 'peso') { const w = weightSeries(); return w.length ? w[w.length - 1].v : null; }
+            const b = bestLift(+key.slice(2));
+            return b ? b.e1rm : null;
+        }
+        function goalSeries(key) {
+            if (key === 'peso') return weightSeries();
+            return liftSeries(+key.slice(2)).filter(p => p.e1rm != null).map(p => ({ ts: p.ts, v: p.e1rm }));
+        }
+
+        function goalProgress(key, goal) {
+            const cur = goalCurrent(key);
+            if (cur == null || !goal) return null;
+            const target = goal.target;
+            const start = goal.start != null ? goal.start : cur;
+            const reached = target >= start ? cur >= target : cur <= target;
+            let pct = start === target ? (reached ? 1 : 0) : (cur - start) / (target - start);
+            pct = Math.max(0, Math.min(1, pct));
+            let eta = null;
+            if (!reached) {
+                const slope = slopePerDay(goalSeries(key), key === 'peso' ? 90 : 180);
+                if (slope && Math.sign(slope) === Math.sign(target - cur)) {
+                    const days = (target - cur) / slope;
+                    eta = days > 730 ? 'lejos' : startOfToday() + Math.ceil(days) * DAY;
+                }
+            }
+            return { cur, start, target, reached, pct, eta };
+        }
+
+        // Línea horizontal del objetivo en una gráfica
+        function goalLine(key, xAxis) {
+            const g = goals()[key];
+            if (!g || xAxis.min == null) return null;
+            return { label: 'Objetivo', data: [{ x: xAxis.min, y: g.target }, { x: xAxis.max, y: g.target }], borderColor: 'rgba(251, 191, 36, 0.9)', backgroundColor: 'rgba(251, 191, 36, 0.9)', borderDash: [3, 4], pointRadius: 0, fill: false };
+        }
+
+        function openGoalsSheet() {
+            const g = goals();
+            $('goals-fields').innerHTML = goalKeys().map(key => {
+                const cur = goalCurrent(key);
+                const label = key === 'peso' ? 'Peso objetivo' : `${goalLabel(key)} · 1RM objetivo`;
+                const val = g[key] ? formatNumUI(g[key].target) : '';
+                return `<div class="form-group"><label for="g_${key}">${esc(label)} <span class="unit">(kg)</span></label>
+                    <input type="text" inputmode="decimal" class="input-large" id="g_${key}" value="${esc(val)}" placeholder="${cur != null ? 'Actual: ' + esc(formatNumUI(cur)) : ''}"></div>`;
+            }).join('');
+            showFormError('goals', '');
+            openSheet('goals-sheet', $('g_peso'));
+        }
+
+        async function saveGoalsForm() {
+            const btn = $('btn-goals-save');
+            if (btn.disabled) return;
+            showFormError('goals', '');
+            const old = goals();
+            const next = {};
+            let firstBad = null;
+            goalKeys().forEach(key => {
+                const input = $('g_' + key);
+                const rule = key === 'peso' ? { min: 30, max: 250 } : { min: 1, max: 500 };
+                if (!validateNumber(input, rule)) { if (!firstBad) firstBad = input; return; }
+                const target = parseNumInput(input.value);
+                if (target == null) return;
+                // Si el objetivo no cambia se conserva su punto de partida
+                next[key] = old[key] && old[key].target === target ? old[key]
+                    : { target, start: goalCurrent(key), startDate: tsToIso(Date.now()) };
+            });
+            if (firstBad) { firstBad.focus(); return; }
+
+            const original = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Guardando...';
+            const profile = currentProfile;
+            const r = await sendPayload({ id: newId(), action: 'goals', profile, goals: next });
+            btn.disabled = false; btn.innerHTML = original;
+            if (r.status === 'success') {
+                if (historyDataCache && historyDataCache[profile]) { historyDataCache[profile].goals = r.goals || next; persistCache(); }
+                closeSheet('goals-sheet', false);
+                showToast('Objetivos guardados', 'success', { id: 'save' });
+                renderCurrent();
+            } else if (r.status === 'unauthorized') {
+                closeSheet('goals-sheet', false);
+                showToast('Tu clave de acceso ya no es válida', 'error');
+                logout();
+            } else if (r.status === 'network') {
+                showFormError('goals', 'Sin conexión: los objetivos se guardan en el servidor, inténtalo cuando tengas red.');
+            } else {
+                showFormError('goals', /Acci[oó]n desconocida|Hoja no encontrada/.test(r.message || '')
+                    ? 'Para usar objetivos hay que actualizar el Apps Script.'
+                    : 'El servidor no guardó los objetivos' + (r.message ? ': ' + r.message : '.'));
+            }
+        }
+
+        // ---- PANTALLA DE INICIO (RESUMEN) ----
+        function renderResumen() {
+            const has = ensureData('res-skeleton', 'res-error');
+            $('res-content').classList.toggle('hidden', !has);
+            if (!has) return;
+            const pd = profileData();
+            const fis = datedOnly(pd.fisico);
+            const lastFis = fis.length ? fis[fis.length - 1] : null;
+            const marcas = ['FB', 'VL', 'PK'].reduce((acc, m) => acc.concat(datedOnly(pd[m])), []);
+            const lastMarcaTs = marcas.length ? Math.max(...marcas.map(dateTs)) : null;
+
+            // Estado y recordatorio de medición
+            let hero = `<h2>Hola, ${esc(currentProfile)}</h2>`;
+            hero += lastFis
+                ? `<div class="res-line">Última medición: <strong>${esc(lastFis.fecha)}</strong> · ${agoText(dateTs(lastFis))}</div>`
+                : `<div class="res-line">Aún no hay mediciones físicas.</div>`;
+            hero += lastMarcaTs != null
+                ? `<div class="res-line">Últimas marcas: <strong>${fmtTs(lastMarcaTs)}</strong> · ${agoText(lastMarcaTs)}</div>`
+                : `<div class="res-line">Aún no hay marcas.</div>`;
+            if (!lastFis || daysSince(dateTs(lastFis)) >= 7) hero += `<div class="chip-warn"><i class="fa-solid fa-bell" aria-hidden="true"></i> Toca medición${lastFis ? '' : ': registra la primera'}</div>`;
+            hero += `<div class="res-actions">
+                <button type="button" class="btn-cta" onclick="goRegister('fisico')"><i class="fa-solid fa-weight-scale" aria-hidden="true"></i> Físico</button>
+                <button type="button" class="btn-cta secondary" onclick="goRegister('marcas')"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i> Marcas</button></div>`;
+            $('res-hero').innerHTML = hero;
+
+            // KPIs
+            const ws = weightSeries();
+            const lastW = ws.length ? ws[ws.length - 1] : null;
+            let wSub = '--';
+            if (lastW && ws.length > 1) {
+                const ref = [...ws].reverse().find(p => p.ts <= lastW.ts - 28 * DAY);
+                const base = ref || ws[0];
+                const diff = Math.round((lastW.v - base.v) * 10) / 10;
+                wSub = `${diff > 0 ? '+' : ''}${formatNumUI(diff)} kg ${ref ? 'en 4 semanas' : 'desde ' + fmtTs(base.ts)}`;
+            } else if (lastW) wSub = 'Primer registro';
+            const pct = lastFisicoValue('grasa_pct');
+            const total = strengthTotal();
+            const rel = total && lastW ? Math.round(total.value / lastW.v * 100) / 100 : null;
+            const kpi = (label, value, sub) => `<div class="glass kpi-card"><div class="kpi-label">${label}</div><div class="kpi-value small">${value}</div><div class="kpi-sub">${sub}</div></div>`;
+            $('res-kpis').innerHTML =
+                kpi('Peso', lastW ? formatNumUI(lastW.v) + ' kg' : '--', esc(wSub)) +
+                kpi('% Graso', pct != null ? formatNumUI(pct) + ' %' : '--', 'última medición') +
+                kpi('Total', total ? formatNumUI(total.value) + ' kg' : '--', total ? 'suma de mejores 1RM' : 'faltan marcas') +
+                kpi('Fuerza relativa', rel != null ? '× ' + formatNumUI(rel) : '--', 'total ÷ peso corporal');
+
+            // Objetivos
+            const g = goals();
+            const goalRows = goalKeys().filter(k => g[k]).map(key => {
+                const pr = goalProgress(key, g[key]);
+                if (!pr) return `<div class="goal-row"><div class="goal-head"><span>${esc(goalLabel(key))}</span><span>→ ${formatNumUI(g[key].target)} kg</span></div><div class="goal-foot">Sin datos todavía</div></div>`;
+                const pc = Math.round(pr.pct * 100);
+                const eta = pr.reached ? '¡Conseguido! 🎉' : pr.eta === 'lejos' ? 'Al ritmo actual, más de 2 años' : pr.eta ? 'Fecha estimada: ' + fmtTs(pr.eta) : 'Aún sin tendencia hacia el objetivo';
+                return `<div class="goal-row">
+                    <div class="goal-head"><span>${esc(goalLabel(key))}${key !== 'peso' ? ' <span class="unit">(1RM)</span>' : ''}</span><span><strong>${formatNumUI(pr.cur)}</strong> → ${formatNumUI(pr.target)} kg</span></div>
+                    <div class="progress${pr.reached ? ' done' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pc}" aria-label="Progreso de ${esc(goalLabel(key))}"><div style="width:${pc}%"></div></div>
+                    <div class="goal-foot">${pc} % · ${eta}</div></div>`;
+            });
+            $('res-goals').innerHTML = goalRows.length ? goalRows.join('')
+                : `<p class="res-empty">Aún no tienes objetivos.</p><button type="button" class="btn-cta" onclick="openGoalsSheet()"><i class="fa-solid fa-bullseye" aria-hidden="true"></i> Añadir objetivo</button>`;
+
+            // Récords por ejercicio
+            const recRows = lifts().map((key, i) => {
+                const b = bestLift(i + 1);
+                if (!b) return `<div class="res-row"><span>${esc(LIFTS[key].name)}<span class="res-sub">Sin marcas</span></span><span class="res-val">--</span></div>`;
+                const how = b.meso === 'VL' ? `VL · ${formatNumUI(b.kg)} kg × ${esc(b.reps)}` : `${b.meso} · marca`;
+                return `<div class="res-row"><span>${esc(LIFTS[key].name)}<span class="res-sub">${how} · ${esc(b.fecha)}</span></span><span class="res-val">${formatNumUI(b.e1rm)} kg</span></div>`;
+            });
+            if (total) recRows.push(`<div class="res-row"><span><strong>Total</strong><span class="res-sub">Suma de los mejores 1RM</span></span><span class="res-val">${formatNumUI(total.value)} kg</span></div>`);
+            $('res-records').innerHTML = recRows.join('');
+
+            // Récords recientes
+            const recent = prEvents().filter(e => daysSince(e.ts) <= 60).slice(0, 5);
+            $('res-prs').innerHTML = recent.length ? recent.map(e =>
+                `<div class="res-row"><span>🏆 ${esc(e.lift)}<span class="res-sub">${esc(e.fecha)} · ${e.meso}${e.meso === 'VL' ? ` · ${formatNumUI(e.kg)} kg × ${esc(e.reps)}` : ''}</span></span><span class="res-val">${formatNumUI(e.e1rm)} kg <span class="unit">(+${formatNumUI(Math.round((e.e1rm - e.prev) * 10) / 10)})</span></span></div>`
+            ).join('') : '<p class="res-empty">Sin récords en los últimos 60 días. ¡A por ellos!</p>';
+        }
+
+        // ---- EXPORTAR CSV (abre bien en Excel y Google Sheets en español) ----
+        function exportCsv() {
+            const mode = tabModes.historial;
+            const key = mode === 'fisico' ? 'fisico' : mode.toUpperCase();
+            const data = profileData()[key] || [];
+            if (!data.length) return;
+            const num = v => { const n = toNum(v); return n == null ? '' : formatNumUI(n); };
+            let header, rows;
+            if (key === 'fisico') {
+                header = ['Fecha', 'Mesociclo', 'Edad', 'Peso (kg)', '% Graso', 'Músculo (kg)', 'Hueso (kg)', 'Víscera', 'Grasa (kg)', 'Pecho (cm)', 'Hombros (cm)', 'Bíceps (cm)', 'Abdomen (cm)', 'Pierna (cm)'];
+                rows = data.map(d => [d.fecha, d.mesociclo, d.edad, num(d.peso), num(grasaPctOf(d)), num(d.musculo), num(d.hueso), num(d.viscera), num(d.grasa), num(d.pecho), num(d.hombros), num(d.biceps), num(d.abdomen), num(d.pierna)]);
+            } else {
+                header = ['Fecha'];
+                lifts().forEach(k => { header.push(LIFTS[k].name + ' (kg)'); if (key === 'VL') header.push(LIFTS[k].name + ' reps', LIFTS[k].name + ' 1RM est. (kg)'); });
+                rows = data.map(d => {
+                    const r = [d.fecha];
+                    lifts().forEach((_, i) => {
+                        const n = i + 1;
+                        r.push(num(d['ex' + n + '_kg']));
+                        if (key === 'VL') { r.push(d['ex' + n + '_reps'] == null ? '' : d['ex' + n + '_reps']); r.push(num(e1rm(d['ex' + n + '_kg'], d['ex' + n + '_reps']))); }
+                    });
+                    return r;
+                });
+            }
+            const cell = v => { const s = String(v == null || v === '-' ? '' : v); return /[;"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+            const csv = [header].concat(rows).map(r => r.map(cell).join(';')).join('\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `fittrack-${slug()}-${mode}-${tsToIso(Date.now())}.csv`;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+            showToast('CSV descargado', 'success', { id: 'export' });
         }
 
         // ---- SERVICE WORKER (app instalable y disponible sin conexión) ----

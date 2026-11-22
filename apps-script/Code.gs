@@ -209,6 +209,30 @@ function checkRow(sheet, data) {
   return rowRev(readRow(sheet, row)) === data.rev;
 }
 
+// ---- OBJETIVOS ----
+// Se guardan por perfil en las propiedades del script (GOALS_FRAN...), no en la hoja.
+// Formato: { peso: {target, start, startDate}, ex1: {...}, ex2: {...} }
+function goalsKey(profile) { return 'GOALS_' + profile; }
+
+function getGoals(props, profile) {
+  try { return JSON.parse(props.getProperty(goalsKey(profile)) || '{}'); } catch (e) { return {}; }
+}
+
+function saveGoals(props, data) {
+  if (!PROFILE_LIFTS.hasOwnProperty(data.profile)) throw new Error('Perfil desconocido: ' + data.profile);
+  var input = data.goals || {};
+  var clean = {};
+  Object.keys(input).forEach(function(k) {
+    if (!/^(peso|ex[1-9])$/.test(k) || !input[k]) return;
+    var target = parseNum(input[k].target);
+    if (target == null || target <= 0 || target > 1000) return;
+    var start = parseNum(input[k].start);
+    clean[k] = { target: target, start: start, startDate: String(input[k].startDate || '').slice(0, 10) };
+  });
+  props.setProperty(goalsKey(data.profile), JSON.stringify(clean));
+  return { status: 'success', goals: clean };
+}
+
 // ---- ACCIONES ----
 function addRecord(sheet, data) {
   var cols = columnsFor(sheet, data);
@@ -254,9 +278,14 @@ function doPost(e) {
     var id = data.id ? String(data.id).slice(0, 64) : '';
     if (id && processed.indexOf(id) !== -1) return jsonOutput({status: 'success', duplicate: true});
 
-    var sheet = sheetFor(data);
     var action = data.action || 'add';
     var result;
+    if (action === 'goals') {
+      result = saveGoals(props, data);
+      if (id) markProcessed(props, processed, id);
+      return jsonOutput(result);
+    }
+    var sheet = sheetFor(data);
     if (action === 'add') result = addRecord(sheet, data);
     else if (action === 'update') result = updateRecord(sheet, data);
     else if (action === 'delete') result = deleteRecord(sheet, data);
@@ -282,9 +311,10 @@ function doGet(e) {
     var only = e.parameter.profile;
     if (only) profiles = profiles.filter(function(p) { return p === only; });
 
+    var props = PropertiesService.getScriptProperties();
     var data = {};
     profiles.forEach(function(p) {
-      data[p] = { fisico: extraerFisico(ss, p) };
+      data[p] = { fisico: extraerFisico(ss, p), goals: getGoals(props, p) };
       MESOS.forEach(function(m) { data[p][m] = extraerMarcas(ss, p, m); });
     });
     return jsonOutput({status: 'success', data: data});

@@ -4,13 +4,47 @@
 // Se guarda en: Configuración del proyecto (⚙️) → Propiedades del script
 //   Propiedad: ACCESS_KEY    Valor: <tu clave secreta>
 // Toda petición sin la clave correcta se rechaza con {status: 'unauthorized'}.
+//
+// HOJAS: una por perfil para el físico (FRAN, MAMÁ...) y una por perfil y mesociclo para
+// las marcas (FRAN_FB, FRAN_VL, FRAN_PK...). Las columnas se localizan por el NOMBRE de su
+// cabecera (fila 1); si una cabecera no se reconoce, se usa su posición de siempre.
+
+// ---- CONFIGURACIÓN ----
+// Ejercicios de cada perfil, en el orden de la app (ex1, ex2...). Deben coincidir con las
+// cabeceras de las hojas de marcas: "Sentadilla" y, en Volumen, "Sentadilla Reps".
+var PROFILE_LIFTS = {
+  'FRAN':    ['Sentadilla', 'Press Banca', 'Peso Muerto'],
+  'MAMÁ':    ['Sentadilla', 'Press Banca', 'Peso Muerto'],
+  'CLAUDIA': ['Sentadilla', 'Fondos', 'Peso Muerto'],
+  'MIGUEL':  ['Pull-up', 'Muscle-up', 'Fondos', 'Sentadilla']
+};
+var MESOS = ['FB', 'VL', 'PK'];
+
+// Campos de la hoja física: nombre en la app, cabeceras aceptadas y posición por defecto
+var FISICO_FIELDS = [
+  { key: 'fecha',     headers: ['fecha'],                                   pos: 0 },
+  { key: 'mesociclo', headers: ['mesociclo', 'meso'],                       pos: 1 },
+  { key: 'edad',      headers: ['edad', 'edad metabolica'],                 pos: 2 },
+  { key: 'peso',      headers: ['peso'],                                    pos: 3 },
+  { key: 'grasa_pct', headers: ['imc', '% graso', '% grasa', 'grasa %'],    pos: 4 },
+  { key: 'musculo',   headers: ['musculo'],                                 pos: 5 },
+  { key: 'hueso',     headers: ['hueso'],                                   pos: 6 },
+  { key: 'viscera',   headers: ['viscera', 'grasa visceral'],               pos: 7 },
+  { key: 'grasa',     headers: ['grasa', 'grasa kg'],                       pos: 8 },
+  { key: 'pecho',     headers: ['pecho'],                                   pos: 9 },
+  { key: 'hombros',   headers: ['hombros'],                                 pos: 10 },
+  { key: 'biceps',    headers: ['biceps'],                                  pos: 11 },
+  { key: 'abdomen',   headers: ['abdomen'],                                 pos: 12 },
+  { key: 'pierna',    headers: ['pierna'],                                  pos: 13 }
+];
+var FISICO_TEXT_FIELDS = ['mesociclo'];
 
 function jsonOutput(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
 // ---- DEDUPLICACIÓN ----
-// La app reintenta los envíos que se quedaron sin conexión. Cada registro lleva un id único:
+// La app reintenta los envíos que se quedaron sin conexión. Cada envío lleva un id único:
 // se guardan los últimos ids procesados para no escribir dos veces la misma fila.
 var PROCESSED_IDS_PROP = 'PROCESSED_IDS';
 var MAX_PROCESSED_IDS = 150;
@@ -31,6 +65,181 @@ function isAuthorized(key) {
   return String(key) === expected;
 }
 
+// ---- UTILIDADES ----
+function normalize(s) {
+  return String(s == null ? '' : s).toLowerCase().trim()
+    .replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e').replace(/[íìï]/g, 'i')
+    .replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u').replace(/\s+/g, ' ');
+}
+
+function parseNum(val) {
+  if (val === '' || val == null) return null;
+  if (typeof val === 'number') return isNaN(val) ? null : val;
+  var num = parseFloat(String(val).replace('%', '').replace(',', '.'));
+  return isNaN(num) ? null : num;
+}
+
+// Valor que se escribe en una celda: número de verdad si lo es (no depende del idioma de la hoja)
+function toCell(val) {
+  if (val === '' || val == null) return '';
+  var s = String(val).trim();
+  if (/^-?\d+([.,]\d+)?$/.test(s)) return parseFloat(s.replace(',', '.'));
+  return s;
+}
+
+// "2026-11-22" → Date (medianoche en la zona horaria del script)
+function toDate(iso) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if (!m) return iso || '';
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+
+function pad2(n) { return ('0' + n).slice(-2); }
+
+function parseDateToString(dateVal) {
+  if (dateVal instanceof Date) {
+    return pad2(dateVal.getDate()) + '/' + pad2(dateVal.getMonth() + 1) + '/' + dateVal.getFullYear().toString().slice(-2);
+  }
+  return dateVal.toString().split('T')[0];
+}
+
+function dateToIso(dateVal) {
+  if (dateVal instanceof Date) {
+    return dateVal.getFullYear() + '-' + pad2(dateVal.getMonth() + 1) + '-' + pad2(dateVal.getDate());
+  }
+  var s = String(dateVal);
+  var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if (m) return m[1] + '-' + m[2] + '-' + m[3];
+  m = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec(s);
+  if (m) return (m[3].length === 2 ? '20' + m[3] : m[3]) + '-' + pad2(m[2]) + '-' + pad2(m[1]);
+  return '';
+}
+
+// Huella del contenido de una fila: si cambia, alguien la ha modificado desde que la app la leyó
+function rowRev(rowValues) {
+  var bytes = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(rowValues));
+  return Utilities.base64Encode(bytes).slice(0, 16);
+}
+
+// ---- MAPA DE COLUMNAS ----
+// Devuelve { campo: índiceDeColumna (base 0) }
+function fisicoColumns(headers) {
+  var norm = headers.map(normalize);
+  var map = {};
+  FISICO_FIELDS.forEach(function(f) {
+    var idx = -1;
+    for (var i = 0; i < f.headers.length && idx === -1; i++) idx = norm.indexOf(f.headers[i]);
+    map[f.key] = idx !== -1 ? idx : f.pos;
+  });
+  return map;
+}
+
+function marcasColumns(headers, profile, meso) {
+  var norm = headers.map(normalize);
+  var lifts = PROFILE_LIFTS[profile] || [];
+  var isVL = (meso === 'VL');
+  var map = { fecha: norm.indexOf('fecha') !== -1 ? norm.indexOf('fecha') : 0 };
+  lifts.forEach(function(name, i) {
+    var n = i + 1, h = normalize(name);
+    var kg = norm.indexOf(h);
+    map['ex' + n + '_kg'] = kg !== -1 ? kg : (isVL ? 2 * n - 1 : n);
+    if (isVL) {
+      var reps = norm.indexOf(h + ' reps');
+      map['ex' + n + '_reps'] = reps !== -1 ? reps : 2 * n;
+    }
+  });
+  return map;
+}
+
+function sheetFor(data) {
+  var name = data.type === 'marcas' ? data.profile + '_' + data.mesociclo_marca : data.profile;
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+  if (!sheet) throw new Error('Hoja no encontrada: ' + name);
+  return sheet;
+}
+
+function headersOf(sheet) {
+  var lastCol = Math.max(sheet.getLastColumn(), 1);
+  return sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+}
+
+function columnsFor(sheet, data) {
+  var headers = headersOf(sheet);
+  return data.type === 'marcas' ? marcasColumns(headers, data.profile, data.mesociclo_marca) : fisicoColumns(headers);
+}
+
+// ¿La columna tiene formato de porcentaje? (entonces 14,2 se guarda como 0,142)
+function isPercentColumn(sheet, colIdx) {
+  var row = Math.max(2, Math.min(sheet.getLastRow(), sheet.getMaxRows()));
+  try { return String(sheet.getRange(row, colIdx + 1).getNumberFormat()).indexOf('%') !== -1; } catch (e) { return false; }
+}
+
+// Valores a escribir: { índiceDeColumna: valor }
+function cellsFor(sheet, data, cols) {
+  var cells = {};
+  cells[cols.fecha] = toDate(data.fecha);
+  if (data.type === 'marcas') {
+    var n = (PROFILE_LIFTS[data.profile] || []).length;
+    for (var i = 1; i <= n; i++) {
+      cells[cols['ex' + i + '_kg']] = toCell(data['ex' + i + '_kg']);
+      if (data.mesociclo_marca === 'VL') cells[cols['ex' + i + '_reps']] = toCell(data['ex' + i + '_reps']);
+    }
+  } else {
+    // "grasa_pct" es el nombre nuevo; "imc" se mantiene por compatibilidad con versiones antiguas de la app
+    var values = Object.assign ? Object.assign({}, data) : JSON.parse(JSON.stringify(data));
+    if (values.grasa_pct == null || values.grasa_pct === '') values.grasa_pct = data.imc;
+    FISICO_FIELDS.forEach(function(f) {
+      if (f.key === 'fecha') return;
+      var v = FISICO_TEXT_FIELDS.indexOf(f.key) !== -1 ? (values[f.key] || '') : toCell(values[f.key]);
+      if (f.key === 'grasa_pct' && typeof v === 'number' && isPercentColumn(sheet, cols.grasa_pct)) v = v / 100;
+      cells[cols[f.key]] = v;
+    });
+  }
+  return cells;
+}
+
+function readRow(sheet, row) {
+  var lastCol = Math.max(sheet.getLastColumn(), 1);
+  return sheet.getRange(row, 1, 1, lastCol).getValues()[0];
+}
+
+// Comprueba que la fila existe y no ha cambiado desde que la app la leyó
+function checkRow(sheet, data) {
+  var row = Number(data.row);
+  if (!row || row < 2 || row > sheet.getLastRow()) return false;
+  return rowRev(readRow(sheet, row)) === data.rev;
+}
+
+// ---- ACCIONES ----
+function addRecord(sheet, data) {
+  var cols = columnsFor(sheet, data);
+  var cells = cellsFor(sheet, data, cols);
+  var width = Math.max.apply(null, Object.keys(cells).map(Number)) + 1;
+  var rowData = [];
+  for (var i = 0; i < width; i++) rowData.push(cells.hasOwnProperty(i) ? cells[i] : '');
+  sheet.appendRow(rowData);
+  SpreadsheetApp.flush();
+  var row = sheet.getLastRow();
+  return { status: 'success', row: row, rev: rowRev(readRow(sheet, row)) };
+}
+
+function updateRecord(sheet, data) {
+  if (!checkRow(sheet, data)) return { status: 'conflict' };
+  var row = Number(data.row);
+  var cells = cellsFor(sheet, data, columnsFor(sheet, data));
+  // Solo se escriben las columnas de la app: las demás (fórmulas, notas...) no se tocan
+  Object.keys(cells).forEach(function(c) { sheet.getRange(row, Number(c) + 1).setValue(cells[c]); });
+  SpreadsheetApp.flush();
+  return { status: 'success', row: row, rev: rowRev(readRow(sheet, row)) };
+}
+
+function deleteRecord(sheet, data) {
+  if (!checkRow(sheet, data)) return { status: 'conflict' };
+  sheet.deleteRow(Number(data.row));
+  SpreadsheetApp.flush();
+  return { status: 'success' };
+}
+
 function doPost(e) {
   var lock = null;
   try {
@@ -46,50 +255,16 @@ function doPost(e) {
     var id = data.id ? String(data.id).slice(0, 64) : '';
     if (id && processed.indexOf(id) !== -1) return jsonOutput({status: 'success', duplicate: true});
 
-    var sheetName = "";
-    var rowData = [];
+    var sheet = sheetFor(data);
+    var action = data.action || 'add';
+    var result;
+    if (action === 'add') result = addRecord(sheet, data);
+    else if (action === 'update') result = updateRecord(sheet, data);
+    else if (action === 'delete') result = deleteRecord(sheet, data);
+    else throw new Error('Acción desconocida: ' + action);
 
-    if (data.type === 'marcas') {
-      sheetName = data.profile + '_' + data.mesociclo_marca;
-      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-      if (!sheet) throw new Error('Hoja no encontrada: ' + sheetName);
-
-      var isVL = (data.mesociclo_marca === 'VL');
-      var isMiguel = (data.profile === 'MIGUEL');
-
-      if (isVL) {
-        if (isMiguel) {
-          rowData = [data.fecha, data.ex1_kg, data.ex1_reps, data.ex2_kg, data.ex2_reps, data.ex3_kg, data.ex3_reps, data.ex4_kg, data.ex4_reps];
-        } else {
-          rowData = [data.fecha, data.ex1_kg, data.ex1_reps, data.ex2_kg, data.ex2_reps, data.ex3_kg, data.ex3_reps];
-        }
-      } else {
-        if (isMiguel) {
-          rowData = [data.fecha, data.ex1_kg, data.ex2_kg, data.ex3_kg, data.ex4_kg];
-        } else {
-          rowData = [data.fecha, data.ex1_kg, data.ex2_kg, data.ex3_kg];
-        }
-      }
-      sheet.appendRow(rowData);
-
-    } else {
-      sheetName = data.profile;
-      var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-      if (!sheet) throw new Error('Hoja no encontrada: ' + sheetName);
-
-      // "grasa_pct" es el nombre nuevo; "imc" se mantiene por compatibilidad con versiones antiguas de la app
-      var grasaPct = (data.grasa_pct != null && data.grasa_pct !== '') ? data.grasa_pct : data.imc;
-      rowData = [
-        data.fecha, data.mesociclo, data.edad, data.peso, grasaPct,
-        data.musculo, data.hueso, data.viscera, data.grasa,
-        data.pecho, data.hombros, data.biceps, data.abdomen, data.pierna
-      ];
-      sheet.appendRow(rowData);
-    }
-
-    SpreadsheetApp.flush();
-    if (id) markProcessed(props, processed, id);
-    return jsonOutput({status: 'success'});
+    if (id && result.status === 'success') markProcessed(props, processed, id);
+    return jsonOutput(result);
   } catch (error) {
     return jsonOutput({status: 'error', message: error.toString()});
   } finally {
@@ -104,19 +279,14 @@ function doGet(e) {
     // ?profile=FRAN devuelve solo ese perfil (más rápido); ?profile=none solo comprueba la clave;
     // sin el parámetro se devuelven todos (compatibilidad con versiones anteriores de la app).
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var profiles = ['FRAN', 'MAMÁ', 'CLAUDIA', 'MIGUEL'];
+    var profiles = Object.keys(PROFILE_LIFTS);
     var only = e.parameter.profile;
     if (only) profiles = profiles.filter(function(p) { return p === only; });
 
     var data = {};
     profiles.forEach(function(p) {
-      var isMiguel = (p === 'MIGUEL');
-      data[p] = {
-        fisico: extraerFisico(ss, p),
-        FB: extraerMarcas(ss, p + '_FB', 'FB', isMiguel),
-        VL: extraerMarcas(ss, p + '_VL', 'VL', isMiguel),
-        PK: extraerMarcas(ss, p + '_PK', 'PK', isMiguel)
-      };
+      data[p] = { fisico: extraerFisico(ss, p) };
+      MESOS.forEach(function(m) { data[p][m] = extraerMarcas(ss, p, m); });
     });
     return jsonOutput({status: 'success', data: data});
   } catch (error) {
@@ -124,90 +294,61 @@ function doGet(e) {
   }
 }
 
-function extraerFisico(ss, sheetName) {
-  var sheet = ss.getSheetByName(sheetName);
+function extraerFisico(ss, profile) {
+  var sheet = ss.getSheetByName(profile);
   if (!sheet) return [];
-  var data = sheet.getDataRange().getValues();
+  var values = sheet.getDataRange().getValues();
+  if (!values.length) return [];
+  var cols = fisicoColumns(values[0]);
   var result = [];
 
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    if (!row[0]) continue;
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var fecha = row[cols.fecha];
+    if (!fecha) continue;
 
-    var dateStr = parseDateToString(row[0]);
-    var parseNum = function(val) {
-      if(val === "" || val == null) return null;
-      var num = parseFloat(val.toString().replace('%','').replace(',','.'));
-      return isNaN(num) ? null : num;
-    };
-
-    var imcVal = row[4];
-    var imcStr = "-";
-    if (imcVal !== "" && imcVal != null) {
-      if (typeof imcVal === 'number') {
-        var valToFormat = imcVal < 1 ? imcVal * 100 : imcVal;
-        imcStr = valToFormat.toFixed(1).replace('.', ',') + '%';
+    var pctVal = row[cols.grasa_pct];
+    var pctStr = '-';
+    if (pctVal !== '' && pctVal != null) {
+      if (typeof pctVal === 'number') {
+        var valToFormat = pctVal < 1 ? pctVal * 100 : pctVal;
+        pctStr = valToFormat.toFixed(1).replace('.', ',') + '%';
       } else {
-        imcStr = imcVal.toString();
+        pctStr = pctVal.toString();
       }
     }
 
-    result.push({
-      fecha: dateStr, mesociclo: row[1] || '-', edad: row[2] || '-', peso: parseNum(row[3]), grasa_pct: imcStr, imc: imcStr,
-      musculo: parseNum(row[5]), hueso: parseNum(row[6]), viscera: parseNum(row[7]), grasa: parseNum(row[8]),
-      pecho: parseNum(row[9]), hombros: parseNum(row[10]), biceps: parseNum(row[11]), abdomen: parseNum(row[12]), pierna: parseNum(row[13])
+    var rec = { row: i + 1, rev: rowRev(row), fecha: parseDateToString(fecha), iso: dateToIso(fecha) };
+    FISICO_FIELDS.forEach(function(f) {
+      if (f.key === 'fecha') return;
+      if (f.key === 'grasa_pct') { rec.grasa_pct = pctStr; rec.imc = pctStr; return; }
+      if (f.key === 'mesociclo' || f.key === 'edad') { rec[f.key] = row[cols[f.key]] || '-'; return; }
+      rec[f.key] = parseNum(row[cols[f.key]]);
     });
+    result.push(rec);
   }
   return result;
 }
 
-function extraerMarcas(ss, sheetName, tipo, isMiguel) {
-  var sheet = ss.getSheetByName(sheetName);
+function extraerMarcas(ss, profile, meso) {
+  var sheet = ss.getSheetByName(profile + '_' + meso);
   if (!sheet) return [];
-  var data = sheet.getDataRange().getValues();
+  var values = sheet.getDataRange().getValues();
+  if (!values.length) return [];
+  var cols = marcasColumns(values[0], profile, meso);
+  var n = (PROFILE_LIFTS[profile] || []).length;
   var result = [];
 
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    if (!row[0]) continue;
-    var dateStr = parseDateToString(row[0]);
-
-    var parseNum = function(val) {
-      if(val === "" || val == null) return null;
-      var num = parseFloat(val.toString().replace(',','.'));
-      return isNaN(num) ? null : num;
-    };
-
-    var isVL = (tipo === 'VL');
-    var pushObj = {
-      fecha: dateStr,
-      ex1_kg: parseNum(row[1]),
-      ex2_kg: parseNum(isVL ? row[3] : row[2]),
-      ex3_kg: parseNum(isVL ? row[5] : row[3])
-    };
-
-    if (isVL) {
-      pushObj.ex1_reps = row[2];
-      pushObj.ex2_reps = row[4];
-      pushObj.ex3_reps = row[6];
+  for (var i = 1; i < values.length; i++) {
+    var row = values[i];
+    var fecha = row[cols.fecha];
+    if (!fecha) continue;
+    var rec = { row: i + 1, rev: rowRev(row), fecha: parseDateToString(fecha), iso: dateToIso(fecha) };
+    for (var k = 1; k <= n; k++) {
+      rec['ex' + k + '_kg'] = parseNum(row[cols['ex' + k + '_kg']]);
+      if (meso === 'VL') rec['ex' + k + '_reps'] = row[cols['ex' + k + '_reps']];
     }
-
-    // Añadido para el 4º Ejercicio de Miguel
-    if (isMiguel) {
-      pushObj.ex4_kg = parseNum(isVL ? row[7] : row[4]);
-      if (isVL) pushObj.ex4_reps = row[8];
-    }
-
-    result.push(pushObj);
+    result.push(rec);
   }
   return result;
-}
-
-function parseDateToString(dateVal) {
-  if (dateVal instanceof Date) {
-    var day = ("0" + dateVal.getDate()).slice(-2);
-    var month = ("0" + (dateVal.getMonth() + 1)).slice(-2);
-    return day + "/" + month + "/" + dateVal.getFullYear().toString().slice(-2);
-  }
-  return dateVal.toString().split('T')[0];
 }

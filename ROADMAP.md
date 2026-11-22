@@ -90,7 +90,7 @@
 
 ## Fase 3 · Arquitectura y mantenibilidad (semanas 6–9)
 
-### 3.1 App guiada por configuración
+### 3.1 App guiada por configuración — ✅ (PROFILES en la app y PROFILE_LIFTS en el Apps Script)
 Crear un único objeto (o una pestaña `CONFIG` en la hoja) que defina los perfiles y sus ejercicios:
 
 ```js
@@ -103,13 +103,13 @@ const PROFILES = {
 
 Con esto desaparecen los `if (isMiguel)` / `isClaudia` repartidos por `updateExerciseLabels`, `renderTable`, `renderChartsMarcas`, `doPost` y `extraerMarcas`. Añadir una persona o un ejercicio pasa a ser cambiar una línea.
 
-### 3.2 Modelo de datos por cabeceras
+### 3.2 Modelo de datos por cabeceras — ✅ (salvo la hoja única "larga", que queda opcional)
 - Leer y escribir las columnas **por nombre de cabecera** y no por posición (`row[7]`). Hoy, insertar una columna en la hoja rompe la app en silencio.
 - Opcional: **una sola hoja "larga"** de marcas (`fecha | perfil | meso | ejercicio | kg | reps | notas`) en lugar de 12 hojas. Simplifica el código y permite tablas dinámicas.
 - Guardar las fechas como `Date` / ISO y **ordenar por fecha** al leer. Ahora el orden depende del orden de inserción: un registro con fecha pasada aparece al final.
 - Usar un **eje temporal real** en Chart.js (`type: 'time'`), para que una pausa de 3 meses no se dibuje igual que una semana.
 
-### 3.3 CRUD completo
+### 3.3 CRUD completo — ✅ editar y borrar (las notas quedan pendientes: requieren añadir una columna "Notas" a las tablas)
 - **Editar y borrar** registros desde la vista Historial (deslizar a la izquierda o mantener pulsado). Requiere un `id` por fila en el backend.
 - Campo de **notas** por sesión ("molestia en el hombro", "cinturón").
 

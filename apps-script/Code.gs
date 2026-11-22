@@ -9,6 +9,22 @@ function jsonOutput(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
+// ---- DEDUPLICACIÓN ----
+// La app reintenta los envíos que se quedaron sin conexión. Cada registro lleva un id único:
+// se guardan los últimos ids procesados para no escribir dos veces la misma fila.
+var PROCESSED_IDS_PROP = 'PROCESSED_IDS';
+var MAX_PROCESSED_IDS = 150;
+
+function getProcessedIds(props) {
+  try { return JSON.parse(props.getProperty(PROCESSED_IDS_PROP) || '[]'); } catch (e) { return []; }
+}
+
+function markProcessed(props, ids, id) {
+  ids.push(id);
+  if (ids.length > MAX_PROCESSED_IDS) ids = ids.slice(ids.length - MAX_PROCESSED_IDS);
+  props.setProperty(PROCESSED_IDS_PROP, JSON.stringify(ids));
+}
+
 function isAuthorized(key) {
   var expected = PropertiesService.getScriptProperties().getProperty('ACCESS_KEY');
   if (!expected || !key) return false; // sin clave configurada, nadie entra
@@ -16,9 +32,19 @@ function isAuthorized(key) {
 }
 
 function doPost(e) {
+  var lock = null;
   try {
     var data = JSON.parse(e.postData.contents);
     if (!isAuthorized(data.key)) return jsonOutput({status: 'unauthorized'});
+
+    // Evita que dos envíos simultáneos se pisen al escribir en la hoja
+    lock = LockService.getScriptLock();
+    if (!lock.tryLock(15000)) return jsonOutput({status: 'error', message: 'Servidor ocupado, inténtalo de nuevo'});
+
+    var props = PropertiesService.getScriptProperties();
+    var processed = getProcessedIds(props);
+    var id = data.id ? String(data.id).slice(0, 64) : '';
+    if (id && processed.indexOf(id) !== -1) return jsonOutput({status: 'success', duplicate: true});
 
     var sheetName = "";
     var rowData = [];
@@ -51,17 +77,23 @@ function doPost(e) {
       var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
       if (!sheet) throw new Error('Hoja no encontrada: ' + sheetName);
 
+      // "grasa_pct" es el nombre nuevo; "imc" se mantiene por compatibilidad con versiones antiguas de la app
+      var grasaPct = (data.grasa_pct != null && data.grasa_pct !== '') ? data.grasa_pct : data.imc;
       rowData = [
-        data.fecha, data.mesociclo, data.edad, data.peso, data.imc,
+        data.fecha, data.mesociclo, data.edad, data.peso, grasaPct,
         data.musculo, data.hueso, data.viscera, data.grasa,
         data.pecho, data.hombros, data.biceps, data.abdomen, data.pierna
       ];
       sheet.appendRow(rowData);
     }
 
+    SpreadsheetApp.flush();
+    if (id) markProcessed(props, processed, id);
     return jsonOutput({status: 'success'});
   } catch (error) {
     return jsonOutput({status: 'error', message: error.toString()});
+  } finally {
+    if (lock) lock.releaseLock();
   }
 }
 
@@ -69,17 +101,24 @@ function doGet(e) {
   try {
     if (!isAuthorized(e && e.parameter ? e.parameter.key : null)) return jsonOutput({status: 'unauthorized'});
 
+    // ?profile=FRAN devuelve solo ese perfil (más rápido); ?profile=none solo comprueba la clave;
+    // sin el parámetro se devuelven todos (compatibilidad con versiones anteriores de la app).
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var response = {
-      status: 'success',
-      data: {
-        'FRAN': { fisico: extraerFisico(ss, 'FRAN'), FB: extraerMarcas(ss, 'FRAN_FB', 'FB', false), VL: extraerMarcas(ss, 'FRAN_VL', 'VL', false), PK: extraerMarcas(ss, 'FRAN_PK', 'PK', false) },
-        'MAMÁ': { fisico: extraerFisico(ss, 'MAMÁ'), FB: extraerMarcas(ss, 'MAMÁ_FB', 'FB', false), VL: extraerMarcas(ss, 'MAMÁ_VL', 'VL', false), PK: extraerMarcas(ss, 'MAMÁ_PK', 'PK', false) },
-        'CLAUDIA': { fisico: extraerFisico(ss, 'CLAUDIA'), FB: extraerMarcas(ss, 'CLAUDIA_FB', 'FB', false), VL: extraerMarcas(ss, 'CLAUDIA_VL', 'VL', false), PK: extraerMarcas(ss, 'CLAUDIA_PK', 'PK', false) },
-        'MIGUEL': { fisico: extraerFisico(ss, 'MIGUEL'), FB: extraerMarcas(ss, 'MIGUEL_FB', 'FB', true), VL: extraerMarcas(ss, 'MIGUEL_VL', 'VL', true), PK: extraerMarcas(ss, 'MIGUEL_PK', 'PK', true) }
-      }
-    };
-    return jsonOutput(response);
+    var profiles = ['FRAN', 'MAMÁ', 'CLAUDIA', 'MIGUEL'];
+    var only = e.parameter.profile;
+    if (only) profiles = profiles.filter(function(p) { return p === only; });
+
+    var data = {};
+    profiles.forEach(function(p) {
+      var isMiguel = (p === 'MIGUEL');
+      data[p] = {
+        fisico: extraerFisico(ss, p),
+        FB: extraerMarcas(ss, p + '_FB', 'FB', isMiguel),
+        VL: extraerMarcas(ss, p + '_VL', 'VL', isMiguel),
+        PK: extraerMarcas(ss, p + '_PK', 'PK', isMiguel)
+      };
+    });
+    return jsonOutput({status: 'success', data: data});
   } catch (error) {
     return jsonOutput({status: 'error', message: error.toString()});
   }
@@ -114,7 +153,7 @@ function extraerFisico(ss, sheetName) {
     }
 
     result.push({
-      fecha: dateStr, mesociclo: row[1] || '-', edad: row[2] || '-', peso: parseNum(row[3]), imc: imcStr,
+      fecha: dateStr, mesociclo: row[1] || '-', edad: row[2] || '-', peso: parseNum(row[3]), grasa_pct: imcStr, imc: imcStr,
       musculo: parseNum(row[5]), hueso: parseNum(row[6]), viscera: parseNum(row[7]), grasa: parseNum(row[8]),
       pecho: parseNum(row[9]), hombros: parseNum(row[10]), biceps: parseNum(row[11]), abdomen: parseNum(row[12]), pierna: parseNum(row[13])
     });

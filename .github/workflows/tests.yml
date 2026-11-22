@@ -1,0 +1,23 @@
+name: Pruebas
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Huellas de css/js y sintaxis
+        run: npm run check
+      - name: Pruebas (Apps Script + app en Chromium)
+        run: npm test

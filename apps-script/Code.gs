@@ -56,8 +56,10 @@ function doPost(e) {
       var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
       if (!sheet) throw new Error('Hoja no encontrada: ' + sheetName);
 
+      // "grasa_pct" es el nombre nuevo; "imc" se mantiene por compatibilidad con versiones antiguas de la app
+      var grasaPct = (data.grasa_pct != null && data.grasa_pct !== '') ? data.grasa_pct : data.imc;
       rowData = [
-        data.fecha, data.mesociclo, data.edad, data.peso, data.imc,
+        data.fecha, data.mesociclo, data.edad, data.peso, grasaPct,
         data.musculo, data.hueso, data.viscera, data.grasa,
         data.pecho, data.hombros, data.biceps, data.abdomen, data.pierna
       ];
@@ -122,7 +124,7 @@ function extraerFisico(ss, sheetName) {
     }
 
     result.push({
-      fecha: dateStr, mesociclo: row[1] || '-', edad: row[2] || '-', peso: parseNum(row[3]), imc: imcStr,
+      fecha: dateStr, mesociclo: row[1] || '-', edad: row[2] || '-', peso: parseNum(row[3]), grasa_pct: imcStr, imc: imcStr,
       musculo: parseNum(row[5]), hueso: parseNum(row[6]), viscera: parseNum(row[7]), grasa: parseNum(row[8]),
       pecho: parseNum(row[9]), hombros: parseNum(row[10]), biceps: parseNum(row[11]), abdomen: parseNum(row[12]), pierna: parseNum(row[13])
     });

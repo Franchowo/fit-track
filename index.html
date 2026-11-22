@@ -9,84 +9,109 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
-    
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js" integrity="sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM" crossorigin="anonymous"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --bg-dark: #0f172a; --bg-darker: #020617; --glass-bg: rgba(30, 41, 59, 0.6); --glass-border: rgba(255, 255, 255, 0.08);
             --theme: #00f3ff; --theme-rgb: 0, 243, 255; --text-main: #f8fafc; --text-muted: #94a3b8;
+            --danger: #f87171; --success: #4ade80; --warning: #fbbf24;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%); color: var(--text-main); min-height: 100vh; padding-bottom: 90px; overflow-x: hidden; }
+        button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+        :focus-visible { outline: 3px solid var(--theme); outline-offset: 2px; }
+        body { background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%); color: var(--text-main); min-height: 100vh; padding-bottom: 100px; overflow-x: hidden; }
         .glass { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
         header { padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); }
         h1 { font-weight: 800; font-size: 1.8rem; letter-spacing: 1px; color: #ffffff; display: flex; justify-content: center; align-items: center; gap: 10px; }
         h1 i { color: #ffffff; font-size: 1.5rem; transform: rotate(15deg); }
-        .profile-badge { display: inline-block; padding: 6px 18px; border-radius: 30px; font-size: 0.9rem; margin-top: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; background: rgba(var(--theme-rgb), 0.15); border: 1px solid var(--theme); color: var(--theme); }
+        .profile-badge { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 18px; border-radius: 30px; font-size: 0.9rem; margin-top: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; background: rgba(var(--theme-rgb), 0.15); border: 1px solid var(--theme); color: var(--theme); }
+        .profile-badge i { font-size: 0.7rem; }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .hidden { display: none !important; }
 
         .profile-selector { display: flex; flex-direction: column; gap: 20px; margin-top: 20px; }
-        .profile-btn { padding: 25px 20px; font-size: 1.8rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; cursor: pointer; text-align: center; border: 2px solid transparent; transition: 0.3s; }
-        .profile-btn i { display: block; font-size: 2.2rem; margin-bottom: 10px; }
-        .btn-fran { background: rgba(0, 243, 255, 0.05); border-color: rgba(0, 243, 255, 0.2); } .btn-fran i { color: #00f3ff; }
-        .btn-mama { background: rgba(255, 0, 234, 0.05); border-color: rgba(255, 0, 234, 0.2); } .btn-mama i { color: #ff00ea; }
-        .btn-claudia { background: rgba(249, 115, 22, 0.05); border-color: rgba(249, 115, 22, 0.2); } .btn-claudia i { color: #f97316; }
-        .btn-miguel { background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); } .btn-miguel i { color: #10b981; }
-        
-        .sub-nav { 
-            display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.3); 
-            padding: 5px; border-radius: 15px; border: 1px solid var(--glass-border); 
+        .profile-btn { width: 100%; padding: 25px 20px; font-size: 1.8rem; font-weight: 800; color: var(--text-main); text-transform: uppercase; text-align: center; border: 2px solid rgba(var(--p-rgb), 0.2); background: rgba(var(--p-rgb), 0.05); transition: 0.3s; }
+        .profile-btn i { display: block; font-size: 2.2rem; margin-bottom: 10px; color: var(--p); }
+
+        .sub-nav {
+            display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.3);
+            padding: 5px; border-radius: 15px; border: 1px solid var(--glass-border);
             overflow-x: auto; white-space: nowrap; scrollbar-width: none;
         }
         .sub-nav::-webkit-scrollbar { display: none; }
-        .sub-nav-btn { 
-            flex: 1 0 auto; padding: 12px 15px; text-align: center; border-radius: 10px; 
-            cursor: pointer; color: var(--text-muted); font-weight: bold; font-size: 0.95rem; 
-            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; 
+        .sub-nav-btn {
+            flex: 1 0 auto; min-height: 44px; padding: 12px 15px; text-align: center; border-radius: 10px;
+            color: var(--text-muted); font-weight: bold; font-size: 0.95rem;
+            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
         }
         .sub-nav-btn.active { background: var(--theme); color: #000; box-shadow: 0 0 10px rgba(var(--theme-rgb), 0.4); }
 
         .form-group { margin-bottom: 25px; }
-        .form-group label { display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 1rem; font-weight: 500; }
-        
+        .form-group label, .form-label { display: block; margin-bottom: 10px; color: var(--text-muted); font-size: 1rem; font-weight: 500; }
+        .unit { font-size: 0.85rem; opacity: 0.75; }
+
         .input-large { width: 100%; min-height: 60px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); color: white; font-size: 1.2rem; font-weight: 600; transition: all 0.3s; }
+        .input-large::placeholder { color: rgba(148, 163, 184, 0.55); font-weight: 500; font-size: 1rem; }
         .input-large:focus { outline: none; border-color: var(--theme); box-shadow: 0 0 12px rgba(var(--theme-rgb), 0.2); background: rgba(var(--theme-rgb), 0.05); }
         select.input-large { appearance: none; }
-        .input-large.input-error { border-color: #f87171; box-shadow: 0 0 10px rgba(248, 113, 113, 0.25); }
-        .field-error { color: #f87171; font-size: 0.9rem; font-weight: 600; margin-top: 8px; }
-        .form-error { color: #f87171; font-weight: bold; text-align: center; margin-top: 15px; }
-        .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); margin-bottom: 25px; }
-        .empty-state i { display: block; font-size: 2.5rem; color: var(--theme); margin-bottom: 15px; opacity: 0.7; }
+        .input-large.input-error { border-color: var(--danger); box-shadow: 0 0 10px rgba(248, 113, 113, 0.25); }
+        .field-error { color: var(--danger); font-size: 0.9rem; font-weight: 600; margin-top: 8px; }
+        .form-error { color: var(--danger); font-weight: bold; text-align: center; margin-top: 15px; }
+        .form-hint { display: flex; gap: 10px; align-items: flex-start; padding: 12px 15px; margin: -10px 0 25px; border-radius: 12px; background: rgba(var(--theme-rgb), 0.08); border: 1px solid rgba(var(--theme-rgb), 0.25); color: var(--text-main); font-size: 0.9rem; line-height: 1.4; }
+        .form-hint i { color: var(--theme); margin-top: 2px; }
 
         .login-box { padding: 30px 20px; text-align: center; margin-top: 30px; }
         .login-box .lock-icon { font-size: 3rem; color: var(--theme); margin-bottom: 15px; }
-        .login-box p { color: var(--text-muted); margin-bottom: 25px; }
-        .login-error { color: #f87171; font-weight: bold; margin-top: 15px; min-height: 1.2em; }
-        .btn-logout { position: absolute; right: 12px; top: 18px; width: 44px; height: 44px; background: none; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; }
+        .login-box label { display: block; color: var(--text-muted); margin-bottom: 25px; }
+        .login-error { color: var(--danger); font-weight: bold; margin-top: 15px; min-height: 1.2em; }
+        .btn-logout { position: absolute; right: 12px; top: 18px; width: 44px; height: 44px; color: var(--text-muted); font-size: 1.3rem; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .grid-reps { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
 
-        .step-indicators { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
-        .step-dot { width: 45px; height: 6px; border-radius: 6px; background: var(--glass-border); transition: 0.4s; }
-        .step-dot.active { background: var(--theme); box-shadow: 0 0 8px var(--theme); }
+        /* Asistente por pasos */
+        .step-header { text-align: center; margin-bottom: 20px; }
+        .step-indicators { display: flex; justify-content: center; gap: 6px; margin-bottom: 8px; }
+        .step-dot { width: 57px; height: 44px; display: flex; align-items: center; }
+        .step-dot::before { content: ''; display: block; width: 100%; height: 6px; border-radius: 6px; background: var(--glass-border); transition: 0.4s; }
+        .step-dot.done::before { background: rgba(var(--theme-rgb), 0.45); }
+        .step-dot.active::before { background: var(--theme); box-shadow: 0 0 8px var(--theme); }
+        .step-title { color: var(--text-muted); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.5px; }
+        .step-panel { padding: 30px 20px; }
+        .step-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .step-actions .btn-save { margin-top: 0; flex: 1; }
+        .btn-back { min-height: 65px; padding: 0 20px; border-radius: 16px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.25); color: var(--text-muted); font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
 
-        .btn-save { width: 100%; min-height: 65px; border-radius: 16px; border: 2px solid var(--theme); background: rgba(var(--theme-rgb), 0.05); color: var(--theme); font-size: 1.3rem; font-weight: 800; margin-top: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-save { width: 100%; min-height: 65px; border-radius: 16px; border: 2px solid var(--theme); background: rgba(var(--theme-rgb), 0.05); color: var(--theme); font-size: 1.3rem; font-weight: 800; margin-top: 20px; text-transform: uppercase; letter-spacing: 2px; transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .btn-save:active { transform: scale(0.97); background: var(--theme); color: #000; box-shadow: 0 0 20px rgba(var(--theme-rgb), 0.4); }
+        .btn-save:disabled { opacity: 0.7; cursor: progress; }
         .btn-solid { background: var(--theme); color: #000; }
 
+        /* Marcas: stepper y récord */
+        .lift-header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+        .lift-header label { margin-bottom: 0; }
+        .pr-badge { font-size: 0.8rem; font-weight: 700; color: var(--warning); white-space: nowrap; }
+        .stepper { display: flex; gap: 8px; align-items: stretch; }
+        .stepper + .stepper { margin-top: 10px; }
+        .stepper-btn { flex: 0 0 52px; min-height: 60px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); color: var(--theme); font-size: 1.5rem; font-weight: 800; }
+        .stepper-btn:active { background: rgba(var(--theme-rgb), 0.2); }
+        .stepper-field { position: relative; flex: 1; min-width: 0; }
+        .stepper-field .input-large { padding-right: 52px; text-align: center; }
+        .stepper-unit { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.85rem; font-weight: 600; pointer-events: none; }
+
         .analytics-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .filter-select { background: var(--glass-bg); color: #fff; border: 1px solid var(--theme); padding: 10px; border-radius: 10px; outline: none; font-weight:bold; }
+        .filter-select { background: var(--glass-bg); color: #fff; border: 1px solid var(--theme); min-height: 44px; padding: 10px; border-radius: 10px; outline: none; font-weight:bold; }
 
         .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
         .kpi-card { padding: 20px 15px; text-align: center; border-top: 3px solid var(--theme); }
         .kpi-value { font-size: 2rem; font-weight: 900; margin: 10px 0 5px 0; color: #fff; }
         .kpi-label { font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; }
-        
+        .kpi-sub { color: var(--text-muted); font-size: 0.85rem; }
+
         .chart-container { margin-bottom: 25px; padding: 20px; border-radius: 20px; position: relative; }
         .chart-title { text-align: center; color: var(--theme); font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; text-transform: uppercase; }
 
@@ -94,262 +119,557 @@
         .data-table { width: 100%; border-collapse: collapse; text-align: center; min-width: 600px; }
         .data-table th { padding: 15px; border-bottom: 2px solid var(--theme); color: var(--theme); font-size: 0.85rem; text-transform: uppercase; white-space: nowrap; background: rgba(0,0,0,0.2); }
         .data-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); font-size: 0.95rem; white-space: nowrap; }
-        
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; display: flex; justify-content: space-around; align-items: center; background: rgba(2, 6, 23, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(15px); z-index: 1000; }
-        .nav-item { color: var(--text-muted); text-align: center; font-size: 1.8rem; flex: 1; padding: 15px 0; cursor: pointer; transition: 0.3s; }
-        .nav-item.active { color: var(--theme); text-shadow: 0 0 15px rgba(var(--theme-rgb), 0.5); transform: translateY(-4px); }
+        .data-table td.td-empty { padding: 35px 20px; color: var(--text-muted); white-space: normal; }
+
+        /* Estados vacíos, error y carga */
+        .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); margin-bottom: 25px; }
+        .empty-state > i { display: block; font-size: 2.5rem; color: var(--theme); margin-bottom: 15px; opacity: 0.7; }
+        .btn-cta { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; min-height: 48px; padding: 0 22px; border-radius: 14px; background: var(--theme); color: #000; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-size: 0.9rem; }
+        .btn-cta.secondary { background: transparent; color: var(--theme); border: 2px solid var(--theme); }
+        .skeleton { position: relative; overflow: hidden; background: rgba(148, 163, 184, 0.08); border-radius: 20px; margin-bottom: 25px; }
+        .skeleton::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent); animation: shimmer 1.4s infinite; }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton-kpi { height: 120px; margin-bottom: 0; }
+        .skeleton-chart { height: 230px; }
+        .skeleton-table { height: 320px; }
+
+        /* Navegación inferior */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; display: flex; justify-content: space-around; align-items: stretch; background: rgba(2, 6, 23, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(15px); z-index: 1000; }
+        .nav-item { color: var(--text-muted); flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: 0.3s; }
+        .nav-item i { font-size: 1.45rem; }
+        .nav-item span { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; }
+        .nav-item.active { color: var(--theme); }
+        .nav-item.active i { text-shadow: 0 0 15px rgba(var(--theme-rgb), 0.5); transform: translateY(-2px); }
+
+        /* Toasts */
+        .toast-region { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); width: calc(100% - 32px); max-width: 560px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; pointer-events: none; }
+        .toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: rgba(15, 23, 42, 0.97); border: 1px solid var(--glass-border); border-left: 4px solid var(--theme); box-shadow: 0 10px 30px rgba(0,0,0,0.45); font-weight: 600; animation: toast-in 0.25s ease-out; }
+        .toast > i { font-size: 1.2rem; color: var(--theme); }
+        .toast-msg { flex: 1; line-height: 1.35; }
+        .toast-success { border-left-color: var(--success); } .toast-success > i { color: var(--success); }
+        .toast-error { border-left-color: var(--danger); } .toast-error > i { color: var(--danger); }
+        .toast-pr { border-left-color: var(--warning); } .toast-pr > i { color: var(--warning); }
+        .toast-action { min-height: 40px; padding: 0 12px; border-radius: 10px; color: var(--theme); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+        .toast-out { opacity: 0; transform: translateY(8px); transition: 0.2s; }
+        @keyframes toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+        /* Hoja inferior de perfiles */
+        .sheet-backdrop { position: fixed; inset: 0; z-index: 3000; background: rgba(2, 6, 23, 0.7); display: flex; align-items: flex-end; justify-content: center; }
+        .sheet { width: 100%; max-width: 600px; border-radius: 24px 24px 0 0; padding: 12px 20px 28px; background: rgba(15, 23, 42, 0.98); animation: sheet-in 0.25s ease-out; }
+        .sheet-handle { width: 44px; height: 5px; border-radius: 5px; background: var(--glass-border); margin: 0 auto 16px; }
+        .sheet h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 16px; text-align: center; }
+        .sheet-profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .sheet-profile { min-height: 72px; border-radius: 16px; border: 2px solid rgba(var(--p-rgb), 0.25); background: rgba(var(--p-rgb), 0.06); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+        .sheet-profile i { color: var(--p); font-size: 1.3rem; }
+        .sheet-profile[aria-current="true"] { border-color: var(--p); box-shadow: 0 0 12px rgba(var(--p-rgb), 0.35); }
+        .btn-sheet-logout { width: 100%; min-height: 52px; border-radius: 14px; border: 1px solid var(--glass-border); color: var(--text-muted); font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        @keyframes sheet-in { from { transform: translateY(100%); } to { transform: none; } }
 
         .loader { border: 3px solid rgba(0,0,0,0.1); border-left-color: currentColor; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .big-loader { width: 50px; height: 50px; border-width: 5px; margin: 40px auto; display: block; border-left-color: var(--theme);}
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+            .nav-item.active i { transform: none; }
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>FitTrack <i class="fa-solid fa-bolt"></i></h1>
-        <div id="active-profile-badge" class="profile-badge hidden"></div>
-        <button id="btn-logout" class="btn-logout hidden" onclick="logout()" title="Cerrar sesión" aria-label="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i></button>
+        <h1>FitTrack <i class="fa-solid fa-bolt" aria-hidden="true"></i></h1>
+        <button type="button" id="active-profile-badge" class="profile-badge hidden" onclick="openProfileSheet()" aria-haspopup="dialog">
+            <span class="sr-only">Perfil activo:</span> <span id="active-profile-name"></span> <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <button type="button" id="btn-logout" class="btn-logout hidden" onclick="logout()" title="Cerrar sesión" aria-label="Cerrar sesión"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></button>
     </header>
 
-    <div id="view-loading" class="container"><div class="loader big-loader"></div></div>
+    <main>
+    <div id="view-loading" class="container"><div class="loader big-loader" role="status" aria-label="Cargando"></div></div>
 
     <div id="view-login" class="container hidden">
         <form class="glass login-box" onsubmit="event.preventDefault(); login();">
-            <div class="lock-icon"><i class="fa-solid fa-lock"></i></div>
-            <p>Introduce la clave de acceso</p>
+            <div class="lock-icon" aria-hidden="true"><i class="fa-solid fa-lock"></i></div>
+            <label for="login-key">Introduce la clave de acceso</label>
             <input type="password" class="input-large" id="login-key" autocomplete="current-password" placeholder="Clave" required>
-            <button type="submit" class="btn-save btn-solid" id="btn-login"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
-            <div class="login-error" id="login-error"></div>
+            <button type="submit" class="btn-save btn-solid" id="btn-login"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Entrar</button>
+            <div class="login-error" id="login-error" role="alert"></div>
         </form>
     </div>
 
     <div id="view-profiles" class="container hidden">
-        <div class="profile-selector">
-            <div class="glass profile-btn btn-fran" onclick="selectProfile('FRAN')"><i class="fa-solid fa-user-ninja"></i> FRAN</div>
-            <div class="glass profile-btn btn-mama" onclick="selectProfile('MAMÁ')"><i class="fa-solid fa-user-astronaut"></i> MAMÁ</div>
-            <div class="glass profile-btn btn-claudia" onclick="selectProfile('CLAUDIA')"><i class="fa-solid fa-fire"></i> CLAUDIA</div>
-            <div class="glass profile-btn btn-miguel" onclick="selectProfile('MIGUEL')"><i class="fa-solid fa-hand-back-fist"></i> MIGUEL</div>
-        </div>
+        <h2 class="sr-only">Elige un perfil</h2>
+        <div class="profile-selector" id="profile-selector"></div>
     </div>
 
     <div id="view-app" class="hidden">
-        
-        <!-- PESTAÑA FORMULARIO -->
-        <div id="tab-form" class="container">
-            <div class="sub-nav">
-                <div class="sub-nav-btn active" id="btn-reg-fisico" onclick="switchFormMode('fisico')">Físico</div>
-                <div class="sub-nav-btn" id="btn-reg-marcas" onclick="switchFormMode('marcas')">Marcas</div>
+
+        <!-- PESTAÑA REGISTRAR -->
+        <section id="tab-registrar" class="container" aria-label="Registrar">
+            <div class="sub-nav" role="tablist" aria-label="Tipo de registro">
+                <button type="button" role="tab" class="sub-nav-btn" data-mode="fisico" onclick="setMode('fisico')">Físico</button>
+                <button type="button" role="tab" class="sub-nav-btn" data-mode="marcas" onclick="setMode('marcas')">Marcas</button>
             </div>
 
-            <!-- FÍSICO FORM -->
+            <!-- FÍSICO -->
             <div id="form-fisico">
-                <div class="step-indicators"><div class="step-dot active" id="dot1"></div><div class="step-dot" id="dot2"></div><div class="step-dot" id="dot3"></div></div>
-                <div id="step1" class="glass" style="padding: 30px 20px;">
-                    <div class="form-group"><label>Fecha</label><input type="date" class="input-large" id="f_fecha"></div>
+                <div class="step-header">
+                    <div class="step-indicators">
+                        <button type="button" class="step-dot" data-step="1" onclick="goToStep(1)" aria-label="Paso 1: General"></button>
+                        <button type="button" class="step-dot" data-step="2" onclick="goToStep(2)" aria-label="Paso 2: Composición"></button>
+                        <button type="button" class="step-dot" data-step="3" onclick="goToStep(3)" aria-label="Paso 3: Perímetros"></button>
+                    </div>
+                    <p class="step-title" id="step-title" aria-live="polite">Paso 1 de 3 · General</p>
+                </div>
+
+                <div id="step1" class="glass step-panel">
+                    <div class="form-group"><label for="f_fecha">Fecha</label><input type="date" class="input-large" id="f_fecha"></div>
                     <div class="grid-2">
-                        <div class="form-group"><label>Edad Metabólica</label><input type="text" inputmode="decimal" class="input-large" id="f_edad"></div>
-                        <div class="form-group"><label>Mesociclo</label>
-                            <select class="input-large" id="f_mesociclo"><option>-</option><option>Hipertrofia</option><option>Fuerza Base</option><option>Volumen</option><option>Peaking</option></select>
+                        <div class="form-group"><label for="f_edad">Edad metab. <span class="unit">(años)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_edad" data-draft></div>
+                        <div class="form-group"><label for="f_mesociclo">Mesociclo</label>
+                            <select class="input-large" id="f_mesociclo" data-draft><option>-</option><option>Hipertrofia</option><option>Fuerza Base</option><option>Volumen</option><option>Peaking</option></select>
                         </div>
                     </div>
-                    <button class="btn-save" onclick="goToStep(2)">Continuar</button>
-                </div>
-                <div id="step2" class="glass hidden" style="padding: 30px 20px;">
-                    <div class="grid-2">
-                        <div class="form-group"><label>Peso (kg)</label><input type="text" inputmode="decimal" class="input-large" id="f_peso"></div>
-                        <div class="form-group"><label>% Graso</label><input type="text" inputmode="decimal" class="input-large" id="f_imc"></div>
-                        <div class="form-group"><label>Músculo (kg)</label><input type="text" inputmode="decimal" class="input-large" id="f_musculo"></div>
-                        <div class="form-group"><label>Hueso (kg)</label><input type="text" inputmode="decimal" class="input-large" id="f_hueso"></div>
-                        <div class="form-group"><label>Víscera</label><input type="text" inputmode="decimal" class="input-large" id="f_viscera"></div>
-                        <div class="form-group"><label>Grasa (kg)</label><input type="text" inputmode="decimal" class="input-large" id="f_grasa"></div>
+                    <div class="step-actions">
+                        <button type="button" class="btn-save" onclick="goToStep(2)">Continuar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
                     </div>
-                    <button class="btn-save" onclick="goToStep(3)">Continuar</button>
                 </div>
-                <div id="step3" class="glass hidden" style="padding: 30px 20px;">
+
+                <div id="step2" class="glass step-panel hidden">
                     <div class="grid-2">
-                        <div class="form-group"><label>Pecho</label><input type="text" inputmode="decimal" class="input-large" id="f_pecho"></div>
-                        <div class="form-group"><label>Hombros</label><input type="text" inputmode="decimal" class="input-large" id="f_hombros"></div>
-                        <div class="form-group"><label>Bíceps</label><input type="text" inputmode="decimal" class="input-large" id="f_biceps"></div>
-                        <div class="form-group"><label>Pierna</label><input type="text" inputmode="decimal" class="input-large" id="f_pierna"></div>
+                        <div class="form-group"><label for="f_peso">Peso <span class="unit">(kg)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_peso" data-draft></div>
+                        <div class="form-group"><label for="f_grasa_pct">% Graso</label><input type="text" inputmode="decimal" class="input-large" id="f_grasa_pct" data-draft></div>
+                        <div class="form-group"><label for="f_musculo">Músculo <span class="unit">(kg)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_musculo" data-draft></div>
+                        <div class="form-group"><label for="f_hueso">Hueso <span class="unit">(kg)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_hueso" data-draft></div>
+                        <div class="form-group"><label for="f_viscera">Víscera <span class="unit">(nivel 1–59)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_viscera" data-draft></div>
+                        <div class="form-group"><label for="f_grasa">Grasa <span class="unit">(kg)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_grasa" data-draft></div>
                     </div>
-                    <div class="form-group"><label>Abdomen</label><input type="text" inputmode="decimal" class="input-large" id="f_abdomen"></div>
-                    <button class="btn-save btn-solid" id="btn-submit-fis" onclick="saveDataToSheet()"><i class="fa-solid fa-database"></i> Sincronizar Físico</button>
+                    <div class="step-actions">
+                        <button type="button" class="btn-back" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás</button>
+                        <button type="button" class="btn-save" onclick="goToStep(3)">Continuar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+
+                <div id="step3" class="glass step-panel hidden">
+                    <div class="grid-2">
+                        <div class="form-group"><label for="f_pecho">Pecho <span class="unit">(cm)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_pecho" data-draft></div>
+                        <div class="form-group"><label for="f_hombros">Hombros <span class="unit">(cm)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_hombros" data-draft></div>
+                        <div class="form-group"><label for="f_biceps">Bíceps <span class="unit">(cm)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_biceps" data-draft></div>
+                        <div class="form-group"><label for="f_pierna">Pierna <span class="unit">(cm)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_pierna" data-draft></div>
+                    </div>
+                    <div class="form-group"><label for="f_abdomen">Abdomen <span class="unit">(cm)</span></label><input type="text" inputmode="decimal" class="input-large" id="f_abdomen" data-draft></div>
+                    <div class="step-actions">
+                        <button type="button" class="btn-back" onclick="goToStep(2)"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás</button>
+                        <button type="button" class="btn-save btn-solid" id="btn-submit-fis" onclick="saveDataToSheet()"><i class="fa-solid fa-database" aria-hidden="true"></i> Sincronizar</button>
+                    </div>
                     <div class="form-error hidden" id="form-error-fisico" role="alert"></div>
                 </div>
             </div>
 
-            <!-- MARCAS FORM -->
+            <!-- MARCAS -->
             <div id="form-marcas" class="hidden glass" style="padding: 30px 20px;">
-                <div class="form-group"><label>Fecha Toma de Marcas</label><input type="date" class="input-large" id="m_fecha"></div>
+                <div class="form-group"><label for="m_fecha">Fecha toma de marcas</label><input type="date" class="input-large" id="m_fecha"></div>
                 <div class="form-group">
-                    <label>Mesociclo a registrar</label>
-                    <select class="input-large" id="m_mesociclo" onchange="toggleRepsInputs()">
+                    <label for="m_mesociclo">Mesociclo a registrar</label>
+                    <select class="input-large" id="m_mesociclo" data-draft onchange="onMesoChange()">
                         <option value="FB">Fuerza Base (FB)</option>
                         <option value="VL">Volumen (VL)</option>
                         <option value="PK">Peaking (PK)</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label><i class="fa-solid fa-arrows-up-down" id="icon-ex1"></i> <span id="lbl-ex1">Sentadilla</span></label>
-                    <div class="grid-reps">
-                        <input type="text" inputmode="decimal" class="input-large" id="m_ex1_kg" placeholder="Kg levantados">
-                        <input type="number" class="input-large reps-input hidden" id="m_ex1_reps" placeholder="Reps">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-dumbbell" id="icon-ex2"></i> <span id="lbl-ex2">Press Banca</span></label>
-                    <div class="grid-reps">
-                        <input type="text" inputmode="decimal" class="input-large" id="m_ex2_kg" placeholder="Kg levantados">
-                        <input type="number" class="input-large reps-input hidden" id="m_ex2_reps" placeholder="Reps">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-weight-hanging" id="icon-ex3"></i> <span id="lbl-ex3">Peso Muerto</span></label>
-                    <div class="grid-reps">
-                        <input type="text" inputmode="decimal" class="input-large" id="m_ex3_kg" placeholder="Kg levantados">
-                        <input type="number" class="input-large reps-input hidden" id="m_ex3_reps" placeholder="Reps">
-                    </div>
-                </div>
-                
-                <div class="form-group hidden" id="group-ex4">
-                    <label><i class="fa-solid fa-arrows-up-down" id="icon-ex4"></i> <span id="lbl-ex4">Sentadilla</span></label>
-                    <div class="grid-reps">
-                        <input type="text" inputmode="decimal" class="input-large" id="m_ex4_kg" placeholder="Kg levantados">
-                        <input type="number" class="input-large reps-input hidden" id="m_ex4_reps" placeholder="Reps">
-                    </div>
-                </div>
-                
-                <button class="btn-save btn-solid" id="btn-submit-marcas" onclick="saveDataToSheet()"><i class="fa-solid fa-database"></i> Sincronizar Marcas</button>
+                <p class="form-hint hidden" id="vl-hint"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>En Volumen se registran los <strong>kg</strong> y las <strong>repeticiones</strong> de cada ejercicio.</span></p>
+                <div id="marcas-fields"></div>
+                <button type="button" class="btn-save btn-solid" id="btn-submit-marcas" onclick="saveDataToSheet()"><i class="fa-solid fa-database" aria-hidden="true"></i> Sincronizar marcas</button>
                 <div class="form-error hidden" id="form-error-marcas" role="alert"></div>
             </div>
-        </div>
+        </section>
 
-        <!-- PESTAÑA DASHBOARD -->
-        <div id="tab-dashboard" class="container hidden">
-            <div class="sub-nav">
-                <div class="sub-nav-btn active" id="btn-dash-fisico" onclick="switchDashMode('fisico')">Físico</div>
-                <div class="sub-nav-btn" id="btn-dash-marcas" onclick="switchDashMode('marcas')">Marcas</div>
+        <!-- PESTAÑA PROGRESO -->
+        <section id="tab-progreso" class="container hidden" aria-label="Progreso">
+            <div class="sub-nav" role="tablist" aria-label="Tipo de progreso">
+                <button type="button" role="tab" class="sub-nav-btn" data-mode="fisico" onclick="setMode('fisico')">Físico</button>
+                <button type="button" role="tab" class="sub-nav-btn" data-mode="marcas" onclick="setMode('marcas')">Marcas</button>
             </div>
-            <div id="dashboard-loading" class="hidden"><div class="loader big-loader"></div><p style="text-align:center; color: var(--theme);">Cargando historial...</p></div>
-            
-            <div id="dash-fisico">
-                <div id="fisico-empty" class="glass empty-state hidden"><i class="fa-solid fa-chart-line"></i>Aún no hay registros físicos para este perfil.</div>
-                <div id="fisico-content">
-                <div class="analytics-header"><select class="filter-select" id="chartFilter" onchange="renderChartsFisico()"><option value="6">Últimos 6</option><option value="12">Últimos 12</option><option value="all">Todos</option></select></div>
-                <div class="kpi-grid">
-                    <div class="glass kpi-card"><div class="kpi-label">Evolución Peso</div><div class="kpi-value" id="kpi-peso">--</div><div id="kpi-peso-sub" style="color: var(--text-muted); font-size: 0.85rem;">--</div></div>
-                    <div class="glass kpi-card"><div class="kpi-label">Grasa Actual</div><div class="kpi-value" id="kpi-grasa">--</div><div id="kpi-grasa-sub" style="color: var(--text-muted); font-size: 0.85rem;">kg totales</div></div>
+
+            <div id="dash-skeleton" class="hidden" aria-busy="true" aria-label="Cargando historial">
+                <div class="kpi-grid"><div class="skeleton skeleton-kpi"></div><div class="skeleton skeleton-kpi"></div></div>
+                <div class="skeleton skeleton-chart"></div>
+                <div class="skeleton skeleton-chart"></div>
+            </div>
+            <div id="dash-error" class="glass empty-state hidden">
+                <i class="fa-solid fa-wifi" aria-hidden="true"></i>
+                <p>No se pudo cargar el historial.</p>
+                <button type="button" class="btn-cta" onclick="retryLoad()"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reintentar</button>
+            </div>
+
+            <div id="dash-fisico" class="hidden">
+                <div id="fisico-empty" class="glass empty-state hidden">
+                    <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                    <p>Aún no hay registros físicos para este perfil.</p>
+                    <button type="button" class="btn-cta" onclick="goRegister('fisico')"><i class="fa-solid fa-plus" aria-hidden="true"></i> Registrar el primero</button>
                 </div>
-                <div class="glass chart-container"><div class="chart-title">Peso</div><canvas id="weightChart"></canvas></div>
-                <div class="glass chart-container"><div class="chart-title">Músculo vs Grasa</div><canvas id="compChart"></canvas></div>
-                <div class="analytics-header"><select class="filter-select" id="perimeterFilter" onchange="renderChartsFisico()"><option value="all">Todos Perímetros</option><option value="pecho">Pecho</option><option value="hombros">Hombros</option><option value="biceps">Bíceps</option><option value="abdomen">Abdomen</option><option value="pierna">Pierna</option></select></div>
-                <div class="glass chart-container"><canvas id="perimetersChart"></canvas></div>
+                <div id="fisico-content">
+                    <div class="analytics-header"><select class="filter-select" id="chartFilter" aria-label="Número de registros a mostrar" onchange="renderChartsFisico()"><option value="6">Últimos 6</option><option value="12">Últimos 12</option><option value="all">Todos</option></select></div>
+                    <div class="kpi-grid">
+                        <div class="glass kpi-card"><div class="kpi-label">Peso actual</div><div class="kpi-value" id="kpi-peso">--</div><div class="kpi-sub" id="kpi-peso-sub">--</div></div>
+                        <div class="glass kpi-card"><div class="kpi-label">Grasa actual</div><div class="kpi-value" id="kpi-grasa">--</div><div class="kpi-sub" id="kpi-grasa-sub">kg totales</div></div>
+                    </div>
+                    <div class="glass chart-container"><h3 class="chart-title">Peso</h3><canvas id="weightChart" role="img" aria-label="Evolución del peso"></canvas></div>
+                    <div class="glass chart-container"><h3 class="chart-title">Músculo vs Grasa</h3><canvas id="compChart" role="img" aria-label="Músculo frente a grasa"></canvas></div>
+                    <div class="analytics-header"><select class="filter-select" id="perimeterFilter" aria-label="Perímetro a mostrar" onchange="renderChartsFisico()"><option value="all">Todos los perímetros</option><option value="pecho">Pecho</option><option value="hombros">Hombros</option><option value="biceps">Bíceps</option><option value="abdomen">Abdomen</option><option value="pierna">Pierna</option></select></div>
+                    <div class="glass chart-container"><h3 class="chart-title">Perímetros</h3><canvas id="perimetersChart" role="img" aria-label="Evolución de los perímetros"></canvas></div>
                 </div>
             </div>
 
             <div id="dash-marcas" class="hidden">
                 <div class="analytics-header" style="justify-content:center;">
-                    <select class="filter-select" id="marcasFilter" onchange="renderChartsMarcas()">
+                    <select class="filter-select" id="marcasFilter" aria-label="Mesociclo" onchange="renderChartsMarcas()">
                         <option value="FB">Fuerza Base</option>
                         <option value="VL">Volumen</option>
                         <option value="PK">Peaking</option>
                     </select>
                 </div>
-                <div id="marcas-empty" class="glass empty-state hidden"><i class="fa-solid fa-dumbbell"></i><span id="marcas-empty-text">Aún no hay marcas registradas.</span></div>
-                <div id="marcas-content">
-                <div class="glass chart-container"><div class="chart-title" id="title-ex1">Sentadilla</div><canvas id="chartEx1"></canvas></div>
-                <div class="glass chart-container"><div class="chart-title" id="title-ex2">Press Banca</div><canvas id="chartEx2"></canvas></div>
-                <div class="glass chart-container"><div class="chart-title" id="title-ex3">Peso Muerto</div><canvas id="chartEx3"></canvas></div>
-                <div class="glass chart-container hidden" id="container-chart4"><div class="chart-title" id="title-ex4">Sentadilla</div><canvas id="chartEx4"></canvas></div>
+                <div id="marcas-empty" class="glass empty-state hidden">
+                    <i class="fa-solid fa-dumbbell" aria-hidden="true"></i>
+                    <p id="marcas-empty-text">Aún no hay marcas registradas.</p>
+                    <button type="button" class="btn-cta" onclick="goRegister('marcas', document.getElementById('marcasFilter').value)"><i class="fa-solid fa-plus" aria-hidden="true"></i> Registrar marcas</button>
                 </div>
+                <div id="marcas-charts"></div>
             </div>
-        </div>
+        </section>
 
-        <!-- PESTAÑA DETALLE -->
-        <div id="tab-detalle" class="container hidden" style="max-width: 900px;">
-            <div class="sub-nav">
-                <div class="sub-nav-btn active" id="btn-det-fisico" onclick="switchDetalleMode('fisico')">Físico</div>
-                <div class="sub-nav-btn" id="btn-det-fb" onclick="switchDetalleMode('FB')">Fuerza Base</div>
-                <div class="sub-nav-btn" id="btn-det-vl" onclick="switchDetalleMode('VL')">Volumen</div>
-                <div class="sub-nav-btn" id="btn-det-pk" onclick="switchDetalleMode('PK')">Peaking</div>
+        <!-- PESTAÑA HISTORIAL -->
+        <section id="tab-historial" class="container hidden" style="max-width: 900px;" aria-label="Historial">
+            <div class="sub-nav" role="tablist" aria-label="Tipo de historial">
+                <button type="button" role="tab" class="sub-nav-btn" data-mode="fisico" onclick="setMode('fisico')">Físico</button>
+                <button type="button" role="tab" class="sub-nav-btn" data-mode="fb" onclick="setMode('fb')">Fuerza Base</button>
+                <button type="button" role="tab" class="sub-nav-btn" data-mode="vl" onclick="setMode('vl')">Volumen</button>
+                <button type="button" role="tab" class="sub-nav-btn" data-mode="pk" onclick="setMode('pk')">Peaking</button>
             </div>
-            <div id="detalle-loading" class="hidden"><div class="loader big-loader"></div></div>
+            <div id="det-skeleton" class="skeleton skeleton-table hidden" aria-busy="true" aria-label="Cargando historial"></div>
+            <div id="det-error" class="glass empty-state hidden">
+                <i class="fa-solid fa-wifi" aria-hidden="true"></i>
+                <p>No se pudo cargar el historial.</p>
+                <button type="button" class="btn-cta" onclick="retryLoad()"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reintentar</button>
+            </div>
             <div class="glass table-container" id="detalle-content">
                 <table class="data-table">
                     <thead id="tableHead"></thead>
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
-        </div>
+        </section>
 
-        <nav class="bottom-nav">
-            <div class="nav-item active" onclick="switchTab('form')" id="nav-form"><i class="fa-solid fa-layer-group"></i></div>
-            <div class="nav-item" onclick="switchTab('dashboard')" id="nav-dashboard"><i class="fa-solid fa-chart-column"></i></div>
-            <div class="nav-item" onclick="switchTab('detalle')" id="nav-detalle"><i class="fa-solid fa-table-list"></i></div>
-            <div class="nav-item" onclick="resetApp()"><i class="fa-solid fa-power-off"></i></div>
+        <nav class="bottom-nav" aria-label="Navegación principal">
+            <button type="button" class="nav-item" data-tab="registrar" onclick="setTab('registrar')"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i><span>Registrar</span></button>
+            <button type="button" class="nav-item" data-tab="progreso" onclick="setTab('progreso')"><i class="fa-solid fa-chart-line" aria-hidden="true"></i><span>Progreso</span></button>
+            <button type="button" class="nav-item" data-tab="historial" onclick="setTab('historial')"><i class="fa-solid fa-table-list" aria-hidden="true"></i><span>Historial</span></button>
+            <button type="button" class="nav-item" onclick="openProfileSheet()" aria-haspopup="dialog"><i class="fa-solid fa-user" aria-hidden="true"></i><span>Perfil</span></button>
         </nav>
     </div>
+    </main>
+
+    <!-- Hoja inferior: cambio de perfil -->
+    <div id="profile-sheet" class="sheet-backdrop hidden" onclick="if (event.target === this) closeProfileSheet()">
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+            <div class="sheet-handle" aria-hidden="true"></div>
+            <h2 id="sheet-title">Cambiar perfil</h2>
+            <div class="sheet-profiles" id="sheet-profiles"></div>
+            <button type="button" class="btn-sheet-logout" onclick="closeProfileSheet(); logout();"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Cerrar sesión</button>
+        </div>
+    </div>
+
+    <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
     <script>
         // PEGA AQUÍ TU NUEVA URL DEL APPS SCRIPT
         const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRBQoSib2g68fEs9Wy0K-DdawIVgw5UO5I7cSsY4tpCv5lkezcgkNiXH8Bk9dUgp07Kg/exec';
 
-        document.getElementById('f_fecha').valueAsDate = new Date();
-        document.getElementById('m_fecha').valueAsDate = new Date();
-        
+        // ---- CONFIGURACIÓN ----
+        const LIFTS = {
+            squat:    { name: 'Sentadilla',  icon: 'fa-arrows-up-down' },
+            bench:    { name: 'Press Banca', icon: 'fa-dumbbell' },
+            deadlift: { name: 'Peso Muerto', icon: 'fa-weight-hanging' },
+            dips:     { name: 'Fondos',      icon: 'fa-arrow-down' },
+            pullup:   { name: 'Pull-up',     icon: 'fa-arrow-up' },
+            muscleup: { name: 'Muscle-up',   icon: 'fa-angles-up' }
+        };
+        // El orden de "lifts" corresponde a las columnas ex1, ex2... de la hoja
+        const PROFILES = {
+            'FRAN':    { slug: 'fran',    color: '#00f3ff', rgb: '0, 243, 255',   icon: 'fa-user-ninja',      lifts: ['squat', 'bench', 'deadlift'] },
+            'MAMÁ':    { slug: 'mama',    color: '#ff00ea', rgb: '255, 0, 234',   icon: 'fa-user-astronaut',  lifts: ['squat', 'bench', 'deadlift'] },
+            'CLAUDIA': { slug: 'claudia', color: '#f97316', rgb: '249, 115, 22',  icon: 'fa-fire',            lifts: ['squat', 'dips', 'deadlift'] },
+            'MIGUEL':  { slug: 'miguel',  color: '#10b981', rgb: '16, 185, 129',  icon: 'fa-hand-back-fist',  lifts: ['pullup', 'muscleup', 'dips', 'squat'] }
+        };
+        const MESO_NAMES = { FB: 'Fuerza Base', VL: 'Volumen', PK: 'Peaking' };
+        const TABS = { registrar: ['fisico', 'marcas'], progreso: ['fisico', 'marcas'], historial: ['fisico', 'fb', 'vl', 'pk'] };
+        // Campos del formulario físico ↔ clave en los datos del servidor
+        const FISICO_FIELDS = {
+            f_edad: 'edad', f_peso: 'peso', f_grasa_pct: 'grasa_pct', f_musculo: 'musculo', f_hueso: 'hueso',
+            f_viscera: 'viscera', f_grasa: 'grasa', f_pecho: 'pecho', f_hombros: 'hombros', f_biceps: 'biceps',
+            f_abdomen: 'abdomen', f_pierna: 'pierna'
+        };
+        const STEP_TITLES = { 1: 'General', 2: 'Composición', 3: 'Perímetros' };
+
+        // ---- ESTADO ----
         let currentProfile = '';
-        let activeFormMode = 'fisico';
-        let activeDashMode = 'fisico';
-        let activeDetalleMode = 'fisico'; 
-        let chartsInstance = {}; 
+        let currentTab = 'registrar';
+        const tabModes = { registrar: 'fisico', progreso: 'fisico', historial: 'fisico' };
+        let currentStep = 1;
+        let chartsInstance = {};
         let historyDataCache = null;
+        let dataState = 'idle'; // 'idle' | 'loading' | 'error'
+        let refreshPromise = null;
+        const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const $ = id => document.getElementById(id);
+        const lifts = () => PROFILES[currentProfile].lifts;
+        const slug = () => PROFILES[currentProfile].slug;
+
+        // ---- ALMACENAMIENTO LOCAL ----
+        function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+        function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+        function storeDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
 
         // ---- ACCESO PRIVADO ----
         // La clave NO está en el código: se pide al usuario y se guarda solo en su dispositivo.
         // El Apps Script la comprueba en cada petición.
         const KEY_STORAGE = 'fittrack_access_key';
-        function getKey() { try { return localStorage.getItem(KEY_STORAGE) || ''; } catch (e) { return ''; } }
-        function setKey(k) { try { localStorage.setItem(KEY_STORAGE, k); } catch (e) {} }
-        function clearKey() { try { localStorage.removeItem(KEY_STORAGE); } catch (e) {} }
+        const CACHE_STORAGE = 'fittrack_cache_v1';
+        const LAST_PROFILE_STORAGE = 'fittrack_last_profile';
+        function getKey() { return storeGet(KEY_STORAGE) || ''; }
+        function setKey(k) { storeSet(KEY_STORAGE, k); }
+        function clearKey() { storeDel(KEY_STORAGE); }
 
-        function showView(id) {
-            ['view-loading', 'view-login', 'view-profiles', 'view-app'].forEach(v =>
-                document.getElementById(v).classList.toggle('hidden', v !== id));
-            const loggedIn = id === 'view-profiles' || id === 'view-app';
-            document.getElementById('btn-logout').classList.toggle('hidden', !loggedIn);
-            if (!loggedIn) document.getElementById('active-profile-badge').classList.add('hidden');
+        // ---- CACHÉ DEL HISTORIAL (stale-while-revalidate) ----
+        function loadCache() {
+            try { const c = JSON.parse(storeGet(CACHE_STORAGE)); return c && c.data ? c.data : null; } catch (e) { return null; }
+        }
+        function setData(data) {
+            historyDataCache = data;
+            storeSet(CACHE_STORAGE, JSON.stringify({ ts: Date.now(), data }));
         }
 
-        // Devuelve 'ok', 'unauthorized' o 'network'
-        async function requestData(key) {
+        // Devuelve { status: 'ok' | 'unauthorized' | 'network', data }
+        async function fetchHistory(key) {
             try {
                 const response = await fetch(APPS_SCRIPT_URL + '?key=' + encodeURIComponent(key));
                 const result = await response.json();
-                if (result.status === 'success') { historyDataCache = result.data; return 'ok'; }
-                if (result.status === 'unauthorized') return 'unauthorized';
-                return 'network';
-            } catch (e) { return 'network'; }
+                if (result.status === 'success') return { status: 'ok', data: result.data };
+                if (result.status === 'unauthorized') return { status: 'unauthorized' };
+                return { status: 'network' };
+            } catch (e) { return { status: 'network' }; }
         }
 
+        // Descarga el historial en segundo plano y repinta solo si ha cambiado
+        async function refreshData({ silent = false } = {}) {
+            if (refreshPromise) return refreshPromise;
+            dataState = 'loading';
+            refreshPromise = (async () => {
+                const r = await fetchHistory(getKey());
+                if (r.status === 'ok') {
+                    const changed = JSON.stringify(r.data) !== JSON.stringify(historyDataCache);
+                    setData(r.data);
+                    dataState = 'idle';
+                    if (changed) renderCurrent();
+                } else if (r.status === 'unauthorized') {
+                    dataState = 'idle';
+                    showToast('Tu clave de acceso ya no es válida', 'error');
+                    logout();
+                } else {
+                    dataState = 'error';
+                    if (!historyDataCache) renderCurrent();
+                    else if (!silent) showToast('Sin conexión: mostrando los datos guardados', 'info');
+                }
+                return r.status;
+            })();
+            try { return await refreshPromise; } finally { refreshPromise = null; }
+        }
+
+        function retryLoad() { dataState = 'idle'; renderCurrent(); }
+
+        // ---- FEEDBACK ----
+        function showToast(msg, type = 'info', opts = {}) {
+            const region = $('toast-region');
+            const icons = { success: 'fa-circle-check', error: 'fa-circle-exclamation', info: 'fa-circle-info', pr: 'fa-trophy' };
+            // Un aviso con el mismo id sustituye al anterior en vez de apilarse
+            if (opts.id) region.querySelectorAll(`.toast[data-id="${opts.id}"]`).forEach(el => el.remove());
+            const t = document.createElement('div');
+            t.className = 'toast toast-' + type;
+            if (opts.id) t.dataset.id = opts.id;
+            t.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}" aria-hidden="true"></i><span class="toast-msg"></span>`;
+            t.querySelector('.toast-msg').textContent = msg;
+            const dismiss = () => { if (!t.isConnected) return; t.classList.add('toast-out'); setTimeout(() => t.remove(), 200); };
+            if (opts.action) {
+                const b = document.createElement('button');
+                b.type = 'button'; b.className = 'toast-action'; b.textContent = opts.action.label;
+                b.onclick = () => { dismiss(); opts.action.fn(); };
+                t.appendChild(b);
+            }
+            region.appendChild(t);
+            while (region.children.length > 3) region.firstChild.remove();
+            setTimeout(dismiss, opts.duration || ((opts.action || type === 'error' || type === 'pr') ? 6000 : 3500));
+        }
+
+        function haptic(pattern) { try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) {} }
+
+        // ---- VISTAS Y NAVEGACIÓN ----
+        function showView(id) {
+            ['view-loading', 'view-login', 'view-profiles', 'view-app'].forEach(v => $(v).classList.toggle('hidden', v !== id));
+            $('btn-logout').classList.toggle('hidden', id !== 'view-profiles');
+            $('active-profile-badge').classList.toggle('hidden', id !== 'view-app');
+        }
+
+        function routeHash(parts) { return '#/' + parts.join('/'); }
+
+        // Cambiar de pestaña o perfil añade una entrada al historial (el botón Atrás funciona);
+        // cambiar de subpestaña la reemplaza.
+        function navigate(parts, { replace = false } = {}) {
+            const h = routeHash(parts);
+            if (replace) { history.replaceState(null, '', h); applyRoute(); }
+            else if (location.hash === h) applyRoute();
+            else location.hash = h;
+        }
+
+        function applyRoute() {
+            closeProfileSheet(false);
+            if (!getKey()) { showView('view-login'); return; }
+            const [s, tabRaw, modeRaw] = location.hash.replace(/^#\/?/, '').split('/');
+            const profile = Object.keys(PROFILES).find(k => PROFILES[k].slug === s);
+            if (!profile) { currentProfile = ''; showView('view-profiles'); return; }
+
+            const tab = TABS[tabRaw] ? tabRaw : 'registrar';
+            const mode = TABS[tab].includes(modeRaw) ? modeRaw : tabModes[tab];
+            if (tab !== tabRaw || mode !== modeRaw) history.replaceState(null, '', routeHash([s, tab, mode]));
+
+            if (profile !== currentProfile) activateProfile(profile);
+            currentTab = tab;
+            tabModes[tab] = mode;
+            showView('view-app');
+            showTab();
+        }
+
+        function setTab(tab) { navigate([slug(), tab, tabModes[tab]]); }
+        function setMode(mode) { navigate([slug(), currentTab, mode], { replace: true }); }
+        function chooseProfile(name) { navigate([PROFILES[name].slug, currentProfile ? currentTab : 'registrar', currentProfile ? tabModes[currentTab] : tabModes.registrar]); }
+
+        function goRegister(mode, meso) {
+            if (meso) { $('m_mesociclo').value = meso; onMesoChange(); }
+            navigate([slug(), 'registrar', mode]);
+        }
+
+        function routeOnStart() {
+            if (location.hash.length > 2) { applyRoute(); return; }
+            const last = storeGet(LAST_PROFILE_STORAGE);
+            if (last && PROFILES[last]) navigate([PROFILES[last].slug, 'registrar', 'fisico'], { replace: true });
+            else applyRoute();
+        }
+
+        window.addEventListener('hashchange', applyRoute);
+
+        function showTab() {
+            Object.keys(TABS).forEach(t => {
+                $('tab-' + t).classList.toggle('hidden', t !== currentTab);
+                const nav = document.querySelector(`.nav-item[data-tab="${t}"]`);
+                nav.classList.toggle('active', t === currentTab);
+                if (t === currentTab) nav.setAttribute('aria-current', 'page'); else nav.removeAttribute('aria-current');
+            });
+            const mode = tabModes[currentTab];
+            document.querySelectorAll(`#tab-${currentTab} [role="tab"]`).forEach(b => {
+                const on = b.dataset.mode === mode;
+                b.classList.toggle('active', on);
+                b.setAttribute('aria-selected', on ? 'true' : 'false');
+                b.tabIndex = on ? 0 : -1;
+            });
+            renderCurrent();
+        }
+
+        function renderCurrent() {
+            if (!currentProfile) return;
+            if (currentTab === 'registrar') renderRegistrar();
+            else if (currentTab === 'progreso') renderProgreso();
+            else renderHistorial();
+        }
+
+        // Muestra esqueleto / error si aún no hay datos. Devuelve true si se puede pintar.
+        function ensureData(skeletonId, errorId) {
+            const has = !!historyDataCache;
+            $(skeletonId).classList.toggle('hidden', has || dataState === 'error');
+            $(errorId).classList.toggle('hidden', has || dataState !== 'error');
+            if (!has && dataState === 'idle') refreshData();
+            return has;
+        }
+
+        // ---- PERFILES ----
+        function buildProfileButtons() {
+            $('profile-selector').innerHTML = Object.entries(PROFILES).map(([name, p]) =>
+                `<button type="button" class="glass profile-btn" style="--p:${p.color}; --p-rgb:${p.rgb}" onclick="chooseProfile('${name}')"><i class="fa-solid ${p.icon}" aria-hidden="true"></i> ${name}</button>`
+            ).join('');
+            $('sheet-profiles').innerHTML = Object.entries(PROFILES).map(([name, p]) =>
+                `<button type="button" class="sheet-profile" data-profile="${name}" style="--p:${p.color}; --p-rgb:${p.rgb}" onclick="chooseProfile('${name}')"><i class="fa-solid ${p.icon}" aria-hidden="true"></i>${name}</button>`
+            ).join('');
+        }
+
+        function activateProfile(profile) {
+            currentProfile = profile;
+            storeSet(LAST_PROFILE_STORAGE, profile);
+            const p = PROFILES[profile];
+            const root = document.documentElement;
+            root.style.setProperty('--theme', p.color);
+            root.style.setProperty('--theme-rgb', p.rgb);
+            $('active-profile-name').innerText = profile;
+
+            destroyCharts();
+            buildMarcasFields();
+            buildMarcasCharts();
+            showFormError('fisico', ''); showFormError('marcas', '');
+
+            // Formularios limpios del nuevo perfil, y recuperar su borrador si lo hay
+            resetForm('fisico', { keepDraft: true });
+            resetForm('marcas', { keepDraft: true });
+            const restored = ['fisico', 'marcas'].filter(restoreDraft);
+            onMesoChange();
+            if (restored.length) {
+                showToast('Borrador recuperado', 'info', { id: 'draft', action: { label: 'Descartar', fn: () => restored.forEach(m => resetForm(m)) } });
+            }
+        }
+
+        // Hoja inferior de perfiles
+        let sheetReturnFocus = null;
+        function openProfileSheet() {
+            sheetReturnFocus = document.activeElement;
+            document.querySelectorAll('.sheet-profile').forEach(b => b.setAttribute('aria-current', b.dataset.profile === currentProfile ? 'true' : 'false'));
+            $('profile-sheet').classList.remove('hidden');
+            const current = document.querySelector('.sheet-profile[aria-current="true"]') || document.querySelector('.sheet-profile');
+            current.focus();
+        }
+        function closeProfileSheet(restoreFocus = true) {
+            const sheet = $('profile-sheet');
+            if (sheet.classList.contains('hidden')) return;
+            sheet.classList.add('hidden');
+            if (restoreFocus && sheetReturnFocus && sheetReturnFocus.isConnected) sheetReturnFocus.focus();
+        }
+
+        // ---- AUTENTICACIÓN ----
         async function login() {
-            const key = document.getElementById('login-key').value.trim();
-            const btn = document.getElementById('btn-login');
-            const err = document.getElementById('login-error');
+            const key = $('login-key').value.trim();
+            const btn = $('btn-login');
+            const err = $('login-error');
             if (!key) return;
             err.innerText = '';
             btn.disabled = true;
             const original = btn.innerHTML;
             btn.innerHTML = '<span class="loader"></span> Comprobando...';
-            const res = await requestData(key);
+            const res = await fetchHistory(key);
             btn.disabled = false;
             btn.innerHTML = original;
-            if (res === 'ok') {
+            if (res.status === 'ok') {
                 setKey(key);
-                document.getElementById('login-key').value = '';
-                showView('view-profiles');
-            } else if (res === 'unauthorized') {
+                setData(res.data);
+                $('login-key').value = '';
+                routeOnStart();
+            } else if (res.status === 'unauthorized') {
                 err.innerText = 'Clave incorrecta';
             } else {
                 err.innerText = 'No se pudo conectar. Inténtalo de nuevo.';
@@ -358,20 +678,35 @@
 
         function logout() {
             clearKey();
+            storeDel(CACHE_STORAGE);
+            Object.keys(PROFILES).forEach(n => ['fisico', 'marcas'].forEach(m => storeDel(`fittrack_draft_${PROFILES[n].slug}_${m}`)));
             historyDataCache = null;
+            dataState = 'idle';
             currentProfile = '';
+            destroyCharts();
+            history.replaceState(null, '', location.pathname + location.search);
             showView('view-login');
         }
 
         async function initAuth() {
+            buildProfileButtons();
             const key = getKey();
             if (!key) { showView('view-login'); return; }
-            const res = await requestData(key);
-            if (res === 'unauthorized') { clearKey(); showView('view-login'); return; }
-            // 'ok' o fallo de red: dejamos entrar (la clave guardada ya se validó antes)
-            showView('view-profiles');
+            historyDataCache = loadCache();
+            if (historyDataCache) {
+                // Pintamos al instante con la caché y actualizamos en segundo plano
+                routeOnStart();
+                refreshData({ silent: true });
+                return;
+            }
+            const r = await fetchHistory(key);
+            if (r.status === 'unauthorized') { logout(); return; }
+            if (r.status === 'ok') setData(r.data);
+            // Fallo de red: dejamos entrar (la clave guardada ya se validó antes)
+            routeOnStart();
         }
 
+        // ---- UTILIDADES ----
         function formatNumUI(val) { return (val == null || val === '') ? '-' : val.toString().replace('.', ','); }
         function sanitize(val) { return (!val) ? "" : val.toString().trim().replace('.', ','); }
 
@@ -381,33 +716,67 @@
                 ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
+        // Convierte valores de la hoja ("15,0%", "-", 78.4) a número o null
+        function toNum(v) {
+            if (v == null || v === '' || v === '-') return null;
+            if (typeof v === 'number') return isNaN(v) ? null : v;
+            const n = parseFloat(String(v).replace('%', '').replace(',', '.'));
+            return isNaN(n) ? null : n;
+        }
+
         // Último valor no nulo de una serie (y su índice)
         function lastValid(arr, before = arr.length) {
             for (let i = before - 1; i >= 0; i--) if (arr[i] != null && !isNaN(arr[i])) return { value: arr[i], index: i };
             return null;
         }
 
+        function isoToShort(iso) { const [y, m, d] = String(iso).split('-'); return (y && m && d) ? `${d}/${m}/${y.slice(-2)}` : iso; }
+        function profileData() { return (historyDataCache && historyDataCache[currentProfile]) || {}; }
+        function grasaPctOf(d) { return d.grasa_pct != null ? d.grasa_pct : d.imc; }
+        function fisicoValue(d, key) { return key === 'grasa_pct' ? grasaPctOf(d) : d[key]; }
+
+        function lastFisicoValue(key) {
+            const arr = profileData().fisico || [];
+            for (let i = arr.length - 1; i >= 0; i--) { const n = toNum(fisicoValue(arr[i], key)); if (n != null) return n; }
+            return null;
+        }
+
+        function getPR(n) {
+            let best = null;
+            ['FB', 'VL', 'PK'].forEach(m => (profileData()[m] || []).forEach(d => {
+                const v = toNum(d['ex' + n + '_kg']);
+                if (v != null && (best == null || v > best)) best = v;
+            }));
+            return best;
+        }
+
+        function lastMarca(meso, n, field) {
+            const arr = profileData()[meso] || [];
+            for (let i = arr.length - 1; i >= 0; i--) { const v = toNum(arr[i]['ex' + n + '_' + field]); if (v != null) return v; }
+            return null;
+        }
+
         // ---- VALIDACIÓN ----
         // Rangos razonables para detectar errores de tecleo (p. ej. 785 en vez de 78,5)
         const FIELD_RULES = {
-            f_edad:    { min: 10,  max: 100 },
-            f_peso:    { min: 30,  max: 250 },
-            f_imc:     { min: 2,   max: 60 },
-            f_musculo: { min: 10,  max: 150 },
-            f_hueso:   { min: 0.5, max: 10 },
-            f_viscera: { min: 1,   max: 59 },
-            f_grasa:   { min: 1,   max: 150 },
-            f_pecho:   { min: 20,  max: 200 },
-            f_hombros: { min: 20,  max: 200 },
-            f_biceps:  { min: 10,  max: 80 },
-            f_abdomen: { min: 20,  max: 200 },
-            f_pierna:  { min: 20,  max: 120 },
-            kg:        { min: 0,   max: 500 },
-            reps:      { min: 1,   max: 100, int: true }
+            f_edad:      { min: 10,  max: 100 },
+            f_peso:      { min: 30,  max: 250 },
+            f_grasa_pct: { min: 2,   max: 60 },
+            f_musculo:   { min: 10,  max: 150 },
+            f_hueso:     { min: 0.5, max: 10 },
+            f_viscera:   { min: 1,   max: 59 },
+            f_grasa:     { min: 1,   max: 150 },
+            f_pecho:     { min: 20,  max: 200 },
+            f_hombros:   { min: 20,  max: 200 },
+            f_biceps:    { min: 10,  max: 80 },
+            f_abdomen:   { min: 20,  max: 200 },
+            f_pierna:    { min: 20,  max: 120 },
+            kg:          { min: 0,   max: 500 },
+            reps:        { min: 1,   max: 100, int: true }
         };
         const STEP_FIELDS = {
             1: ['f_edad'],
-            2: ['f_peso', 'f_imc', 'f_musculo', 'f_hueso', 'f_viscera', 'f_grasa'],
+            2: ['f_peso', 'f_grasa_pct', 'f_musculo', 'f_hueso', 'f_viscera', 'f_grasa'],
             3: ['f_pecho', 'f_hombros', 'f_biceps', 'f_pierna', 'f_abdomen']
         };
 
@@ -424,13 +793,15 @@
             const group = input.closest('.form-group');
             if (!group) return;
             let el = group.querySelector('.field-error');
-            if (!el) { el = document.createElement('div'); el.className = 'field-error'; group.appendChild(el); }
+            if (!el) { el = document.createElement('div'); el.className = 'field-error'; el.id = input.id + '-error'; group.appendChild(el); }
             el.innerText = msg;
+            input.setAttribute('aria-describedby', el.id);
         }
 
         function clearFieldError(input) {
             input.classList.remove('input-error');
             input.removeAttribute('aria-invalid');
+            input.removeAttribute('aria-describedby');
             const group = input.closest('.form-group');
             if (!group) return;
             // Solo se quita el mensaje si ningún otro input del grupo sigue con error
@@ -438,7 +809,7 @@
         }
 
         function showFormError(mode, msg) {
-            const el = document.getElementById('form-error-' + mode);
+            const el = $('form-error-' + mode);
             el.innerText = msg || '';
             el.classList.toggle('hidden', !msg);
         }
@@ -458,42 +829,61 @@
             return true;
         }
 
+        // Devuelve el primer campo con error del paso (o null si es válido)
         function validateStep(step) {
-            let ok = true, firstBad = null;
-            const fail = el => { ok = false; if (!firstBad) firstBad = el; };
-            if (step === 1) { const d = document.getElementById('f_fecha'); if (!validateDate(d)) fail(d); }
-            STEP_FIELDS[step].forEach(id => { const el = document.getElementById(id); if (!validateNumber(el, FIELD_RULES[id])) fail(el); });
-            if (firstBad) firstBad.focus();
-            return ok;
+            let firstBad = null;
+            const fail = el => { if (!firstBad) firstBad = el; };
+            if (step === 1) { const d = $('f_fecha'); if (!validateDate(d)) fail(d); }
+            STEP_FIELDS[step].forEach(id => { const el = $(id); if (!validateNumber(el, FIELD_RULES[id])) fail(el); });
+            return firstBad;
+        }
+
+        function nextStep(step) {
+            currentStep = step;
+            [1, 2, 3].forEach(s => {
+                $('step' + s).classList.toggle('hidden', s !== step);
+                const dot = document.querySelector(`.step-dot[data-step="${s}"]`);
+                dot.classList.toggle('active', s === step);
+                dot.classList.toggle('done', s < step);
+                if (s === step) dot.setAttribute('aria-current', 'step'); else dot.removeAttribute('aria-current');
+            });
+            $('step-title').innerText = `Paso ${step} de 3 · ${STEP_TITLES[step]}`;
         }
 
         function goToStep(step) {
-            // Para avanzar, el paso actual (step - 1) debe ser válido
-            if (validateStep(step - 1)) nextStep(step);
+            // Hacia atrás se va libremente; hacia delante, los pasos intermedios deben ser válidos
+            if (step > currentStep) {
+                for (let s = currentStep; s < step; s++) {
+                    const bad = validateStep(s);
+                    if (bad) { nextStep(s); bad.focus(); return; }
+                }
+            }
+            nextStep(step);
+            $('form-fisico').scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
         }
 
         function validateFisico() {
             for (const s of [1, 2, 3]) {
-                if (!validateStep(s)) { nextStep(s); return false; }
+                const bad = validateStep(s);
+                if (bad) { nextStep(s); bad.focus(); return false; }
             }
-            const allFields = [].concat(STEP_FIELDS[1], STEP_FIELDS[2], STEP_FIELDS[3]);
-            const hasAny = allFields.some(id => document.getElementById(id).value.trim() !== '');
+            const hasAny = Object.keys(FISICO_FIELDS).some(id => $(id).value.trim() !== '');
             if (!hasAny) { showFormError('fisico', 'Rellena al menos una medida antes de sincronizar.'); return false; }
             return true;
         }
 
         function validateMarcas() {
-            let ok = true, firstBad = null;
-            const fail = el => { ok = false; if (!firstBad) firstBad = el; };
-            const d = document.getElementById('m_fecha');
+            let firstBad = null;
+            const fail = el => { if (!firstBad) firstBad = el; };
+            const d = $('m_fecha');
             if (!validateDate(d)) fail(d);
 
-            const isVL = document.getElementById('m_mesociclo').value === 'VL';
-            const exercises = currentProfile === 'MIGUEL' ? [1, 2, 3, 4] : [1, 2, 3];
+            const isVL = $('m_mesociclo').value === 'VL';
             let hasAny = false;
-            exercises.forEach(n => {
-                const kg = document.getElementById(`m_ex${n}_kg`);
-                const reps = document.getElementById(`m_ex${n}_reps`);
+            lifts().forEach((_, i) => {
+                const n = i + 1;
+                const kg = $(`m_ex${n}_kg`);
+                const reps = $(`m_ex${n}_reps`);
                 if (!validateNumber(kg, FIELD_RULES.kg)) fail(kg);
                 if (kg.value.trim() !== '') hasAny = true;
                 if (isVL) {
@@ -504,198 +894,214 @@
 
             if (firstBad) { firstBad.focus(); return false; }
             if (!hasAny) { showFormError('marcas', 'Introduce al menos una marca antes de sincronizar.'); return false; }
-            return ok;
+            return true;
         }
 
-        // Al escribir en un campo se limpia su error
+        // ---- FORMULARIOS: borradores, pistas y reinicio ----
+        function draftKey(mode) { return `fittrack_draft_${slug()}_${mode}`; }
+
+        function saveDraft(mode) {
+            if (!currentProfile) return;
+            const fields = {};
+            let any = false;
+            $('form-' + mode).querySelectorAll('[data-draft]').forEach(el => {
+                fields[el.id] = el.value;
+                if (el.tagName !== 'SELECT' && el.value.trim() !== '') any = true;
+            });
+            if (any) storeSet(draftKey(mode), JSON.stringify({ ts: Date.now(), fields }));
+            else storeDel(draftKey(mode));
+        }
+
+        function restoreDraft(mode) {
+            const raw = storeGet(draftKey(mode));
+            if (!raw) return false;
+            try {
+                const d = JSON.parse(raw);
+                Object.entries(d.fields || {}).forEach(([id, v]) => { const el = $(id); if (el) el.value = v; });
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function resetForm(mode, { keepDraft = false } = {}) {
+            const form = $('form-' + mode);
+            form.querySelectorAll('.input-error').forEach(clearFieldError);
+            form.querySelectorAll('input[data-draft]').forEach(el => { el.value = ''; });
+            if (!keepDraft && currentProfile) storeDel(draftKey(mode));
+            showFormError(mode, '');
+            if (mode === 'fisico') {
+                $('f_fecha').valueAsDate = new Date();
+                // Por defecto, el mesociclo del último registro
+                const fis = profileData().fisico || [];
+                const lastMeso = fis.length ? fis[fis.length - 1].mesociclo : '-';
+                const options = [...$('f_mesociclo').options].map(o => o.value);
+                $('f_mesociclo').value = options.includes(lastMeso) ? lastMeso : '-';
+                nextStep(1);
+            } else {
+                $('m_fecha').valueAsDate = new Date();
+            }
+        }
+
+        function updateFormHints() {
+            Object.entries(FISICO_FIELDS).forEach(([id, key]) => {
+                const v = lastFisicoValue(key);
+                $(id).placeholder = v != null ? 'Último: ' + formatNumUI(v) : '';
+            });
+            const meso = $('m_mesociclo').value;
+            lifts().forEach((_, i) => {
+                const n = i + 1;
+                const pr = getPR(n);
+                const badge = $('pr-ex' + n);
+                badge.classList.toggle('hidden', pr == null);
+                badge.innerHTML = pr != null ? `<i class="fa-solid fa-trophy" aria-hidden="true"></i> Récord: ${formatNumUI(pr)} kg` : '';
+                const lastKg = lastMarca(meso, n, 'kg');
+                const lastReps = lastMarca(meso, n, 'reps');
+                const kg = $(`m_ex${n}_kg`), reps = $(`m_ex${n}_reps`);
+                kg.placeholder = lastKg != null ? 'Último: ' + formatNumUI(lastKg) : '';
+                kg.dataset.last = lastKg != null ? lastKg : '';
+                reps.placeholder = lastReps != null ? 'Último: ' + lastReps : '';
+                reps.dataset.last = lastReps != null ? lastReps : '';
+            });
+        }
+
+        function buildMarcasFields() {
+            const stepper = (id, step, unit, label) => `
+                <div class="stepper">
+                    <button type="button" class="stepper-btn" data-target="${id}" data-step="-${step}" aria-label="Restar ${formatNumUI(step)} ${unit} a ${label}">−</button>
+                    <div class="stepper-field"><input type="text" inputmode="${unit === 'kg' ? 'decimal' : 'numeric'}" class="input-large" id="${id}" data-draft aria-label="${label} (${unit})"><span class="stepper-unit" aria-hidden="true">${unit}</span></div>
+                    <button type="button" class="stepper-btn" data-target="${id}" data-step="${step}" aria-label="Sumar ${formatNumUI(step)} ${unit} a ${label}">+</button>
+                </div>`;
+            $('marcas-fields').innerHTML = lifts().map((key, i) => {
+                const n = i + 1, l = LIFTS[key];
+                return `<div class="form-group">
+                    <div class="lift-header">
+                        <span class="form-label" id="lbl-ex${n}"><i class="fa-solid ${l.icon}" aria-hidden="true"></i> ${l.name}</span>
+                        <span class="pr-badge hidden" id="pr-ex${n}"></span>
+                    </div>
+                    ${stepper(`m_ex${n}_kg`, 2.5, 'kg', l.name)}
+                    <div class="reps-row hidden">${stepper(`m_ex${n}_reps`, 1, 'reps', l.name)}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function onMesoChange() {
+            const isVL = $('m_mesociclo').value === 'VL';
+            document.querySelectorAll('#marcas-fields .reps-row').forEach(el => el.classList.toggle('hidden', !isVL));
+            $('vl-hint').classList.toggle('hidden', !isVL);
+            if (currentProfile) { updateFormHints(); saveDraft('marcas'); }
+        }
+
+        function renderRegistrar() {
+            const mode = tabModes.registrar;
+            $('form-fisico').classList.toggle('hidden', mode !== 'fisico');
+            $('form-marcas').classList.toggle('hidden', mode !== 'marcas');
+            updateFormHints();
+        }
+
+        // Guardar borrador y limpiar errores al escribir
         document.addEventListener('input', e => {
-            if (e.target.classList && e.target.classList.contains('input-large')) {
-                clearFieldError(e.target);
-                showFormError(activeFormMode, '');
+            const el = e.target;
+            if (!el.classList || !el.classList.contains('input-large')) return;
+            clearFieldError(el);
+            const form = el.closest('#form-fisico, #form-marcas');
+            if (form) {
+                const mode = form.id.replace('form-', '');
+                showFormError(mode, '');
+                if (el.hasAttribute('data-draft')) saveDraft(mode);
             }
         });
+        document.addEventListener('change', e => {
+            const form = e.target.closest && e.target.closest('#form-fisico');
+            if (form && e.target.hasAttribute('data-draft')) saveDraft('fisico');
+        });
 
-        function updateExerciseLabels() {
-            const isMiguel = currentProfile === 'MIGUEL';
-            const isClaudia = currentProfile === 'CLAUDIA';
-            
-            const i1 = document.getElementById('icon-ex1');
-            const i2 = document.getElementById('icon-ex2');
-            const i3 = document.getElementById('icon-ex3');
-            const i4 = document.getElementById('icon-ex4');
-            
-            // Ejercicio 1
-            document.getElementById('lbl-ex1').innerText = isMiguel ? 'Pull-up' : 'Sentadilla';
-            document.getElementById('title-ex1').innerText = isMiguel ? 'Pull-up' : 'Sentadilla';
-            i1.className = isMiguel ? 'fa-solid fa-arrow-up' : 'fa-solid fa-arrows-up-down';
-            
-            // Ejercicio 2
-            let ex2Name = 'Press Banca';
-            let ex2Icon = 'fa-solid fa-dumbbell';
-            if (isMiguel) { ex2Name = 'Muscle-up'; ex2Icon = 'fa-solid fa-angles-up'; }
-            else if (isClaudia) { ex2Name = 'Fondos'; ex2Icon = 'fa-solid fa-arrow-down'; }
-            
-            document.getElementById('lbl-ex2').innerText = ex2Name;
-            document.getElementById('title-ex2').innerText = ex2Name;
-            i2.className = ex2Icon;
+        // Botones − / + : si el campo está vacío, parten del último valor registrado
+        document.addEventListener('click', e => {
+            const b = e.target.closest('.stepper-btn');
+            if (!b) return;
+            const input = $(b.dataset.target);
+            const step = parseFloat(b.dataset.step);
+            let v = parseNumInput(input.value);
+            if (v === null || isNaN(v)) {
+                const last = parseFloat(input.dataset.last);
+                v = isNaN(last) ? Math.max(step, 0) : last + step;
+            } else v += step;
+            v = Math.max(0, Math.round(v * 100) / 100);
+            input.value = formatNumUI(v);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            haptic(5);
+        });
 
-            // Ejercicio 3
-            document.getElementById('lbl-ex3').innerText = isMiguel ? 'Fondos' : 'Peso Muerto';
-            document.getElementById('title-ex3').innerText = isMiguel ? 'Fondos' : 'Peso Muerto';
-            i3.className = isMiguel ? 'fa-solid fa-arrow-down' : 'fa-solid fa-weight-hanging';
-
-            // Ejercicio 4 (Solo Miguel)
-            if (isMiguel) {
-                document.getElementById('lbl-ex4').innerText = 'Sentadilla';
-                document.getElementById('title-ex4').innerText = 'Sentadilla';
-                i4.className = 'fa-solid fa-arrows-up-down';
-                document.getElementById('group-ex4').classList.remove('hidden');
-                document.getElementById('container-chart4').classList.remove('hidden');
-            } else {
-                document.getElementById('group-ex4').classList.add('hidden');
-                document.getElementById('container-chart4').classList.add('hidden');
-            }
-        }
-
-        function selectProfile(profile) {
-            currentProfile = profile;
-            document.getElementById('view-profiles').classList.add('hidden');
-            document.getElementById('view-app').classList.remove('hidden');
-            document.getElementById('active-profile-badge').innerText = profile;
-            document.getElementById('active-profile-badge').classList.remove('hidden');
-            
-            const root = document.documentElement;
-            if (profile === 'FRAN') { root.style.setProperty('--theme', '#00f3ff'); root.style.setProperty('--theme-rgb', '0, 243, 255'); }
-            else if (profile === 'MAMÁ') { root.style.setProperty('--theme', '#ff00ea'); root.style.setProperty('--theme-rgb', '255, 0, 234'); }
-            else if (profile === 'CLAUDIA') { root.style.setProperty('--theme', '#f97316'); root.style.setProperty('--theme-rgb', '249, 115, 22'); }
-            else if (profile === 'MIGUEL') { root.style.setProperty('--theme', '#10b981'); root.style.setProperty('--theme-rgb', '16, 185, 129'); }
-
-            updateExerciseLabels();
-            document.querySelectorAll('.input-error').forEach(clearFieldError);
-            showFormError('fisico', ''); showFormError('marcas', '');
-
-            nextStep(1);
-            switchTab('form');
-        }
-
-        function resetApp() {
-            document.getElementById('view-app').classList.add('hidden');
-            document.getElementById('view-profiles').classList.remove('hidden');
-            document.getElementById('active-profile-badge').classList.add('hidden');
-            historyDataCache = null;
-        }
-
-        async function switchTab(tab) {
-            ['form', 'dashboard', 'detalle'].forEach(t => {
-                document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('nav-' + t).classList.remove('active');
-            });
-            document.getElementById('tab-' + tab).classList.remove('hidden');
-            document.getElementById('nav-' + tab).classList.add('active');
-
-            if (tab === 'dashboard' || tab === 'detalle') {
-                await fetchRealData(); 
-                if(tab === 'dashboard') {
-                    if(activeDashMode === 'fisico') renderChartsFisico(); else renderChartsMarcas();
+        // Teclado: flechas en las pestañas, Escape y foco atrapado en la hoja de perfiles
+        document.addEventListener('keydown', e => {
+            const sheetOpen = !$('profile-sheet').classList.contains('hidden');
+            if (sheetOpen) {
+                if (e.key === 'Escape') { closeProfileSheet(); return; }
+                if (e.key === 'Tab') {
+                    const f = [...$('profile-sheet').querySelectorAll('button')];
+                    const i = f.indexOf(document.activeElement);
+                    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+                    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
                 }
-                if(tab === 'detalle') renderTable();
+                return;
             }
-        }
+            const tab = e.target.closest && e.target.closest('[role="tab"]');
+            if (!tab || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+            const tabs = [...tab.parentElement.querySelectorAll('[role="tab"]')];
+            let i = tabs.indexOf(tab);
+            if (e.key === 'ArrowLeft') i = (i - 1 + tabs.length) % tabs.length;
+            else if (e.key === 'ArrowRight') i = (i + 1) % tabs.length;
+            else i = e.key === 'Home' ? 0 : tabs.length - 1;
+            e.preventDefault();
+            tabs[i].click();
+            tabs[i].focus();
+        });
 
-        function switchFormMode(mode) {
-            activeFormMode = mode;
-            document.getElementById('btn-reg-fisico').classList.remove('active');
-            document.getElementById('btn-reg-marcas').classList.remove('active');
-            document.getElementById('btn-reg-' + mode).classList.add('active');
-            
-            if(mode === 'fisico') { document.getElementById('form-fisico').classList.remove('hidden'); document.getElementById('form-marcas').classList.add('hidden'); }
-            else { document.getElementById('form-fisico').classList.add('hidden'); document.getElementById('form-marcas').classList.remove('hidden'); toggleRepsInputs(); }
-        }
-
-        function switchDashMode(mode) {
-            activeDashMode = mode;
-            document.getElementById('btn-dash-fisico').classList.remove('active');
-            document.getElementById('btn-dash-marcas').classList.remove('active');
-            document.getElementById('btn-dash-' + mode).classList.add('active');
-            
-            if(mode === 'fisico') { document.getElementById('dash-fisico').classList.remove('hidden'); document.getElementById('dash-marcas').classList.add('hidden'); renderChartsFisico(); }
-            else { document.getElementById('dash-fisico').classList.add('hidden'); document.getElementById('dash-marcas').classList.remove('hidden'); renderChartsMarcas(); }
-        }
-
-        function switchDetalleMode(mode) {
-            activeDetalleMode = mode;
-            ['fisico', 'fb', 'vl', 'pk'].forEach(m => document.getElementById('btn-det-' + m).classList.remove('active'));
-            document.getElementById('btn-det-' + mode.toLowerCase()).classList.add('active');
-            renderTable();
-        }
-
-        function nextStep(step) {
-            [1, 2, 3].forEach(s => { document.getElementById('step' + s).classList.add('hidden'); document.getElementById('dot' + s).classList.remove('active'); });
-            document.getElementById('step' + step).classList.remove('hidden'); document.getElementById('dot' + step).classList.add('active');
-        }
-
-        function toggleRepsInputs() {
-            const meso = document.getElementById('m_mesociclo').value;
-            const repInputs = document.querySelectorAll('.reps-input');
-            if (meso === 'VL') repInputs.forEach(el => el.classList.remove('hidden'));
-            else repInputs.forEach(el => { el.classList.add('hidden'); el.value = ''; });
-        }
-
-        async function fetchRealData() {
-            if (historyDataCache) return; 
-            document.getElementById('dashboard-loading').classList.remove('hidden');
-            document.getElementById('detalle-loading').classList.remove('hidden');
-            const res = await requestData(getKey());
-            document.getElementById('dashboard-loading').classList.add('hidden');
-            document.getElementById('detalle-loading').classList.add('hidden');
-            if (res === 'unauthorized') { alert('Tu clave de acceso ya no es válida.'); logout(); }
-            else if (res === 'network') alert("Error al cargar historial.");
+        // ---- GUARDAR ----
+        function recordFromPayload(p) {
+            if (p.type === 'fisico') {
+                const r = { fecha: isoToShort(p.fecha), mesociclo: p.mesociclo || '-', edad: p.edad || '-', imc: p.grasa_pct ? p.grasa_pct + '%' : '-', grasa_pct: p.grasa_pct ? p.grasa_pct + '%' : '-' };
+                ['peso', 'musculo', 'hueso', 'viscera', 'grasa', 'pecho', 'hombros', 'biceps', 'abdomen', 'pierna'].forEach(k => r[k] = toNum(p[k]));
+                return r;
+            }
+            const r = { fecha: isoToShort(p.fecha) };
+            lifts().forEach((_, i) => {
+                const n = i + 1;
+                r[`ex${n}_kg`] = toNum(p[`ex${n}_kg`]);
+                if (p.mesociclo_marca === 'VL') r[`ex${n}_reps`] = p[`ex${n}_reps`] || '';
+            });
+            return r;
         }
 
         async function saveDataToSheet() {
-            const btnId = activeFormMode === 'fisico' ? 'btn-submit-fis' : 'btn-submit-marcas';
-            const btn = document.getElementById(btnId);
+            const mode = tabModes.registrar;
+            const btn = $(mode === 'fisico' ? 'btn-submit-fis' : 'btn-submit-marcas');
             if (btn.disabled) return;
-            showFormError(activeFormMode, '');
-            const valid = activeFormMode === 'fisico' ? validateFisico() : validateMarcas();
+            showFormError(mode, '');
+            const valid = mode === 'fisico' ? validateFisico() : validateMarcas();
             if (!valid) return;
 
             const originalText = btn.innerHTML;
             btn.innerHTML = '<span class="loader"></span> Guardando...';
             btn.disabled = true;
 
-            let payload = { key: getKey(), profile: currentProfile, type: activeFormMode };
+            const profile = currentProfile;
+            let payload = { key: getKey(), profile, type: mode };
 
-            if (activeFormMode === 'fisico') {
-                payload.fecha = document.getElementById('f_fecha').value;
-                payload.mesociclo = document.getElementById('f_mesociclo').value;
-                payload.edad = sanitize(document.getElementById('f_edad').value);
-                payload.peso = sanitize(document.getElementById('f_peso').value);
-                payload.imc = sanitize(document.getElementById('f_imc').value);
-                payload.musculo = sanitize(document.getElementById('f_musculo').value);
-                payload.hueso = sanitize(document.getElementById('f_hueso').value);
-                payload.viscera = sanitize(document.getElementById('f_viscera').value);
-                payload.grasa = sanitize(document.getElementById('f_grasa').value);
-                payload.pecho = sanitize(document.getElementById('f_pecho').value);
-                payload.hombros = sanitize(document.getElementById('f_hombros').value);
-                payload.biceps = sanitize(document.getElementById('f_biceps').value);
-                payload.abdomen = sanitize(document.getElementById('f_abdomen').value);
-                payload.pierna = sanitize(document.getElementById('f_pierna').value);
+            if (mode === 'fisico') {
+                payload.fecha = $('f_fecha').value;
+                payload.mesociclo = $('f_mesociclo').value;
+                Object.entries(FISICO_FIELDS).forEach(([id, key]) => { payload[key] = sanitize($(id).value); });
+                payload.imc = payload.grasa_pct; // compatibilidad con versiones anteriores del Apps Script
             } else {
-                payload.fecha = document.getElementById('m_fecha').value;
-                payload.mesociclo_marca = document.getElementById('m_mesociclo').value;
-                payload.ex1_kg = sanitize(document.getElementById('m_ex1_kg').value);
-                payload.ex2_kg = sanitize(document.getElementById('m_ex2_kg').value);
-                payload.ex3_kg = sanitize(document.getElementById('m_ex3_kg').value);
-                if (currentProfile === 'MIGUEL') payload.ex4_kg = sanitize(document.getElementById('m_ex4_kg').value);
-                
-                if (payload.mesociclo_marca === 'VL') {
-                    payload.ex1_reps = document.getElementById('m_ex1_reps').value;
-                    payload.ex2_reps = document.getElementById('m_ex2_reps').value;
-                    payload.ex3_reps = document.getElementById('m_ex3_reps').value;
-                    if (currentProfile === 'MIGUEL') payload.ex4_reps = document.getElementById('m_ex4_reps').value;
-                }
+                payload.fecha = $('m_fecha').value;
+                payload.mesociclo_marca = $('m_mesociclo').value;
+                lifts().forEach((_, i) => {
+                    const n = i + 1;
+                    payload[`ex${n}_kg`] = sanitize($(`m_ex${n}_kg`).value);
+                    if (payload.mesociclo_marca === 'VL') payload[`ex${n}_reps`] = $(`m_ex${n}_reps`).value.trim();
+                });
             }
+            const prevPRs = mode === 'marcas' ? lifts().map((_, i) => getPR(i + 1)) : [];
 
             // text/plain evita el preflight CORS (Apps Script no lo soporta) y permite leer la respuesta
             let result = null;
@@ -709,54 +1115,70 @@
             }
 
             if (result.status === 'success') {
-                alert('¡Datos sincronizados correctamente!');
-                historyDataCache = null;
-                const mode = activeFormMode;
-                await switchTab('dashboard');
-                switchDashMode(mode);
+                // Récords batidos (solo si ya había una marca anterior con la que comparar)
+                const records = [];
+                if (mode === 'marcas') lifts().forEach((key, i) => {
+                    const kg = toNum(payload[`ex${i + 1}_kg`]);
+                    if (kg != null && prevPRs[i] != null && kg > prevPRs[i]) records.push(`${LIFTS[key].name} ${formatNumUI(kg)} kg`);
+                });
+
+                // Inserción optimista en la caché: el progreso se ve al momento
+                if (historyDataCache && historyDataCache[profile]) {
+                    const bucket = mode === 'fisico' ? 'fisico' : payload.mesociclo_marca;
+                    historyDataCache[profile][bucket] = (historyDataCache[profile][bucket] || []).concat([recordFromPayload(payload)]);
+                    setData(historyDataCache);
+                }
+
+                if (records.length) { haptic([30, 60, 30]); showToast('¡Nuevo récord! ' + records.join(' · '), 'pr'); }
+                else { haptic(15); showToast('Datos guardados correctamente', 'success'); }
+
+                resetForm(mode);
+                if (mode === 'marcas') $('marcasFilter').value = payload.mesociclo_marca;
+                tabModes.progreso = mode;
+                navigate([slug(), 'progreso', mode]);
+                refreshData({ silent: true });
             } else if (result.status === 'unauthorized') {
-                alert('Tu clave de acceso ya no es válida. No se ha guardado nada.');
+                showToast('Tu clave de acceso ya no es válida. No se ha guardado nada.', 'error');
                 logout();
             } else if (result.status === 'network') {
-                showFormError(activeFormMode, 'No se pudo conectar con el servidor. Tus datos siguen en el formulario: inténtalo de nuevo.');
+                showFormError(mode, 'No se pudo conectar con el servidor. Tus datos siguen en el formulario.');
+                showToast('Sin conexión: no se ha guardado', 'error', { id: 'save', action: { label: 'Reintentar', fn: saveDataToSheet } });
             } else {
-                showFormError(activeFormMode, 'El servidor no guardó los datos' + (result.message ? ': ' + result.message : '.') + ' Tus datos siguen en el formulario.');
+                showFormError(mode, 'El servidor no guardó los datos' + (result.message ? ': ' + result.message : '.') + ' Tus datos siguen en el formulario.');
             }
         }
 
-        function renderTable() {
-            if(!historyDataCache) return;
-            const thead = document.getElementById('tableHead');
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            
-            const profileData = historyDataCache[currentProfile] || {};
-            const dataToRender = [...(profileData[activeDetalleMode] || [])].reverse();
-            const n = v => esc(formatNumUI(v));
-            const emptyRow = cols => `<tr><td colspan="${cols}" style="padding: 30px; color: var(--text-muted);">Aún no hay registros</td></tr>`;
+        // ---- HISTORIAL ----
+        function renderHistorial() {
+            const has = ensureData('det-skeleton', 'det-error');
+            $('detalle-content').classList.toggle('hidden', !has);
+            if (has) renderTable();
+        }
 
-            if(activeDetalleMode === 'fisico') {
-                thead.innerHTML = `<tr><th>Fecha</th><th>Meso.</th><th>Edad</th><th>Peso</th><th>% Graso</th><th>Músculo</th><th>Hueso</th><th>Víscera</th><th>Grasa</th><th>Pecho</th><th>Hombros</th><th>Bíceps</th><th>Abdomen</th><th>Pierna</th></tr>`;
-                if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(14); return; }
+        function renderTable() {
+            if (!historyDataCache) return;
+            const thead = $('tableHead');
+            const tbody = $('tableBody');
+            const mode = tabModes.historial;
+            const key = mode === 'fisico' ? 'fisico' : mode.toUpperCase();
+            const dataToRender = [...(profileData()[key] || [])].reverse();
+            const n = v => esc(formatNumUI(v));
+            const emptyRow = (cols, regMode) => `<tr><td colspan="${cols}" class="td-empty">Aún no hay registros${regMode === 'marcas' ? ' de ' + MESO_NAMES[key] : ''}.<br><button type="button" class="btn-cta" onclick="goRegister('${regMode}'${regMode === 'marcas' ? `, '${key}'` : ''})"><i class="fa-solid fa-plus" aria-hidden="true"></i> Registrar</button></td></tr>`;
+
+            if (mode === 'fisico') {
+                thead.innerHTML = `<tr><th scope="col">Fecha</th><th scope="col">Meso.</th><th scope="col">Edad</th><th scope="col">Peso</th><th scope="col">% Graso</th><th scope="col">Músculo</th><th scope="col">Hueso</th><th scope="col">Víscera</th><th scope="col">Grasa</th><th scope="col">Pecho</th><th scope="col">Hombros</th><th scope="col">Bíceps</th><th scope="col">Abdomen</th><th scope="col">Pierna</th></tr>`;
+                if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(14, 'fisico'); return; }
                 tbody.innerHTML = dataToRender.map(d =>
-                    `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}</td><td>${esc(d.mesociclo)}</td><td>${esc(d.edad)}</td><td style="font-weight:bold;">${n(d.peso)}</td><td>${esc(d.imc)}</td><td>${n(d.musculo)}</td><td>${n(d.hueso)}</td><td>${n(d.viscera)}</td><td>${n(d.grasa)}</td><td>${n(d.pecho)}</td><td>${n(d.hombros)}</td><td>${n(d.biceps)}</td><td>${n(d.abdomen)}</td><td>${n(d.pierna)}</td></tr>`
+                    `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}</td><td>${esc(d.mesociclo)}</td><td>${esc(d.edad)}</td><td style="font-weight:bold;">${n(d.peso)}</td><td>${esc(grasaPctOf(d))}</td><td>${n(d.musculo)}</td><td>${n(d.hueso)}</td><td>${n(d.viscera)}</td><td>${n(d.grasa)}</td><td>${n(d.pecho)}</td><td>${n(d.hombros)}</td><td>${n(d.biceps)}</td><td>${n(d.abdomen)}</td><td>${n(d.pierna)}</td></tr>`
                 ).join('');
             } else {
-                const isVL = activeDetalleMode === 'VL';
-                const isMiguel = currentProfile === 'MIGUEL';
-                
-                if (isMiguel) {
-                    thead.innerHTML = `<tr><th>Fecha</th><th>Pull-up (kg)</th>${isVL?'<th>Reps</th>':''}<th>Muscle-up (kg)</th>${isVL?'<th>Reps</th>':''}<th>Fondos (kg)</th>${isVL?'<th>Reps</th>':''}<th>Sentadilla (kg)</th>${isVL?'<th>Reps</th>':''}</tr>`;
-                } else {
-                    const ex2Name = currentProfile === 'CLAUDIA' ? 'Fondos' : 'Press Banca';
-                    thead.innerHTML = `<tr><th>Fecha</th><th>Sentadilla (kg)</th>${isVL?'<th>Reps</th>':''}<th>${ex2Name} (kg)</th>${isVL?'<th>Reps</th>':''}<th>Peso M. (kg)</th>${isVL?'<th>Reps</th>':''}</tr>`;
-                }
-                
-                const nEx = isMiguel ? 4 : 3;
-                if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(1 + nEx * (isVL ? 2 : 1)); return; }
+                const isVL = key === 'VL';
+                const names = lifts().map(k => LIFTS[k].name);
+                thead.innerHTML = '<tr><th scope="col">Fecha</th>' + names.map(nm => `<th scope="col">${esc(nm)} (kg)</th>${isVL ? '<th scope="col">Reps</th>' : ''}`).join('') + '</tr>';
+                if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(1 + names.length * (isVL ? 2 : 1), 'marcas'); return; }
                 tbody.innerHTML = dataToRender.map(d => {
                     let tdHtml = `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}</td>`;
-                    for (let i = 1; i <= nEx; i++) {
+                    for (let i = 1; i <= names.length; i++) {
                         tdHtml += `<td style="font-weight:bold;">${n(d['ex' + i + '_kg'])}</td>`;
                         if (isVL) tdHtml += `<td>${esc(d['ex' + i + '_reps'] || '-')}</td>`;
                     }
@@ -765,26 +1187,53 @@
             }
         }
 
+        // ---- PROGRESO (GRÁFICAS) ----
+        function destroyCharts() {
+            Object.keys(chartsInstance).forEach(k => { if (chartsInstance[k]) chartsInstance[k].destroy(); });
+            chartsInstance = {};
+        }
+
+        function themeColors() {
+            const cs = getComputedStyle(document.documentElement);
+            return { color: cs.getPropertyValue('--theme').trim(), bg: `rgba(${cs.getPropertyValue('--theme-rgb').trim()}, 0.15)` };
+        }
+
+        function setupChartDefaults() {
+            if (typeof Chart === 'undefined') return false;
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = "'Segoe UI', sans-serif";
+            if (reduceMotion) Chart.defaults.animation = false;
+            return true;
+        }
+
+        function renderProgreso() {
+            const mode = tabModes.progreso;
+            const has = ensureData('dash-skeleton', 'dash-error');
+            $('dash-fisico').classList.toggle('hidden', !has || mode !== 'fisico');
+            $('dash-marcas').classList.toggle('hidden', !has || mode !== 'marcas');
+            if (!has) return;
+            if (mode === 'fisico') renderChartsFisico(); else renderChartsMarcas();
+        }
+
         function renderChartsFisico() {
-            if(!historyDataCache) return;
+            if (!historyDataCache) return;
             // Destruir primero: así nunca quedan en pantalla las gráficas de otro perfil
             ['w', 'c', 'p'].forEach(k => { if (chartsInstance[k]) { chartsInstance[k].destroy(); chartsInstance[k] = null; } });
 
-            const fullData = (historyDataCache[currentProfile] || {}).fisico;
+            const fullData = profileData().fisico;
             const isEmpty = !fullData || fullData.length === 0;
-            document.getElementById('fisico-empty').classList.toggle('hidden', !isEmpty);
-            document.getElementById('fisico-content').classList.toggle('hidden', isEmpty);
+            $('fisico-empty').classList.toggle('hidden', !isEmpty);
+            $('fisico-content').classList.toggle('hidden', isEmpty);
             if (isEmpty) {
-                document.getElementById('kpi-peso').innerText = '--';
-                document.getElementById('kpi-peso-sub').innerText = '--';
-                document.getElementById('kpi-grasa').innerText = '--';
+                $('kpi-peso').innerText = '--';
+                $('kpi-peso-sub').innerText = '--';
+                $('kpi-grasa').innerText = '--';
                 return;
             }
 
-            const limit = document.getElementById('chartFilter').value;
-            const pFilter = document.getElementById('perimeterFilter').value;
-            const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme').trim();
-            const themeColorBg = `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--theme-rgb').trim()}, 0.15)`;
+            const limit = $('chartFilter').value;
+            const pFilter = $('perimeterFilter').value;
+            const { color: themeColor, bg: themeColorBg } = themeColors();
 
             let pd = limit === 'all' ? fullData : fullData.slice(-parseInt(limit));
             let labels = pd.map(d => d.fecha), weightData = pd.map(d => d.peso), muscleData = pd.map(d => d.musculo), fatData = pd.map(d => d.grasa);
@@ -793,85 +1242,64 @@
             const allWeights = fullData.map(d => d.peso);
             const currW = lastValid(allWeights);
             const prevW = currW ? lastValid(allWeights, currW.index) : null;
-            document.getElementById('kpi-peso').innerText = currW ? formatNumUI(currW.value) + ' kg' : '--';
-            if (!currW) document.getElementById('kpi-peso-sub').innerText = 'Sin datos de peso';
-            else if (!prevW) document.getElementById('kpi-peso-sub').innerText = 'Primer registro';
+            $('kpi-peso').innerText = currW ? formatNumUI(currW.value) + ' kg' : '--';
+            if (!currW) $('kpi-peso-sub').innerText = 'Sin datos de peso';
+            else if (!prevW) $('kpi-peso-sub').innerText = 'Primer registro';
             else {
                 const diff = (currW.value - prevW.value).toFixed(1);
-                document.getElementById('kpi-peso-sub').innerText = (diff > 0 ? '+' : '') + formatNumUI(diff) + ' kg vs anterior';
+                $('kpi-peso-sub').innerText = (diff > 0 ? '+' : '') + formatNumUI(diff) + ' kg vs anterior';
             }
             const currFat = lastValid(fullData.map(d => d.grasa));
-            document.getElementById('kpi-grasa').innerText = currFat ? formatNumUI(currFat.value) + ' kg' : '--';
+            $('kpi-grasa').innerText = currFat ? formatNumUI(currFat.value) + ' kg' : '--';
 
-            Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = "'Segoe UI', sans-serif";
+            if (!setupChartDefaults()) return;
 
-            chartsInstance.w = new Chart(document.getElementById('weightChart'), { type: 'line', data: { labels, datasets: [{ data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true, spanGaps: true }] }, options: { plugins: { legend: { display: false } } }});
-            chartsInstance.c = new Chart(document.getElementById('compChart'), { type: 'bar', data: { labels, datasets: [{ label: 'Músculo', data: muscleData, backgroundColor: themeColor }, { label: 'Grasa', data: fatData, backgroundColor: '#cbd5e1' }] }});
+            chartsInstance.w = new Chart($('weightChart'), { type: 'line', data: { labels, datasets: [{ data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true, spanGaps: true }] }, options: { plugins: { legend: { display: false } } }});
+            chartsInstance.c = new Chart($('compChart'), { type: 'bar', data: { labels, datasets: [{ label: 'Músculo', data: muscleData, backgroundColor: themeColor }, { label: 'Grasa', data: fatData, backgroundColor: '#cbd5e1' }] }});
 
             let pDts = [];
-            const addP = (lbl, key, col) => pDts.push({ label: lbl, data: pd.map(d=>d[key]), borderColor: col, backgroundColor: col, spanGaps: true });
+            const addP = (lbl, key, col) => pDts.push({ label: lbl, data: pd.map(d => d[key]), borderColor: col, backgroundColor: col, spanGaps: true });
             if (pFilter === 'all' || pFilter === 'pecho') addP('Pecho', 'pecho', '#f43f5e');
             if (pFilter === 'all' || pFilter === 'hombros') addP('Hombros', 'hombros', '#3b82f6');
             if (pFilter === 'all' || pFilter === 'biceps') addP('Bíceps', 'biceps', '#10b981');
             if (pFilter === 'all' || pFilter === 'abdomen') addP('Abdomen', 'abdomen', '#eab308');
             if (pFilter === 'all' || pFilter === 'pierna') addP('Pierna', 'pierna', '#a855f7');
-            chartsInstance.p = new Chart(document.getElementById('perimetersChart'), { type: 'line', data: { labels, datasets: pDts }, options: { spanGaps: true }});
+            chartsInstance.p = new Chart($('perimetersChart'), { type: 'line', data: { labels, datasets: pDts }, options: { spanGaps: true }});
+        }
+
+        function buildMarcasCharts() {
+            $('marcas-charts').innerHTML = lifts().map((key, i) =>
+                `<div class="glass chart-container"><h3 class="chart-title">${LIFTS[key].name}</h3><canvas id="chartEx${i + 1}" role="img" aria-label="Evolución de ${LIFTS[key].name}"></canvas></div>`
+            ).join('');
         }
 
         function renderChartsMarcas() {
-            if(!historyDataCache) return;
-            const meso = document.getElementById('marcasFilter').value;
-            const data = (historyDataCache[currentProfile] || {})[meso];
-            const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme').trim();
-            const themeColorBg = `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--theme-rgb').trim()}, 0.15)`;
-            
-            ['m1', 'm2', 'm3', 'm4'].forEach(k => { if (chartsInstance[k]) { chartsInstance[k].destroy(); chartsInstance[k] = null; } });
+            if (!historyDataCache) return;
+            const meso = $('marcasFilter').value;
+            const data = profileData()[meso];
+            Object.keys(chartsInstance).filter(k => k.startsWith('m')).forEach(k => { if (chartsInstance[k]) chartsInstance[k].destroy(); delete chartsInstance[k]; });
 
             const isEmpty = !data || data.length === 0;
-            const mesoNames = { FB: 'Fuerza Base', VL: 'Volumen', PK: 'Peaking' };
-            document.getElementById('marcas-empty-text').innerText = `Aún no hay marcas de ${mesoNames[meso]} para este perfil.`;
-            document.getElementById('marcas-empty').classList.toggle('hidden', !isEmpty);
-            document.getElementById('marcas-content').classList.toggle('hidden', isEmpty);
-            if (isEmpty) return;
+            $('marcas-empty-text').innerText = `Aún no hay marcas de ${MESO_NAMES[meso]} para este perfil.`;
+            $('marcas-empty').classList.toggle('hidden', !isEmpty);
+            $('marcas-charts').classList.toggle('hidden', isEmpty);
+            if (isEmpty || !setupChartDefaults()) return;
 
-            let labels = data.map(d => d.fecha);
-            
-            const tooltipOpts = {
-                callbacks: {
-                    label: function(ctx) {
-                        let base = ctx.parsed.y + ' kg';
-                        if (meso === 'VL') {
-                            const dataPoint = data[ctx.dataIndex];
-                            let reps = '';
-                            if (ctx.dataset.label === document.getElementById('title-ex1').innerText) reps = dataPoint.ex1_reps;
-                            if (ctx.dataset.label === document.getElementById('title-ex2').innerText) reps = dataPoint.ex2_reps;
-                            if (ctx.dataset.label === document.getElementById('title-ex3').innerText) reps = dataPoint.ex3_reps;
-                            if (ctx.dataset.label === document.getElementById('title-ex4').innerText) reps = dataPoint.ex4_reps;
-                            if (reps) base += ` (${reps} reps)`;
-                        }
-                        return base;
-                    }
-                }
-            };
+            const { color: themeColor, bg: themeColorBg } = themeColors();
+            const labels = data.map(d => d.fecha);
 
-            const buildChart = (id, label, keyData) => {
-                return new Chart(document.getElementById(id), {
+            lifts().forEach((key, i) => {
+                const n = i + 1;
+                chartsInstance['m' + n] = new Chart($('chartEx' + n), {
                     type: 'line',
-                    data: { labels: labels, datasets: [{ label: label, data: data.map(d => d[keyData]), borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true, pointRadius: 5, pointBackgroundColor: '#fff' }] },
-                    options: { responsive: true, plugins: { legend: { display: false }, tooltip: tooltipOpts } }
+                    data: { labels, datasets: [{ label: LIFTS[key].name, data: data.map(d => d['ex' + n + '_kg']), borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true, pointRadius: 5, pointBackgroundColor: '#fff' }] },
+                    options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => {
+                        let base = formatNumUI(ctx.parsed.y) + ' kg';
+                        const reps = meso === 'VL' ? data[ctx.dataIndex]['ex' + n + '_reps'] : '';
+                        return reps ? `${base} (${reps} reps)` : base;
+                    } } } } }
                 });
-            };
-
-            const isMiguel = currentProfile === 'MIGUEL';
-            const exNames = isMiguel ? ['Pull-up', 'Muscle-up', 'Fondos', 'Sentadilla'] : ['Sentadilla', currentProfile === 'CLAUDIA' ? 'Fondos' : 'Press Banca', 'Peso Muerto'];
-
-            chartsInstance.m1 = buildChart('chartEx1', exNames[0], 'ex1_kg');
-            chartsInstance.m2 = buildChart('chartEx2', exNames[1], 'ex2_kg');
-            chartsInstance.m3 = buildChart('chartEx3', exNames[2], 'ex3_kg');
-            
-            if (isMiguel) {
-                chartsInstance.m4 = buildChart('chartEx4', exNames[3], 'ex4_kg');
-            }
+            });
         }
 
         initAuth();

@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js" integrity="sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM" crossorigin="anonymous"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -57,6 +57,11 @@
         .input-large { width: 100%; min-height: 60px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); color: white; font-size: 1.2rem; font-weight: 600; transition: all 0.3s; }
         .input-large:focus { outline: none; border-color: var(--theme); box-shadow: 0 0 12px rgba(var(--theme-rgb), 0.2); background: rgba(var(--theme-rgb), 0.05); }
         select.input-large { appearance: none; }
+        .input-large.input-error { border-color: #f87171; box-shadow: 0 0 10px rgba(248, 113, 113, 0.25); }
+        .field-error { color: #f87171; font-size: 0.9rem; font-weight: 600; margin-top: 8px; }
+        .form-error { color: #f87171; font-weight: bold; text-align: center; margin-top: 15px; }
+        .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); margin-bottom: 25px; }
+        .empty-state i { display: block; font-size: 2.5rem; color: var(--theme); margin-bottom: 15px; opacity: 0.7; }
 
         .login-box { padding: 30px 20px; text-align: center; margin-top: 30px; }
         .login-box .lock-icon { font-size: 3rem; color: var(--theme); margin-bottom: 15px; }
@@ -148,7 +153,7 @@
                             <select class="input-large" id="f_mesociclo"><option>-</option><option>Hipertrofia</option><option>Fuerza Base</option><option>Volumen</option><option>Peaking</option></select>
                         </div>
                     </div>
-                    <button class="btn-save" onclick="nextStep(2)">Continuar</button>
+                    <button class="btn-save" onclick="goToStep(2)">Continuar</button>
                 </div>
                 <div id="step2" class="glass hidden" style="padding: 30px 20px;">
                     <div class="grid-2">
@@ -159,7 +164,7 @@
                         <div class="form-group"><label>Víscera</label><input type="text" inputmode="decimal" class="input-large" id="f_viscera"></div>
                         <div class="form-group"><label>Grasa (kg)</label><input type="text" inputmode="decimal" class="input-large" id="f_grasa"></div>
                     </div>
-                    <button class="btn-save" onclick="nextStep(3)">Continuar</button>
+                    <button class="btn-save" onclick="goToStep(3)">Continuar</button>
                 </div>
                 <div id="step3" class="glass hidden" style="padding: 30px 20px;">
                     <div class="grid-2">
@@ -170,6 +175,7 @@
                     </div>
                     <div class="form-group"><label>Abdomen</label><input type="text" inputmode="decimal" class="input-large" id="f_abdomen"></div>
                     <button class="btn-save btn-solid" id="btn-submit-fis" onclick="saveDataToSheet()"><i class="fa-solid fa-database"></i> Sincronizar Físico</button>
+                    <div class="form-error hidden" id="form-error-fisico" role="alert"></div>
                 </div>
             </div>
 
@@ -216,6 +222,7 @@
                 </div>
                 
                 <button class="btn-save btn-solid" id="btn-submit-marcas" onclick="saveDataToSheet()"><i class="fa-solid fa-database"></i> Sincronizar Marcas</button>
+                <div class="form-error hidden" id="form-error-marcas" role="alert"></div>
             </div>
         </div>
 
@@ -228,6 +235,8 @@
             <div id="dashboard-loading" class="hidden"><div class="loader big-loader"></div><p style="text-align:center; color: var(--theme);">Cargando historial...</p></div>
             
             <div id="dash-fisico">
+                <div id="fisico-empty" class="glass empty-state hidden"><i class="fa-solid fa-chart-line"></i>Aún no hay registros físicos para este perfil.</div>
+                <div id="fisico-content">
                 <div class="analytics-header"><select class="filter-select" id="chartFilter" onchange="renderChartsFisico()"><option value="6">Últimos 6</option><option value="12">Últimos 12</option><option value="all">Todos</option></select></div>
                 <div class="kpi-grid">
                     <div class="glass kpi-card"><div class="kpi-label">Evolución Peso</div><div class="kpi-value" id="kpi-peso">--</div><div id="kpi-peso-sub" style="color: var(--text-muted); font-size: 0.85rem;">--</div></div>
@@ -237,6 +246,7 @@
                 <div class="glass chart-container"><div class="chart-title">Músculo vs Grasa</div><canvas id="compChart"></canvas></div>
                 <div class="analytics-header"><select class="filter-select" id="perimeterFilter" onchange="renderChartsFisico()"><option value="all">Todos Perímetros</option><option value="pecho">Pecho</option><option value="hombros">Hombros</option><option value="biceps">Bíceps</option><option value="abdomen">Abdomen</option><option value="pierna">Pierna</option></select></div>
                 <div class="glass chart-container"><canvas id="perimetersChart"></canvas></div>
+                </div>
             </div>
 
             <div id="dash-marcas" class="hidden">
@@ -247,10 +257,13 @@
                         <option value="PK">Peaking</option>
                     </select>
                 </div>
+                <div id="marcas-empty" class="glass empty-state hidden"><i class="fa-solid fa-dumbbell"></i><span id="marcas-empty-text">Aún no hay marcas registradas.</span></div>
+                <div id="marcas-content">
                 <div class="glass chart-container"><div class="chart-title" id="title-ex1">Sentadilla</div><canvas id="chartEx1"></canvas></div>
                 <div class="glass chart-container"><div class="chart-title" id="title-ex2">Press Banca</div><canvas id="chartEx2"></canvas></div>
                 <div class="glass chart-container"><div class="chart-title" id="title-ex3">Peso Muerto</div><canvas id="chartEx3"></canvas></div>
                 <div class="glass chart-container hidden" id="container-chart4"><div class="chart-title" id="title-ex4">Sentadilla</div><canvas id="chartEx4"></canvas></div>
+                </div>
             </div>
         </div>
 
@@ -360,7 +373,147 @@
         }
 
         function formatNumUI(val) { return (val == null || val === '') ? '-' : val.toString().replace('.', ','); }
-        function sanitize(val) { return (!val) ? "" : val.toString().replace('.', ','); }
+        function sanitize(val) { return (!val) ? "" : val.toString().trim().replace('.', ','); }
+
+        // Escapa texto antes de insertarlo como HTML (los datos vienen de la hoja de cálculo)
+        function esc(val) {
+            return String(val == null ? '' : val).replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // Último valor no nulo de una serie (y su índice)
+        function lastValid(arr, before = arr.length) {
+            for (let i = before - 1; i >= 0; i--) if (arr[i] != null && !isNaN(arr[i])) return { value: arr[i], index: i };
+            return null;
+        }
+
+        // ---- VALIDACIÓN ----
+        // Rangos razonables para detectar errores de tecleo (p. ej. 785 en vez de 78,5)
+        const FIELD_RULES = {
+            f_edad:    { min: 10,  max: 100 },
+            f_peso:    { min: 30,  max: 250 },
+            f_imc:     { min: 2,   max: 60 },
+            f_musculo: { min: 10,  max: 150 },
+            f_hueso:   { min: 0.5, max: 10 },
+            f_viscera: { min: 1,   max: 59 },
+            f_grasa:   { min: 1,   max: 150 },
+            f_pecho:   { min: 20,  max: 200 },
+            f_hombros: { min: 20,  max: 200 },
+            f_biceps:  { min: 10,  max: 80 },
+            f_abdomen: { min: 20,  max: 200 },
+            f_pierna:  { min: 20,  max: 120 },
+            kg:        { min: 0,   max: 500 },
+            reps:      { min: 1,   max: 100, int: true }
+        };
+        const STEP_FIELDS = {
+            1: ['f_edad'],
+            2: ['f_peso', 'f_imc', 'f_musculo', 'f_hueso', 'f_viscera', 'f_grasa'],
+            3: ['f_pecho', 'f_hombros', 'f_biceps', 'f_pierna', 'f_abdomen']
+        };
+
+        function parseNumInput(raw) {
+            const s = String(raw).trim().replace(',', '.');
+            if (s === '') return null;
+            if (!/^-?\d+(\.\d+)?$/.test(s)) return NaN;
+            return parseFloat(s);
+        }
+
+        function setFieldError(input, msg) {
+            input.classList.add('input-error');
+            input.setAttribute('aria-invalid', 'true');
+            const group = input.closest('.form-group');
+            if (!group) return;
+            let el = group.querySelector('.field-error');
+            if (!el) { el = document.createElement('div'); el.className = 'field-error'; group.appendChild(el); }
+            el.innerText = msg;
+        }
+
+        function clearFieldError(input) {
+            input.classList.remove('input-error');
+            input.removeAttribute('aria-invalid');
+            const group = input.closest('.form-group');
+            if (!group) return;
+            // Solo se quita el mensaje si ningún otro input del grupo sigue con error
+            if (!group.querySelector('.input-error')) { const el = group.querySelector('.field-error'); if (el) el.remove(); }
+        }
+
+        function showFormError(mode, msg) {
+            const el = document.getElementById('form-error-' + mode);
+            el.innerText = msg || '';
+            el.classList.toggle('hidden', !msg);
+        }
+
+        // Valida un input numérico opcional; devuelve true si es válido
+        function validateNumber(input, rule) {
+            const v = parseNumInput(input.value);
+            if (v === null) return true;
+            if (isNaN(v)) { setFieldError(input, 'Introduce un número válido'); return false; }
+            if (rule.int && !Number.isInteger(v)) { setFieldError(input, 'Debe ser un número entero'); return false; }
+            if (v < rule.min || v > rule.max) { setFieldError(input, `Valor fuera de rango (${formatNumUI(rule.min)}–${formatNumUI(rule.max)})`); return false; }
+            return true;
+        }
+
+        function validateDate(input) {
+            if (!input.value) { setFieldError(input, 'Indica la fecha'); return false; }
+            return true;
+        }
+
+        function validateStep(step) {
+            let ok = true, firstBad = null;
+            const fail = el => { ok = false; if (!firstBad) firstBad = el; };
+            if (step === 1) { const d = document.getElementById('f_fecha'); if (!validateDate(d)) fail(d); }
+            STEP_FIELDS[step].forEach(id => { const el = document.getElementById(id); if (!validateNumber(el, FIELD_RULES[id])) fail(el); });
+            if (firstBad) firstBad.focus();
+            return ok;
+        }
+
+        function goToStep(step) {
+            // Para avanzar, el paso actual (step - 1) debe ser válido
+            if (validateStep(step - 1)) nextStep(step);
+        }
+
+        function validateFisico() {
+            for (const s of [1, 2, 3]) {
+                if (!validateStep(s)) { nextStep(s); return false; }
+            }
+            const allFields = [].concat(STEP_FIELDS[1], STEP_FIELDS[2], STEP_FIELDS[3]);
+            const hasAny = allFields.some(id => document.getElementById(id).value.trim() !== '');
+            if (!hasAny) { showFormError('fisico', 'Rellena al menos una medida antes de sincronizar.'); return false; }
+            return true;
+        }
+
+        function validateMarcas() {
+            let ok = true, firstBad = null;
+            const fail = el => { ok = false; if (!firstBad) firstBad = el; };
+            const d = document.getElementById('m_fecha');
+            if (!validateDate(d)) fail(d);
+
+            const isVL = document.getElementById('m_mesociclo').value === 'VL';
+            const exercises = currentProfile === 'MIGUEL' ? [1, 2, 3, 4] : [1, 2, 3];
+            let hasAny = false;
+            exercises.forEach(n => {
+                const kg = document.getElementById(`m_ex${n}_kg`);
+                const reps = document.getElementById(`m_ex${n}_reps`);
+                if (!validateNumber(kg, FIELD_RULES.kg)) fail(kg);
+                if (kg.value.trim() !== '') hasAny = true;
+                if (isVL) {
+                    if (!validateNumber(reps, FIELD_RULES.reps)) fail(reps);
+                    else if (kg.value.trim() !== '' && reps.value.trim() === '') { setFieldError(reps, 'Indica las reps'); fail(reps); }
+                }
+            });
+
+            if (firstBad) { firstBad.focus(); return false; }
+            if (!hasAny) { showFormError('marcas', 'Introduce al menos una marca antes de sincronizar.'); return false; }
+            return ok;
+        }
+
+        // Al escribir en un campo se limpia su error
+        document.addEventListener('input', e => {
+            if (e.target.classList && e.target.classList.contains('input-large')) {
+                clearFieldError(e.target);
+                showFormError(activeFormMode, '');
+            }
+        });
 
         function updateExerciseLabels() {
             const isMiguel = currentProfile === 'MIGUEL';
@@ -418,6 +571,8 @@
             else if (profile === 'MIGUEL') { root.style.setProperty('--theme', '#10b981'); root.style.setProperty('--theme-rgb', '16, 185, 129'); }
 
             updateExerciseLabels();
+            document.querySelectorAll('.input-error').forEach(clearFieldError);
+            showFormError('fisico', ''); showFormError('marcas', '');
 
             nextStep(1);
             switchTab('form');
@@ -500,6 +655,11 @@
         async function saveDataToSheet() {
             const btnId = activeFormMode === 'fisico' ? 'btn-submit-fis' : 'btn-submit-marcas';
             const btn = document.getElementById(btnId);
+            if (btn.disabled) return;
+            showFormError(activeFormMode, '');
+            const valid = activeFormMode === 'fisico' ? validateFisico() : validateMarcas();
+            if (!valid) return;
+
             const originalText = btn.innerHTML;
             btn.innerHTML = '<span class="loader"></span> Guardando...';
             btn.disabled = true;
@@ -537,14 +697,31 @@
                 }
             }
 
+            // text/plain evita el preflight CORS (Apps Script no lo soporta) y permite leer la respuesta
+            let result = null;
             try {
-                await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+                result = await response.json();
+            } catch (error) {
+                result = { status: 'network' };
+            } finally {
+                btn.innerHTML = originalText; btn.disabled = false;
+            }
+
+            if (result.status === 'success') {
                 alert('¡Datos sincronizados correctamente!');
-                historyDataCache = null; 
-                switchTab('dashboard');
-                if(activeFormMode === 'fisico') switchDashMode('fisico'); else switchDashMode('marcas');
-            } catch (error) { alert('Error: ' + error); } 
-            finally { btn.innerHTML = originalText; btn.disabled = false; }
+                historyDataCache = null;
+                const mode = activeFormMode;
+                await switchTab('dashboard');
+                switchDashMode(mode);
+            } else if (result.status === 'unauthorized') {
+                alert('Tu clave de acceso ya no es válida. No se ha guardado nada.');
+                logout();
+            } else if (result.status === 'network') {
+                showFormError(activeFormMode, 'No se pudo conectar con el servidor. Tus datos siguen en el formulario: inténtalo de nuevo.');
+            } else {
+                showFormError(activeFormMode, 'El servidor no guardó los datos' + (result.message ? ': ' + result.message : '.') + ' Tus datos siguen en el formulario.');
+            }
         }
 
         function renderTable() {
@@ -553,14 +730,17 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             
-            const profileData = historyDataCache[currentProfile];
-            const dataToRender = [...profileData[activeDetalleMode]].reverse();
-            
+            const profileData = historyDataCache[currentProfile] || {};
+            const dataToRender = [...(profileData[activeDetalleMode] || [])].reverse();
+            const n = v => esc(formatNumUI(v));
+            const emptyRow = cols => `<tr><td colspan="${cols}" style="padding: 30px; color: var(--text-muted);">Aún no hay registros</td></tr>`;
+
             if(activeDetalleMode === 'fisico') {
                 thead.innerHTML = `<tr><th>Fecha</th><th>Meso.</th><th>Edad</th><th>Peso</th><th>% Graso</th><th>Músculo</th><th>Hueso</th><th>Víscera</th><th>Grasa</th><th>Pecho</th><th>Hombros</th><th>Bíceps</th><th>Abdomen</th><th>Pierna</th></tr>`;
-                dataToRender.forEach(d => {
-                    tbody.innerHTML += `<tr><td style="color:var(--theme); font-weight:bold;">${d.fecha}</td><td>${d.mesociclo}</td><td>${d.edad}</td><td style="font-weight:bold;">${formatNumUI(d.peso)}</td><td>${d.imc}</td><td>${formatNumUI(d.musculo)}</td><td>${formatNumUI(d.hueso)}</td><td>${formatNumUI(d.viscera)}</td><td>${formatNumUI(d.grasa)}</td><td>${formatNumUI(d.pecho)}</td><td>${formatNumUI(d.hombros)}</td><td>${formatNumUI(d.biceps)}</td><td>${formatNumUI(d.abdomen)}</td><td>${formatNumUI(d.pierna)}</td></tr>`;
-                });
+                if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(14); return; }
+                tbody.innerHTML = dataToRender.map(d =>
+                    `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}</td><td>${esc(d.mesociclo)}</td><td>${esc(d.edad)}</td><td style="font-weight:bold;">${n(d.peso)}</td><td>${esc(d.imc)}</td><td>${n(d.musculo)}</td><td>${n(d.hueso)}</td><td>${n(d.viscera)}</td><td>${n(d.grasa)}</td><td>${n(d.pecho)}</td><td>${n(d.hombros)}</td><td>${n(d.biceps)}</td><td>${n(d.abdomen)}</td><td>${n(d.pierna)}</td></tr>`
+                ).join('');
             } else {
                 const isVL = activeDetalleMode === 'VL';
                 const isMiguel = currentProfile === 'MIGUEL';
@@ -572,19 +752,34 @@
                     thead.innerHTML = `<tr><th>Fecha</th><th>Sentadilla (kg)</th>${isVL?'<th>Reps</th>':''}<th>${ex2Name} (kg)</th>${isVL?'<th>Reps</th>':''}<th>Peso M. (kg)</th>${isVL?'<th>Reps</th>':''}</tr>`;
                 }
                 
-                dataToRender.forEach(d => {
-                    let tdHtml = `<tr><td style="color:var(--theme); font-weight:bold;">${d.fecha}</td><td style="font-weight:bold;">${formatNumUI(d.ex1_kg)}</td>${isVL?`<td>${d.ex1_reps||'-'}</td>`:''} <td style="font-weight:bold;">${formatNumUI(d.ex2_kg)}</td>${isVL?`<td>${d.ex2_reps||'-'}</td>`:''} <td style="font-weight:bold;">${formatNumUI(d.ex3_kg)}</td>${isVL?`<td>${d.ex3_reps||'-'}</td>`:''}`;
-                    if (isMiguel) tdHtml += ` <td style="font-weight:bold;">${formatNumUI(d.ex4_kg)}</td>${isVL?`<td>${d.ex4_reps||'-'}</td>`:''}`;
-                    tdHtml += `</tr>`;
-                    tbody.innerHTML += tdHtml;
-                });
+                const nEx = isMiguel ? 4 : 3;
+                if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(1 + nEx * (isVL ? 2 : 1)); return; }
+                tbody.innerHTML = dataToRender.map(d => {
+                    let tdHtml = `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}</td>`;
+                    for (let i = 1; i <= nEx; i++) {
+                        tdHtml += `<td style="font-weight:bold;">${n(d['ex' + i + '_kg'])}</td>`;
+                        if (isVL) tdHtml += `<td>${esc(d['ex' + i + '_reps'] || '-')}</td>`;
+                    }
+                    return tdHtml + `</tr>`;
+                }).join('');
             }
         }
 
         function renderChartsFisico() {
             if(!historyDataCache) return;
-            const fullData = historyDataCache[currentProfile].fisico;
-            if(!fullData || fullData.length === 0) return;
+            // Destruir primero: así nunca quedan en pantalla las gráficas de otro perfil
+            ['w', 'c', 'p'].forEach(k => { if (chartsInstance[k]) { chartsInstance[k].destroy(); chartsInstance[k] = null; } });
+
+            const fullData = (historyDataCache[currentProfile] || {}).fisico;
+            const isEmpty = !fullData || fullData.length === 0;
+            document.getElementById('fisico-empty').classList.toggle('hidden', !isEmpty);
+            document.getElementById('fisico-content').classList.toggle('hidden', isEmpty);
+            if (isEmpty) {
+                document.getElementById('kpi-peso').innerText = '--';
+                document.getElementById('kpi-peso-sub').innerText = '--';
+                document.getElementById('kpi-grasa').innerText = '--';
+                return;
+            }
 
             const limit = document.getElementById('chartFilter').value;
             const pFilter = document.getElementById('perimeterFilter').value;
@@ -594,15 +789,23 @@
             let pd = limit === 'all' ? fullData : fullData.slice(-parseInt(limit));
             let labels = pd.map(d => d.fecha), weightData = pd.map(d => d.peso), muscleData = pd.map(d => d.musculo), fatData = pd.map(d => d.grasa);
 
-            const currW = weightData[weightData.length-1], prevW = weightData.length>1?weightData[weightData.length-2]:currW, diff = (currW-prevW).toFixed(1);
-            document.getElementById('kpi-peso').innerText = formatNumUI(currW) + ' kg';
-            document.getElementById('kpi-peso-sub').innerText = (diff>0?'+':'') + formatNumUI(diff) + ' kg vs anterior';
-            document.getElementById('kpi-grasa').innerText = formatNumUI(fatData[fatData.length-1]) + ' kg';
+            // KPIs sobre el historial completo, ignorando registros sin ese dato
+            const allWeights = fullData.map(d => d.peso);
+            const currW = lastValid(allWeights);
+            const prevW = currW ? lastValid(allWeights, currW.index) : null;
+            document.getElementById('kpi-peso').innerText = currW ? formatNumUI(currW.value) + ' kg' : '--';
+            if (!currW) document.getElementById('kpi-peso-sub').innerText = 'Sin datos de peso';
+            else if (!prevW) document.getElementById('kpi-peso-sub').innerText = 'Primer registro';
+            else {
+                const diff = (currW.value - prevW.value).toFixed(1);
+                document.getElementById('kpi-peso-sub').innerText = (diff > 0 ? '+' : '') + formatNumUI(diff) + ' kg vs anterior';
+            }
+            const currFat = lastValid(fullData.map(d => d.grasa));
+            document.getElementById('kpi-grasa').innerText = currFat ? formatNumUI(currFat.value) + ' kg' : '--';
 
             Chart.defaults.color = '#94a3b8'; Chart.defaults.font.family = "'Segoe UI', sans-serif";
-            if(chartsInstance.w) chartsInstance.w.destroy(); if(chartsInstance.c) chartsInstance.c.destroy(); if(chartsInstance.p) chartsInstance.p.destroy();
 
-            chartsInstance.w = new Chart(document.getElementById('weightChart'), { type: 'line', data: { labels, datasets: [{ data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true }] }, options: { plugins: { legend: { display: false } } }});
+            chartsInstance.w = new Chart(document.getElementById('weightChart'), { type: 'line', data: { labels, datasets: [{ data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true, spanGaps: true }] }, options: { plugins: { legend: { display: false } } }});
             chartsInstance.c = new Chart(document.getElementById('compChart'), { type: 'bar', data: { labels, datasets: [{ label: 'Músculo', data: muscleData, backgroundColor: themeColor }, { label: 'Grasa', data: fatData, backgroundColor: '#cbd5e1' }] }});
 
             let pDts = [];
@@ -618,13 +821,18 @@
         function renderChartsMarcas() {
             if(!historyDataCache) return;
             const meso = document.getElementById('marcasFilter').value;
-            const data = historyDataCache[currentProfile][meso];
+            const data = (historyDataCache[currentProfile] || {})[meso];
             const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme').trim();
             const themeColorBg = `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--theme-rgb').trim()}, 0.15)`;
             
-            if(chartsInstance.m1) chartsInstance.m1.destroy(); if(chartsInstance.m2) chartsInstance.m2.destroy(); if(chartsInstance.m3) chartsInstance.m3.destroy(); if(chartsInstance.m4) chartsInstance.m4.destroy();
-            
-            if(!data || data.length === 0) return;
+            ['m1', 'm2', 'm3', 'm4'].forEach(k => { if (chartsInstance[k]) { chartsInstance[k].destroy(); chartsInstance[k] = null; } });
+
+            const isEmpty = !data || data.length === 0;
+            const mesoNames = { FB: 'Fuerza Base', VL: 'Volumen', PK: 'Peaking' };
+            document.getElementById('marcas-empty-text').innerText = `Aún no hay marcas de ${mesoNames[meso]} para este perfil.`;
+            document.getElementById('marcas-empty').classList.toggle('hidden', !isEmpty);
+            document.getElementById('marcas-content').classList.toggle('hidden', isEmpty);
+            if (isEmpty) return;
 
             let labels = data.map(d => d.fecha);
             

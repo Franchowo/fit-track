@@ -23,7 +23,7 @@
 
 ---
 
-## Fase 0 · Correcciones críticas (semana 1)
+## Fase 0 · Correcciones críticas (semana 1) — ✅ completada
 
 | # | Mejora | Detalle | Impacto | Esfuerzo |
 |---|--------|---------|---------|----------|

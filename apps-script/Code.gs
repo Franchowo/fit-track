@@ -16,9 +16,14 @@ function isAuthorized(key) {
 }
 
 function doPost(e) {
+  var lock = null;
   try {
     var data = JSON.parse(e.postData.contents);
     if (!isAuthorized(data.key)) return jsonOutput({status: 'unauthorized'});
+
+    // Evita que dos envíos simultáneos se pisen al escribir en la hoja
+    lock = LockService.getScriptLock();
+    if (!lock.tryLock(15000)) return jsonOutput({status: 'error', message: 'Servidor ocupado, inténtalo de nuevo'});
 
     var sheetName = "";
     var rowData = [];
@@ -59,9 +64,12 @@ function doPost(e) {
       sheet.appendRow(rowData);
     }
 
+    SpreadsheetApp.flush();
     return jsonOutput({status: 'success'});
   } catch (error) {
     return jsonOutput({status: 'error', message: error.toString()});
+  } finally {
+    if (lock) lock.releaseLock();
   }
 }
 

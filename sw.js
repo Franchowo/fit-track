@@ -1,13 +1,16 @@
 // FitTrack - Service Worker
 //
-// - App shell (HTML, manifest, iconos): se sirve desde caché al instante y se actualiza
-//   en segundo plano. Si el HTML ha cambiado, avisa a la app para ofrecer "Recargar".
+// - index.html, manifest e iconos: se sirven desde caché al instante y se actualizan en
+//   segundo plano. Si index.html ha cambiado, se descargan antes sus CSS/JS y después se
+//   avisa a la app para ofrecer "Recargar".
+// - css/ y js/ llevan una huella en la URL (?v=...), así que son inmutables: caché primero.
+//   Nunca se mezcla un index.html nuevo con un JS viejo.
 // - Librerías de CDN (Chart.js, Font Awesome y sus fuentes): caché primero.
 // - El Apps Script (datos) NUNCA se cachea aquí: de eso se encarga la propia app.
 //
-// Sube SHELL_VERSION solo si cambias la lista de archivos precacheados.
+// Sube SHELL_VERSION solo si cambias la lista de archivos fijos de SHELL_FILES.
 
-const SHELL_VERSION = 'v1';
+const SHELL_VERSION = 'v2';
 const SHELL_CACHE = 'fittrack-shell-' + SHELL_VERSION;
 const CDN_CACHE = 'fittrack-cdn-v1';
 
@@ -24,11 +27,40 @@ const CDN_FILES = [
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
 ];
 const CDN_HOSTS = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com'];
+const ASSET_RE = /^\/(?:.*\/)?(?:css|js)\/[^/]+$/;
+
+const scopeUrl = path => new URL(path, self.registration.scope).href;
+
+// URLs de css/ y js/ (con su huella) que usa un index.html
+function assetsOf(html) {
+  const urls = [];
+  const re = /(?:src|href)="((?:css|js)\/[^"]+)"/g;
+  let m;
+  while ((m = re.exec(html))) urls.push(scopeUrl(m[1]));
+  return urls;
+}
+
+// Descarga los CSS/JS de un index.html y borra de la caché las versiones que ya no usa
+async function cacheAssets(cache, html) {
+  const wanted = assetsOf(html);
+  await Promise.all(wanted.map(async url => {
+    if (await cache.match(url)) return;
+    const res = await fetch(url, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('No se pudo descargar ' + url);
+    await cache.put(url, res);
+  }));
+  for (const req of await cache.keys()) {
+    if (ASSET_RE.test(new URL(req.url).pathname) && !wanted.includes(req.url)) await cache.delete(req);
+  }
+}
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const shell = await caches.open(SHELL_CACHE);
-    await shell.addAll(SHELL_FILES);
+    // no-cache: nunca instalar una copia antigua guardada por la caché HTTP del navegador
+    await shell.addAll(SHELL_FILES.map(u => new Request(u, { cache: 'no-cache' })));
+    const index = await shell.match(scopeUrl('./index.html'));
+    await cacheAssets(shell, await index.text());
     // Las librerías externas son "best effort": si una falla, la instalación sigue adelante
     const cdn = await caches.open(CDN_CACHE);
     await Promise.all(CDN_FILES.map(async url => {
@@ -62,8 +94,8 @@ async function notifyClients(message, resultingClientId) {
   }
 }
 
-// Caché primero y actualización en segundo plano. Para el HTML, si la versión
-// de red es distinta de la cacheada, se avisa a la app.
+// Caché primero y actualización en segundo plano. Si index.html cambia, primero se guardan
+// sus CSS/JS nuevos, después el propio index.html, y por último se avisa a la app.
 async function staleWhileRevalidate(event, cacheKey) {
   const cache = await caches.open(SHELL_CACHE);
   const cached = await cache.match(cacheKey, { ignoreSearch: true });
@@ -74,10 +106,14 @@ async function staleWhileRevalidate(event, cacheKey) {
   const network = fetch(url, { cache: 'no-cache', credentials: 'same-origin' }).then(async res => {
     if (res && res.ok && res.type === 'basic') {
       const isHtml = (res.headers.get('content-type') || '').includes('text/html');
-      if (isHtml && cachedCopy) {
-        const [oldText, newText] = await Promise.all([cachedCopy.text(), res.clone().text()]);
-        await cache.put(cacheKey, res.clone());
-        if (oldText !== newText) await notifyClients({ type: 'update-available' }, event.resultingClientId);
+      if (isHtml) {
+        const newText = await res.clone().text();
+        const oldText = cachedCopy ? await cachedCopy.text() : null;
+        if (oldText !== newText) {
+          await cacheAssets(cache, newText);
+          await cache.put(cacheKey, res.clone());
+          if (oldText !== null) await notifyClients({ type: 'update-available' }, event.resultingClientId);
+        }
       } else {
         await cache.put(cacheKey, res.clone());
       }
@@ -90,9 +126,9 @@ async function staleWhileRevalidate(event, cacheKey) {
   return res || new Response('Sin conexión', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 }
 
-async function cacheFirst(request) {
-  const cache = await caches.open(CDN_CACHE);
-  const cached = await cache.match(request, { ignoreVary: true });
+async function cacheFirst(cacheName, request, opts) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request, opts);
   if (cached) return cached;
   const res = await fetch(request);
   if (res && (res.ok || res.type === 'opaque')) cache.put(request, res.clone());
@@ -105,13 +141,19 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
 
   if (url.origin === self.location.origin) {
-    // Toda navegación (con cualquier #ruta o ?query) se sirve con el index.html cacheado
-    const key = req.mode === 'navigate' ? new URL('./index.html', self.registration.scope).href : req;
-    event.respondWith(staleWhileRevalidate(event, key));
+    if (req.mode === 'navigate') {
+      // Toda navegación (con cualquier #ruta o ?query) se sirve con el index.html cacheado
+      event.respondWith(staleWhileRevalidate(event, scopeUrl('./index.html')));
+    } else if (ASSET_RE.test(url.pathname) && url.searchParams.has('v')) {
+      // CSS/JS con huella: inmutables
+      event.respondWith(cacheFirst(SHELL_CACHE, req));
+    } else {
+      event.respondWith(staleWhileRevalidate(event, req));
+    }
     return;
   }
   if (CDN_HOSTS.includes(url.hostname)) {
-    event.respondWith(cacheFirst(req));
+    event.respondWith(cacheFirst(CDN_CACHE, req, { ignoreVary: true }));
   }
   // Cualquier otra petición (Apps Script incluido) va directa a la red.
 });

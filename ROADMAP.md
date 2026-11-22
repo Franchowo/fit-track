@@ -113,13 +113,13 @@ Con esto desaparecen los `if (isMiguel)` / `isClaudia` repartidos por `updateExe
 - **Editar y borrar** registros desde la vista Historial (deslizar a la izquierda o mantener pulsado). Requiere un `id` por fila en el backend.
 - Campo de **notas** por sesión ("molestia en el hombro", "cinturón").
 
-### 3.4 Código y herramientas
+### 3.4 Código y herramientas — ✅ (css/ y js/ separados con huellas, pruebas en `tests/` y CI en GitHub Actions; sin ESLint ni clasp)
 - Separar `index.html` (670 líneas) en módulos: `api.js`, `state.js`, `charts.js`, `forms.js` y `styles.css`. Puede seguir siendo *vanilla* con ES modules; si crece, valorar **Vite + Preact/Lit**.
 - Versionar el Apps Script con **clasp** y desplegarlo desde el repo.
 - **GitHub Actions**: lint (ESLint + Prettier), tests unitarios de utilidades (parseo de números con coma, cálculos de 1RM) y despliegue a GitHub Pages.
 - Sacar `APPS_SCRIPT_URL` a un `config.js`.
 
-### 3.5 Seguridad
+### 3.5 Seguridad — ✅ (clave en el cuerpo del POST, espera creciente ante claves incorrectas, aviso de clave corta; la clave por perfil queda opcional)
 - Mandar la clave en el *body* (o en una cabecera) también en las lecturas, en vez de en la query string (`?key=`), que queda en el historial y en los logs.
 - **Clave o PIN por perfil** (opcional): hoy cualquiera con la clave común puede escribir en el perfil de otra persona.
 - Retardo progresivo tras varios intentos fallidos (guardando contadores en `CacheService`) para frenar ataques de fuerza bruta.

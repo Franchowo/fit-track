@@ -57,10 +57,39 @@ function markProcessed(props, ids, id) {
   props.setProperty(PROCESSED_IDS_PROP, JSON.stringify(ids));
 }
 
+// ---- SEGURIDAD ----
+// - La app envía la clave en el cuerpo de un POST (acción "read"), no en la URL.
+// - Cada intento con clave incorrecta se frena con una espera creciente (hasta 5 s durante
+//   15 minutos), lo que hace inviable probar claves a lo bruto. La clave buena nunca espera.
+// - Usa una clave larga (12 caracteres o más); la app avisa si es más corta.
+var MIN_KEY_LENGTH = 12;
+var FAILS_CACHE_KEY = 'AUTH_FAILS';
+
+function expectedKey() {
+  return PropertiesService.getScriptProperties().getProperty('ACCESS_KEY');
+}
+
+// Comparación en tiempo constante (no revela cuántos caracteres coinciden)
+function safeEqual(a, b) {
+  a = String(a); b = String(b);
+  if (a.length !== b.length) return false;
+  var diff = 0;
+  for (var i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+function failedAttempt() {
+  var cache = CacheService.getScriptCache();
+  var fails = Number(cache.get(FAILS_CACHE_KEY) || 0) + 1;
+  cache.put(FAILS_CACHE_KEY, String(fails), 900);
+  Utilities.sleep(Math.min(fails * 300, 5000));
+}
+
 function isAuthorized(key) {
-  var expected = PropertiesService.getScriptProperties().getProperty('ACCESS_KEY');
-  if (!expected || !key) return false; // sin clave configurada, nadie entra
-  return String(key) === expected;
+  var expected = expectedKey();
+  var ok = !!expected && !!key && safeEqual(key, expected); // sin clave configurada, nadie entra
+  if (!ok) failedAttempt();
+  return ok;
 }
 
 // ---- UTILIDADES ----
@@ -269,6 +298,9 @@ function doPost(e) {
     var data = JSON.parse(e.postData.contents);
     if (!isAuthorized(data.key)) return jsonOutput({status: 'unauthorized'});
 
+    // Lectura de datos (no escribe: no necesita bloqueo ni deduplicación)
+    if (data.action === 'read') return jsonOutput(readData(data.profile));
+
     // Evita que dos envíos simultáneos se pisen al escribir en la hoja
     lock = LockService.getScriptLock();
     if (!lock.tryLock(15000)) return jsonOutput({status: 'error', message: 'Servidor ocupado, inténtalo de nuevo'});
@@ -300,24 +332,29 @@ function doPost(e) {
   }
 }
 
+// profile "FRAN" devuelve solo ese perfil; "none" solo comprueba la clave; vacío, todos.
+function readData(only) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var profiles = Object.keys(PROFILE_LIFTS);
+  if (only) profiles = profiles.filter(function(p) { return p === only; });
+
+  var props = PropertiesService.getScriptProperties();
+  var data = {};
+  profiles.forEach(function(p) {
+    data[p] = { fisico: extraerFisico(ss, p), goals: getGoals(props, p) };
+    MESOS.forEach(function(m) { data[p][m] = extraerMarcas(ss, p, m); });
+  });
+  return { status: 'success', data: data, weakKey: String(expectedKey() || '').length < MIN_KEY_LENGTH };
+}
+
+// Lectura por GET (?key=...&profile=...): solo para versiones antiguas de la app que aún
+// no se hayan actualizado. La app actual lee por POST para que la clave no viaje en la URL.
 function doGet(e) {
   try {
     if (!isAuthorized(e && e.parameter ? e.parameter.key : null)) return jsonOutput({status: 'unauthorized'});
-
-    // ?profile=FRAN devuelve solo ese perfil (más rápido); ?profile=none solo comprueba la clave;
-    // sin el parámetro se devuelven todos (compatibilidad con versiones anteriores de la app).
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var profiles = Object.keys(PROFILE_LIFTS);
-    var only = e.parameter.profile;
-    if (only) profiles = profiles.filter(function(p) { return p === only; });
-
-    var props = PropertiesService.getScriptProperties();
-    var data = {};
-    profiles.forEach(function(p) {
-      data[p] = { fisico: extraerFisico(ss, p), goals: getGoals(props, p) };
-      MESOS.forEach(function(m) { data[p][m] = extraerMarcas(ss, p, m); });
-    });
-    return jsonOutput({status: 'success', data: data});
+    var result = readData(e.parameter.profile);
+    delete result.weakKey;
+    return jsonOutput(result);
   } catch (error) {
     return jsonOutput({status: 'error', message: error.toString()});
   }

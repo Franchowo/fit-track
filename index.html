@@ -124,6 +124,10 @@
         .data-table { width: 100%; border-collapse: collapse; text-align: center; min-width: 600px; }
         .data-table th { padding: 15px; border-bottom: 2px solid var(--theme); color: var(--theme); font-size: 0.85rem; text-transform: uppercase; white-space: nowrap; background: rgba(0,0,0,0.2); }
         .data-table td { padding: 12px; border-bottom: 1px solid var(--glass-border); font-size: 0.95rem; white-space: nowrap; }
+        .data-table tbody tr.row-click { cursor: pointer; }
+        .data-table tbody tr.row-click:hover { background: rgba(var(--theme-rgb), 0.08); }
+        .data-table tbody tr.row-click:focus-visible { outline: 2px solid var(--theme); outline-offset: -2px; background: rgba(var(--theme-rgb), 0.08); }
+        .table-hint { color: var(--text-muted); font-size: 0.85rem; text-align: center; margin: -12px 0 14px; }
         .data-table td.td-empty { padding: 35px 20px; color: var(--text-muted); white-space: normal; }
 
         /* Estados vacíos, error y carga */
@@ -157,6 +161,22 @@
         .toast-action { min-height: 40px; padding: 0 12px; border-radius: 10px; color: var(--theme); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
         .toast-out { opacity: 0; transform: translateY(8px); transition: 0.2s; }
         @keyframes toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+        /* Edición de registros */
+        .edit-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 10px 10px 15px; margin-bottom: 20px; border-radius: 12px; background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.45); font-weight: 600; font-size: 0.95rem; }
+        .edit-banner i { color: var(--warning); margin-right: 6px; }
+        .edit-banner button { min-height: 44px; padding: 0 12px; color: var(--warning); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
+        .record-summary { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; margin-bottom: 20px; }
+        .record-summary div { display: flex; justify-content: space-between; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--glass-border); font-size: 0.95rem; }
+        .record-summary .rs-label { color: var(--text-muted); }
+        .record-summary .rs-value { font-weight: 700; text-align: right; }
+        .record-note { color: var(--text-muted); font-size: 0.9rem; text-align: center; margin-bottom: 16px; line-height: 1.4; }
+        .record-actions { display: flex; gap: 12px; }
+        .record-actions > button { flex: 1; margin-top: 0; min-height: 56px; font-size: 1rem; }
+        .btn-danger { min-height: 56px; border-radius: 16px; border: 2px solid var(--danger); color: var(--danger); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-danger.solid { background: var(--danger); color: #000; }
+        .btn-danger:disabled, .btn-save:disabled { opacity: 0.5; }
+        .record-confirm p { text-align: center; margin-bottom: 16px; font-weight: 600; }
 
         /* Hoja inferior de perfiles */
         .sheet-backdrop { position: fixed; inset: 0; z-index: 3000; background: rgba(2, 6, 23, 0.7); display: flex; align-items: flex-end; justify-content: center; }
@@ -220,6 +240,7 @@
 
             <!-- FÍSICO -->
             <div id="form-fisico">
+                <div class="edit-banner hidden" id="edit-banner-fisico" role="status"><span><i class="fa-solid fa-pen" aria-hidden="true"></i><span class="edit-text"></span></span><button type="button" onclick="cancelEdit(true)">Cancelar</button></div>
                 <div class="step-header">
                     <div class="step-indicators">
                         <button type="button" class="step-dot" data-step="1" onclick="goToStep(1)" aria-label="Paso 1: General"></button>
@@ -275,6 +296,7 @@
 
             <!-- MARCAS -->
             <div id="form-marcas" class="hidden glass" style="padding: 30px 20px;">
+                <div class="edit-banner hidden" id="edit-banner-marcas" role="status"><span><i class="fa-solid fa-pen" aria-hidden="true"></i><span class="edit-text"></span></span><button type="button" onclick="cancelEdit(true)">Cancelar</button></div>
                 <div class="form-group"><label for="m_fecha">Fecha toma de marcas</label><input type="date" class="input-large" id="m_fecha"></div>
                 <div class="form-group">
                     <label for="m_mesociclo">Mesociclo a registrar</label>
@@ -359,6 +381,7 @@
                 <p>No se pudo cargar el historial.</p>
                 <button type="button" class="btn-cta" onclick="retryLoad()"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reintentar</button>
             </div>
+            <p class="table-hint hidden" id="table-hint">Toca un registro para editarlo o borrarlo.</p>
             <div class="glass table-container" id="detalle-content">
                 <table class="data-table">
                     <thead id="tableHead"></thead>
@@ -386,6 +409,27 @@
         </div>
     </div>
 
+    <!-- Hoja inferior: detalle de un registro (editar / borrar) -->
+    <div id="record-sheet" class="sheet-backdrop hidden" onclick="if (event.target === this) closeSheet('record-sheet')">
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="record-title">
+            <div class="sheet-handle" aria-hidden="true"></div>
+            <h2 id="record-title">Registro</h2>
+            <div class="record-summary" id="record-summary"></div>
+            <p class="record-note hidden" id="record-note"></p>
+            <div class="record-actions" id="record-actions">
+                <button type="button" class="btn-save" id="btn-rec-edit" onclick="startEdit()"><i class="fa-solid fa-pen" aria-hidden="true"></i> Editar</button>
+                <button type="button" class="btn-danger" id="btn-rec-delete" onclick="askDelete()"><i class="fa-solid fa-trash" aria-hidden="true"></i> Borrar</button>
+            </div>
+            <div class="record-confirm hidden" id="record-confirm">
+                <p>¿Borrar este registro? No se puede deshacer.</p>
+                <div class="record-actions">
+                    <button type="button" class="btn-back" id="btn-rec-cancel" onclick="cancelDelete()">Cancelar</button>
+                    <button type="button" class="btn-danger solid" id="btn-rec-confirm" onclick="confirmDelete()"><i class="fa-solid fa-trash" aria-hidden="true"></i> Borrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
     <script>
@@ -396,17 +440,12 @@
         const LIFTS = {
             squat:    { name: 'Sentadilla',  icon: 'fa-arrows-up-down' },
             bench:    { name: 'Press Banca', icon: 'fa-dumbbell' },
-            deadlift: { name: 'Peso Muerto', icon: 'fa-weight-hanging' },
-            dips:     { name: 'Fondos',      icon: 'fa-arrow-down' },
-            pullup:   { name: 'Pull-up',     icon: 'fa-arrow-up' },
-            muscleup: { name: 'Muscle-up',   icon: 'fa-angles-up' }
+            deadlift: { name: 'Peso Muerto', icon: 'fa-weight-hanging' }
         };
         // El orden de "lifts" corresponde a las columnas ex1, ex2... de la hoja
         const PROFILES = {
             'FRAN':    { slug: 'fran',    color: '#00f3ff', rgb: '0, 243, 255',   icon: 'fa-user-ninja',      lifts: ['squat', 'bench', 'deadlift'] },
-            'MAMÁ':    { slug: 'mama',    color: '#ff00ea', rgb: '255, 0, 234',   icon: 'fa-user-astronaut',  lifts: ['squat', 'bench', 'deadlift'] },
-            'CLAUDIA': { slug: 'claudia', color: '#f97316', rgb: '249, 115, 22',  icon: 'fa-fire',            lifts: ['squat', 'dips', 'deadlift'] },
-            'MIGUEL':  { slug: 'miguel',  color: '#10b981', rgb: '16, 185, 129',  icon: 'fa-hand-back-fist',  lifts: ['pullup', 'muscleup', 'dips', 'squat'] }
+            'MAMÁ':    { slug: 'mama',    color: '#ff00ea', rgb: '255, 0, 234',   icon: 'fa-user-astronaut',  lifts: ['squat', 'bench', 'deadlift'] }
         };
         const MESO_NAMES = { FB: 'Fuerza Base', VL: 'Volumen', PK: 'Peaking' };
         const TABS = { registrar: ['fisico', 'marcas'], progreso: ['fisico', 'marcas'], historial: ['fisico', 'fb', 'vl', 'pk'] };
@@ -423,6 +462,9 @@
         let currentTab = 'registrar';
         const tabModes = { registrar: 'fisico', progreso: 'fisico', historial: 'fisico' };
         let currentStep = 1;
+        let editing = null;      // registro que se está editando: { mode, bucket, row, rev, qid, fecha, ret }
+        let recordCtx = null;    // registro abierto en la hoja de detalle: { d, bucket }
+        let tableRecords = [];   // filas pintadas en el historial (para abrir su detalle)
         let chartsInstance = {};
         let historyDataCache = null;
         const loadState = {};      // por perfil: 'idle' | 'loading' | 'error'
@@ -451,14 +493,23 @@
 
         // ---- CACHÉ DEL HISTORIAL (stale-while-revalidate) ----
         function loadCache() {
-            try { const c = JSON.parse(storeGet(CACHE_STORAGE)); return c && c.data ? c.data : null; } catch (e) { return null; }
+            try {
+                const c = JSON.parse(storeGet(CACHE_STORAGE));
+                if (!c || !c.data) return null;
+                // Solo los perfiles que siguen existiendo (se descartan los eliminados)
+                const data = {};
+                Object.keys(c.data).forEach(p => { if (PROFILES[p]) data[p] = c.data[p]; });
+                return data;
+            } catch (e) { return null; }
         }
         function persistCache() {
             if (historyDataCache) storeSet(CACHE_STORAGE, JSON.stringify({ ts: Date.now(), data: historyDataCache }));
         }
         // Fusiona los perfiles recibidos con los que ya había en caché
         function mergeData(partial) {
-            historyDataCache = Object.assign({}, historyDataCache || {}, partial || {});
+            const known = {};
+            Object.keys(partial || {}).forEach(p => { if (PROFILES[p]) known[p] = partial[p]; });
+            historyDataCache = Object.assign({}, historyDataCache || {}, known);
             persistCache();
         }
 
@@ -542,12 +593,34 @@
             } catch (e) { return { status: 'network' }; }
         }
 
-        // Añade el registro ya guardado en el servidor a la caché local (se ve al momento)
-        function applyToCache(payload) {
+        // Añade el registro ya guardado en el servidor a la caché local (se ve al momento).
+        // Con la fila y la huella que devuelve el servidor, se puede editar sin recargar.
+        function applyToCache(payload, result) {
             if (!historyDataCache || !historyDataCache[payload.profile]) return;
             const bucket = payload.type === 'fisico' ? 'fisico' : payload.mesociclo_marca;
             const pd = historyDataCache[payload.profile];
-            pd[bucket] = (pd[bucket] || []).concat([recordFromPayload(payload)]);
+            const extra = result && result.row ? { row: result.row, rev: result.rev } : {};
+            pd[bucket] = (pd[bucket] || []).concat([Object.assign(recordFromPayload(payload), extra)]);
+            persistCache();
+        }
+
+        function cacheBucket(profile, bucket) {
+            return (historyDataCache && historyDataCache[profile] && historyDataCache[profile][bucket]) || null;
+        }
+
+        function replaceInCache(profile, bucket, row, record) {
+            const arr = cacheBucket(profile, bucket);
+            if (!arr) return;
+            const i = arr.findIndex(r => r.row === row);
+            if (i !== -1) arr[i] = record;
+            persistCache();
+        }
+
+        // Al borrar una fila, las de debajo suben una posición en la hoja
+        function removeFromCache(profile, bucket, row) {
+            const arr = cacheBucket(profile, bucket);
+            if (!arr) return;
+            historyDataCache[profile][bucket] = arr.filter(r => r.row !== row).map(r => (r.row > row ? Object.assign({}, r, { row: r.row - 1 }) : r));
             persistCache();
         }
 
@@ -561,7 +634,7 @@
                     const r = await sendPayload(item.payload);
                     if (r.status === 'success') {
                         queue = queue.filter(q => q.id !== item.id);
-                        applyToCache(item.payload);
+                        applyToCache(item.payload, r);
                         sent.push(item);
                         persistQueue();
                     } else if (r.status === 'unauthorized') {
@@ -643,7 +716,8 @@
         }
 
         function applyRoute() {
-            closeProfileSheet(false);
+            closeSheet('profile-sheet', false);
+            closeSheet('record-sheet', false);
             if (!getKey()) { showView('view-login'); return; }
             let [s, tabRaw, modeRaw] = location.hash.replace(/^#\/?/, '').split('/');
             const rawSlug = s;
@@ -729,6 +803,7 @@
         }
 
         function activateProfile(profile) {
+            if (editing) { editing = null; $('m_mesociclo').disabled = false; }
             currentProfile = profile;
             storeSet(LAST_PROFILE_STORAGE, profile);
             const p = PROFILES[profile];
@@ -747,27 +822,31 @@
             resetForm('marcas', { keepDraft: true });
             const restored = ['fisico', 'marcas'].filter(restoreDraft);
             onMesoChange();
+            updateEditUI();
             refreshData({ silent: true, profile });
             if (restored.length) {
                 showToast('Borrador recuperado', 'info', { id: 'draft', action: { label: 'Descartar', fn: () => restored.forEach(m => resetForm(m)) } });
             }
         }
 
-        // Hoja inferior de perfiles
+        // Hojas inferiores (perfiles y detalle de registro)
         let sheetReturnFocus = null;
-        function openProfileSheet() {
+        function openSheet(id, focusEl) {
             sheetReturnFocus = document.activeElement;
-            document.querySelectorAll('.sheet-profile').forEach(b => b.setAttribute('aria-current', b.dataset.profile === currentProfile ? 'true' : 'false'));
-            $('profile-sheet').classList.remove('hidden');
-            const current = document.querySelector('.sheet-profile[aria-current="true"]') || document.querySelector('.sheet-profile');
-            current.focus();
+            $(id).classList.remove('hidden');
+            if (focusEl) focusEl.focus();
         }
-        function closeProfileSheet(restoreFocus = true) {
-            const sheet = $('profile-sheet');
+        function closeSheet(id, restoreFocus = true) {
+            const sheet = $(id);
             if (sheet.classList.contains('hidden')) return;
             sheet.classList.add('hidden');
             if (restoreFocus && sheetReturnFocus && sheetReturnFocus.isConnected) sheetReturnFocus.focus();
         }
+        function openProfileSheet() {
+            document.querySelectorAll('.sheet-profile').forEach(b => b.setAttribute('aria-current', b.dataset.profile === currentProfile ? 'true' : 'false'));
+            openSheet('profile-sheet', document.querySelector('.sheet-profile[aria-current="true"]') || document.querySelector('.sheet-profile'));
+        }
+        function closeProfileSheet(restoreFocus = true) { closeSheet('profile-sheet', restoreFocus); }
 
         // ---- AUTENTICACIÓN ----
         async function login() {
@@ -844,17 +923,36 @@
             return null;
         }
 
+        function pad2(n) { return ('0' + n).slice(-2); }
+        // Fecha de un registro como timestamp (acepta "2026-11-22", "22/11/26" y "22/11/2026")
+        function dateTs(d) {
+            const s = String((d && (d.iso || d.fecha)) || '');
+            let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+            if (m) return new Date(+m[1], +m[2] - 1, +m[3]).getTime();
+            m = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec(s);
+            if (m) return new Date(m[3].length === 2 ? 2000 + +m[3] : +m[3], +m[2] - 1, +m[1]).getTime();
+            return NaN;
+        }
+        function fmtTs(ts) { const d = new Date(ts); return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${String(d.getFullYear()).slice(-2)}`; }
+        function tsToIso(ts) { const d = new Date(ts); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+        // Orden cronológico estable (los registros sin fecha válida van al principio)
+        function sortByDate(arr) {
+            return arr.map((d, i) => ({ d, i, t: dateTs(d) }))
+                .sort((a, b) => ((isNaN(a.t) ? -Infinity : a.t) - (isNaN(b.t) ? -Infinity : b.t)) || a.i - b.i)
+                .map(x => x.d);
+        }
+
         function isoToShort(iso) { const [y, m, d] = String(iso).split('-'); return (y && m && d) ? `${d}/${m}/${y.slice(-2)}` : iso; }
-        // Datos del perfil activo + registros pendientes de enviar (marcados con _pending)
+        // Datos del perfil activo + registros pendientes de enviar (marcados con _pending),
+        // cada lista en orden cronológico
         function profileData() {
             const base = (historyDataCache && historyDataCache[currentProfile]) || {};
-            const pending = queue.filter(q => q.payload.profile === currentProfile);
-            if (!pending.length) return base;
             const out = Object.assign({}, base);
-            pending.forEach(q => {
+            queue.filter(q => q.payload.profile === currentProfile).forEach(q => {
                 const bucket = q.payload.type === 'fisico' ? 'fisico' : q.payload.mesociclo_marca;
-                out[bucket] = (out[bucket] || []).concat([Object.assign(recordFromPayload(q.payload), { _pending: true })]);
+                out[bucket] = (out[bucket] || []).concat([Object.assign(recordFromPayload(q.payload), { _pending: true, _qid: q.id })]);
             });
+            ['fisico', 'FB', 'VL', 'PK'].forEach(b => { if (Array.isArray(out[b])) out[b] = sortByDate(out[b]); });
             return out;
         }
         function grasaPctOf(d) { return d.grasa_pct != null ? d.grasa_pct : d.imc; }
@@ -1026,7 +1124,7 @@
         function draftKey(mode) { return `fittrack_draft_${slug()}_${mode}`; }
 
         function saveDraft(mode) {
-            if (!currentProfile) return;
+            if (!currentProfile || (editing && editing.mode === mode)) return;
             const fields = {};
             let any = false;
             $('form-' + mode).querySelectorAll('[data-draft]').forEach(el => {
@@ -1158,11 +1256,11 @@
 
         // Teclado: flechas en las pestañas, Escape y foco atrapado en la hoja de perfiles
         document.addEventListener('keydown', e => {
-            const sheetOpen = !$('profile-sheet').classList.contains('hidden');
-            if (sheetOpen) {
-                if (e.key === 'Escape') { closeProfileSheet(); return; }
+            const openSheetEl = document.querySelector('.sheet-backdrop:not(.hidden)');
+            if (openSheetEl) {
+                if (e.key === 'Escape') { closeSheet(openSheetEl.id); return; }
                 if (e.key === 'Tab') {
-                    const f = [...$('profile-sheet').querySelectorAll('button')];
+                    const f = [...openSheetEl.querySelectorAll('button')].filter(b => b.offsetParent !== null && !b.disabled);
                     const i = f.indexOf(document.activeElement);
                     if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
                     else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
@@ -1184,16 +1282,16 @@
         // ---- GUARDAR ----
         function recordFromPayload(p) {
             if (p.type === 'fisico') {
-                const r = { fecha: isoToShort(p.fecha), mesociclo: p.mesociclo || '-', edad: p.edad || '-', imc: p.grasa_pct ? p.grasa_pct + '%' : '-', grasa_pct: p.grasa_pct ? p.grasa_pct + '%' : '-' };
+                const r = { fecha: isoToShort(p.fecha), iso: p.fecha, mesociclo: p.mesociclo || '-', edad: p.edad || '-', imc: p.grasa_pct ? p.grasa_pct + '%' : '-', grasa_pct: p.grasa_pct ? p.grasa_pct + '%' : '-' };
                 ['peso', 'musculo', 'hueso', 'viscera', 'grasa', 'pecho', 'hombros', 'biceps', 'abdomen', 'pierna'].forEach(k => r[k] = toNum(p[k]));
                 return r;
             }
-            const r = { fecha: isoToShort(p.fecha) };
-            PROFILES[p.profile].lifts.forEach((_, i) => {
-                const n = i + 1;
+            const r = { fecha: isoToShort(p.fecha), iso: p.fecha };
+            const count = PROFILES[p.profile] ? PROFILES[p.profile].lifts.length : Object.keys(p).filter(k => /^ex\d+_kg$/.test(k)).length;
+            for (let n = 1; n <= count; n++) {
                 r[`ex${n}_kg`] = toNum(p[`ex${n}_kg`]);
                 if (p.mesociclo_marca === 'VL') r[`ex${n}_reps`] = p[`ex${n}_reps`] || '';
-            });
+            }
             return r;
         }
 
@@ -1226,6 +1324,7 @@
                     if (payload.mesociclo_marca === 'VL') payload[`ex${n}_reps`] = $(`m_ex${n}_reps`).value.trim();
                 });
             }
+            if (editing && editing.mode === mode) { await saveEdit(payload, mode, btn, originalText); return; }
             const prevPRs = mode === 'marcas' ? lifts().map((_, i) => getPR(i + 1)) : [];
 
             const result = await sendPayload(payload);
@@ -1248,7 +1347,7 @@
                 });
 
                 if (result.status === 'success') {
-                    applyToCache(payload); // el progreso se ve al momento
+                    applyToCache(payload, result); // el progreso se ve al momento
                     haptic(records.length ? [30, 60, 30] : 15);
                     if (!records.length) showToast('Datos guardados correctamente', 'success', { id: 'save' });
                 } else {
@@ -1270,6 +1369,208 @@
             }
         }
 
+        // ---- EDITAR Y BORRAR ----
+        const SUBMIT_LABELS = {
+            fisico: '<i class="fa-solid fa-database" aria-hidden="true"></i> Sincronizar',
+            marcas: '<i class="fa-solid fa-database" aria-hidden="true"></i> Sincronizar marcas'
+        };
+        const EDIT_LABEL = '<i class="fa-solid fa-check" aria-hidden="true"></i> Guardar cambios';
+
+        function updateEditUI() {
+            ['fisico', 'marcas'].forEach(mode => {
+                const on = !!editing && editing.mode === mode;
+                const banner = $('edit-banner-' + mode);
+                banner.classList.toggle('hidden', !on);
+                if (on) banner.querySelector('.edit-text').innerText = `Editando el registro del ${editing.fecha}`;
+                const btn = $(mode === 'fisico' ? 'btn-submit-fis' : 'btn-submit-marcas');
+                if (!btn.disabled) btn.innerHTML = on ? EDIT_LABEL : SUBMIT_LABELS[mode];
+            });
+            $('m_mesociclo').disabled = !!editing && editing.mode === 'marcas';
+        }
+
+        function recordSummary(d, bucket) {
+            const rows = [];
+            const add = (label, value) => { if (value != null && value !== '' && value !== '-') rows.push([label, value]); };
+            if (bucket === 'fisico') {
+                add('Mesociclo', d.mesociclo);
+                add('Edad metab.', d.edad);
+                const units = { peso: 'kg', musculo: 'kg', hueso: 'kg', grasa: 'kg', pecho: 'cm', hombros: 'cm', biceps: 'cm', abdomen: 'cm', pierna: 'cm' };
+                const labels = { peso: 'Peso', grasa_pct: '% Graso', musculo: 'Músculo', hueso: 'Hueso', viscera: 'Víscera', grasa: 'Grasa', pecho: 'Pecho', hombros: 'Hombros', biceps: 'Bíceps', abdomen: 'Abdomen', pierna: 'Pierna' };
+                Object.keys(labels).forEach(k => {
+                    if (k === 'grasa_pct') { add(labels[k], grasaPctOf(d)); return; }
+                    const v = toNum(d[k]);
+                    add(labels[k], v != null ? `${formatNumUI(v)}${units[k] ? ' ' + units[k] : ''}` : null);
+                });
+            } else {
+                lifts().forEach((key, i) => {
+                    const kg = toNum(d['ex' + (i + 1) + '_kg']);
+                    const reps = d['ex' + (i + 1) + '_reps'];
+                    add(LIFTS[key].name, kg != null ? `${formatNumUI(kg)} kg${bucket === 'VL' && reps ? ' × ' + reps : ''}` : null);
+                });
+            }
+            return rows.length ? rows : [['Sin datos', '']];
+        }
+
+        function openRecordSheet(idx) {
+            const d = tableRecords[idx];
+            if (!d) return;
+            const mode = tabModes.historial;
+            const bucket = mode === 'fisico' ? 'fisico' : mode.toUpperCase();
+            recordCtx = { d, bucket };
+            $('record-title').innerText = `Registro del ${d.fecha}${d._pending ? ' · pendiente' : ''}`;
+            $('record-summary').innerHTML = recordSummary(d, bucket).map(([l, v]) =>
+                `<div><span class="rs-label">${esc(l)}</span><span class="rs-value">${esc(v)}</span></div>`).join('');
+            const editable = d._pending || (d.row && d.rev);
+            $('record-note').classList.toggle('hidden', !!editable);
+            $('record-note').innerText = editable ? '' : 'Este registro aún no se puede editar. Si acabas de actualizar la app, espera a que se carguen los datos; si el aviso sigue, falta actualizar el Apps Script.';
+            $('btn-rec-edit').disabled = !editable;
+            $('btn-rec-delete').disabled = !editable;
+            $('record-actions').classList.remove('hidden');
+            $('record-confirm').classList.add('hidden');
+            openSheet('record-sheet', editable ? $('btn-rec-edit') : $('record-sheet').querySelector('.sheet'));
+            if (!editable) refreshData({ silent: true });
+        }
+
+        function askDelete() {
+            $('record-actions').classList.add('hidden');
+            $('record-confirm').classList.remove('hidden');
+            $('btn-rec-cancel').focus();
+        }
+        function cancelDelete() {
+            $('record-confirm').classList.add('hidden');
+            $('record-actions').classList.remove('hidden');
+            $('btn-rec-delete').focus();
+        }
+
+        function handleConflict() {
+            showToast('Ese registro ha cambiado en la hoja desde que se cargó. He actualizado los datos: revísalo y vuelve a intentarlo.', 'error', { id: 'save' });
+            refreshData({ silent: true });
+        }
+
+        async function confirmDelete() {
+            const { d, bucket } = recordCtx;
+            if (d._pending) {
+                queue = queue.filter(q => q.id !== d._qid);
+                persistQueue();
+                closeSheet('record-sheet', false);
+                showToast('Registro pendiente eliminado', 'success', { id: 'save' });
+                renderCurrent();
+                return;
+            }
+            const btn = $('btn-rec-confirm');
+            const original = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Borrando...';
+            const profile = currentProfile;
+            const payload = { id: newId(), action: 'delete', profile, type: bucket === 'fisico' ? 'fisico' : 'marcas', row: d.row, rev: d.rev };
+            if (bucket !== 'fisico') payload.mesociclo_marca = bucket;
+            const r = await sendPayload(payload);
+            btn.disabled = false; btn.innerHTML = original;
+
+            if (r.status === 'success') {
+                removeFromCache(profile, bucket, d.row);
+                closeSheet('record-sheet', false);
+                haptic(15);
+                showToast('Registro borrado', 'success', { id: 'save' });
+                renderCurrent();
+                refreshData({ silent: true });
+            } else if (r.status === 'conflict') {
+                closeSheet('record-sheet', false);
+                handleConflict();
+            } else if (r.status === 'unauthorized') {
+                closeSheet('record-sheet', false);
+                showToast('Tu clave de acceso ya no es válida', 'error');
+                logout();
+            } else {
+                showToast(r.status === 'network' ? 'Sin conexión: no se ha borrado. Inténtalo cuando tengas red.' : 'El servidor no borró el registro: ' + (r.message || 'error'), 'error', { id: 'save' });
+            }
+        }
+
+        function startEdit() {
+            const { d, bucket } = recordCtx;
+            closeSheet('record-sheet', false);
+            const mode = bucket === 'fisico' ? 'fisico' : 'marcas';
+            editing = { mode, bucket, row: d.row, rev: d.rev, qid: d._qid || null, fecha: d.fecha, ret: tabModes.historial };
+            resetForm(mode, { keepDraft: true });
+            const ts = dateTs(d);
+            const iso = d.iso || (isNaN(ts) ? '' : tsToIso(ts));
+            const numStr = v => { const n = toNum(v); return n != null ? formatNumUI(n) : ''; };
+            if (mode === 'fisico') {
+                $('f_fecha').value = iso;
+                const options = [...$('f_mesociclo').options].map(o => o.value);
+                $('f_mesociclo').value = options.includes(d.mesociclo) ? d.mesociclo : '-';
+                Object.entries(FISICO_FIELDS).forEach(([id, key]) => { $(id).value = numStr(fisicoValue(d, key)); });
+            } else {
+                $('m_fecha').value = iso;
+                $('m_mesociclo').value = bucket;
+                lifts().forEach((_, i) => {
+                    const n = i + 1;
+                    $(`m_ex${n}_kg`).value = numStr(d[`ex${n}_kg`]);
+                    $(`m_ex${n}_reps`).value = numStr(d[`ex${n}_reps`]);
+                });
+                onMesoChange();
+            }
+            updateEditUI();
+            navigate([slug(), 'registrar', mode]);
+        }
+
+        // Sale del modo edición y recupera el borrador que hubiera antes de editar
+        function exitEdit() {
+            if (!editing) return null;
+            const ed = editing;
+            editing = null;
+            resetForm(ed.mode, { keepDraft: true });
+            restoreDraft(ed.mode);
+            if (ed.mode === 'marcas') onMesoChange();
+            updateEditUI();
+            return ed;
+        }
+
+        function cancelEdit(goBack) {
+            const ed = exitEdit();
+            if (ed && goBack) navigate([slug(), 'historial', ed.ret]);
+        }
+
+        async function saveEdit(payload, mode, btn, originalText) {
+            const ed = editing;
+            const profile = currentProfile;
+            const restoreBtn = () => { btn.innerHTML = originalText; btn.disabled = false; };
+
+            // Registro aún pendiente de enviar: se modifica en la cola
+            if (ed.qid) {
+                const item = queue.find(q => q.id === ed.qid);
+                if (item) { payload.id = item.id; item.payload = payload; delete item.failed; persistQueue(); }
+                restoreBtn();
+                exitEdit();
+                showToast('Cambios guardados. Se enviarán cuando haya conexión.', 'info', { id: 'save' });
+                navigate([slug(), 'historial', ed.ret]);
+                return;
+            }
+
+            Object.assign(payload, { action: 'update', row: ed.row, rev: ed.rev });
+            const r = await sendPayload(payload);
+            restoreBtn();
+            if (r.status === 'success') {
+                replaceInCache(profile, ed.bucket, ed.row, Object.assign(recordFromPayload(payload), { row: r.row || ed.row, rev: r.rev }));
+                exitEdit();
+                haptic(15);
+                showToast('Cambios guardados', 'success', { id: 'save' });
+                navigate([slug(), 'historial', ed.ret]);
+                refreshData({ silent: true });
+            } else if (r.status === 'conflict') {
+                exitEdit();
+                navigate([slug(), 'historial', ed.ret]);
+                handleConflict();
+            } else if (r.status === 'unauthorized') {
+                exitEdit();
+                showToast('Tu clave de acceso ya no es válida. No se han guardado los cambios.', 'error');
+                logout();
+            } else if (r.status === 'network') {
+                showFormError(mode, 'Sin conexión: para editar un registro hace falta conexión. Tus cambios siguen en el formulario.');
+            } else {
+                showFormError(mode, 'El servidor no guardó los cambios' + (r.message ? ': ' + r.message : '.'));
+            }
+        }
+
         // ---- HISTORIAL ----
         function renderHistorial() {
             const has = ensureData('det-skeleton', 'det-error');
@@ -1287,22 +1588,25 @@
             const mode = tabModes.historial;
             const key = mode === 'fisico' ? 'fisico' : mode.toUpperCase();
             const dataToRender = [...(profileData()[key] || [])].reverse();
+            tableRecords = dataToRender;
+            $('table-hint').classList.toggle('hidden', dataToRender.length === 0);
+            const tr = i => `<tr class="row-click" tabindex="0" data-idx="${i}" aria-describedby="table-hint">`;
             const n = v => esc(formatNumUI(v));
             const emptyRow = (cols, regMode) => `<tr><td colspan="${cols}" class="td-empty">Aún no hay registros${regMode === 'marcas' ? ' de ' + MESO_NAMES[key] : ''}.<br><button type="button" class="btn-cta" onclick="goRegister('${regMode}'${regMode === 'marcas' ? `, '${key}'` : ''})"><i class="fa-solid fa-plus" aria-hidden="true"></i> Registrar</button></td></tr>`;
 
             if (mode === 'fisico') {
                 thead.innerHTML = `<tr><th scope="col">Fecha</th><th scope="col">Meso.</th><th scope="col">Edad</th><th scope="col">Peso</th><th scope="col">% Graso</th><th scope="col">Músculo</th><th scope="col">Hueso</th><th scope="col">Víscera</th><th scope="col">Grasa</th><th scope="col">Pecho</th><th scope="col">Hombros</th><th scope="col">Bíceps</th><th scope="col">Abdomen</th><th scope="col">Pierna</th></tr>`;
                 if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(14, 'fisico'); return; }
-                tbody.innerHTML = dataToRender.map(d =>
-                    `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}${pendingMark(d)}</td><td>${esc(d.mesociclo)}</td><td>${esc(d.edad)}</td><td style="font-weight:bold;">${n(d.peso)}</td><td>${esc(grasaPctOf(d))}</td><td>${n(d.musculo)}</td><td>${n(d.hueso)}</td><td>${n(d.viscera)}</td><td>${n(d.grasa)}</td><td>${n(d.pecho)}</td><td>${n(d.hombros)}</td><td>${n(d.biceps)}</td><td>${n(d.abdomen)}</td><td>${n(d.pierna)}</td></tr>`
+                tbody.innerHTML = dataToRender.map((d, i) =>
+                    `${tr(i)}<td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}${pendingMark(d)}</td><td>${esc(d.mesociclo)}</td><td>${esc(d.edad)}</td><td style="font-weight:bold;">${n(d.peso)}</td><td>${esc(grasaPctOf(d))}</td><td>${n(d.musculo)}</td><td>${n(d.hueso)}</td><td>${n(d.viscera)}</td><td>${n(d.grasa)}</td><td>${n(d.pecho)}</td><td>${n(d.hombros)}</td><td>${n(d.biceps)}</td><td>${n(d.abdomen)}</td><td>${n(d.pierna)}</td></tr>`
                 ).join('');
             } else {
                 const isVL = key === 'VL';
                 const names = lifts().map(k => LIFTS[k].name);
                 thead.innerHTML = '<tr><th scope="col">Fecha</th>' + names.map(nm => `<th scope="col">${esc(nm)} (kg)</th>${isVL ? '<th scope="col">Reps</th>' : ''}`).join('') + '</tr>';
                 if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(1 + names.length * (isVL ? 2 : 1), 'marcas'); return; }
-                tbody.innerHTML = dataToRender.map(d => {
-                    let tdHtml = `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}${pendingMark(d)}</td>`;
+                tbody.innerHTML = dataToRender.map((d, i) => {
+                    let tdHtml = `${tr(i)}<td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}${pendingMark(d)}</td>`;
                     for (let i = 1; i <= names.length; i++) {
                         tdHtml += `<td style="font-weight:bold;">${n(d['ex' + i + '_kg'])}</td>`;
                         if (isVL) tdHtml += `<td>${esc(d['ex' + i + '_reps'] || '-')}</td>`;
@@ -1312,7 +1616,27 @@
             }
         }
 
+        $('tableBody').addEventListener('click', e => {
+            const row = e.target.closest('tr.row-click');
+            if (row) openRecordSheet(+row.dataset.idx);
+        });
+        $('tableBody').addEventListener('keydown', e => {
+            const row = e.target.closest('tr.row-click');
+            if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openRecordSheet(+row.dataset.idx); }
+        });
+
         // ---- PROGRESO (GRÁFICAS) ----
+        // Eje X con fechas reales: una pausa de 3 meses ocupa más que una semana
+        const DAY = 86400000;
+        function timeAxis(points) {
+            const ts = points.map(p => p.x);
+            const min = Math.min(...ts), max = Math.max(...ts);
+            const axis = { type: 'linear', ticks: { maxTicksLimit: 5, callback: v => fmtTs(v) } };
+            if (min === max) { axis.min = min - 3 * DAY; axis.max = max + 3 * DAY; } else { axis.min = min; axis.max = max; }
+            return axis;
+        }
+        const tooltipTitle = items => items.length ? fmtTs(items[0].parsed.x) : '';
+        function datedOnly(arr) { return (arr || []).filter(d => !isNaN(dateTs(d))); }
         function destroyCharts() {
             Object.keys(chartsInstance).forEach(k => { if (chartsInstance[k]) chartsInstance[k].destroy(); });
             chartsInstance = {};
@@ -1359,8 +1683,9 @@
             const pFilter = $('perimeterFilter').value;
             const { color: themeColor, bg: themeColorBg } = themeColors();
 
-            let pd = limit === 'all' ? fullData : fullData.slice(-parseInt(limit));
-            let labels = pd.map(d => d.fecha), weightData = pd.map(d => d.peso), muscleData = pd.map(d => d.musculo), fatData = pd.map(d => d.grasa);
+            const dated = datedOnly(fullData);
+            const pd = limit === 'all' ? dated : dated.slice(-parseInt(limit));
+            const pts = key => pd.map(d => ({ x: dateTs(d), y: d[key] }));
 
             // KPIs sobre el historial completo, ignorando registros sin ese dato
             const allWeights = fullData.map(d => d.peso);
@@ -1378,17 +1703,24 @@
 
             if (!setupChartDefaults()) return;
 
-            chartsInstance.w = new Chart($('weightChart'), { type: 'line', data: { labels, datasets: [{ data: weightData, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.4, fill: true, spanGaps: true }] }, options: { plugins: { legend: { display: false } } }});
-            chartsInstance.c = new Chart($('compChart'), { type: 'bar', data: { labels, datasets: [{ label: 'Músculo', data: muscleData, backgroundColor: themeColor }, { label: 'Grasa', data: fatData, backgroundColor: '#cbd5e1' }] }});
+            if (!pd.length) return;
+            const xAxis = timeAxis(pts('peso'));
+            const opts = legend => ({ scales: { x: xAxis }, plugins: { legend: { display: legend }, tooltip: { callbacks: { title: tooltipTitle } } } });
+
+            chartsInstance.w = new Chart($('weightChart'), { type: 'line', data: { datasets: [{ label: 'Peso', data: pts('peso'), borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true }] }, options: opts(false) });
+            chartsInstance.c = new Chart($('compChart'), { type: 'line', data: { datasets: [
+                { label: 'Músculo', data: pts('musculo'), borderColor: themeColor, backgroundColor: themeColor, tension: 0.3, spanGaps: true },
+                { label: 'Grasa', data: pts('grasa'), borderColor: '#cbd5e1', backgroundColor: '#cbd5e1', tension: 0.3, spanGaps: true }
+            ] }, options: opts(true) });
 
             let pDts = [];
-            const addP = (lbl, key, col) => pDts.push({ label: lbl, data: pd.map(d => d[key]), borderColor: col, backgroundColor: col, spanGaps: true });
+            const addP = (lbl, key, col) => pDts.push({ label: lbl, data: pts(key), borderColor: col, backgroundColor: col, tension: 0.3, spanGaps: true });
             if (pFilter === 'all' || pFilter === 'pecho') addP('Pecho', 'pecho', '#f43f5e');
             if (pFilter === 'all' || pFilter === 'hombros') addP('Hombros', 'hombros', '#3b82f6');
             if (pFilter === 'all' || pFilter === 'biceps') addP('Bíceps', 'biceps', '#10b981');
             if (pFilter === 'all' || pFilter === 'abdomen') addP('Abdomen', 'abdomen', '#eab308');
             if (pFilter === 'all' || pFilter === 'pierna') addP('Pierna', 'pierna', '#a855f7');
-            chartsInstance.p = new Chart($('perimetersChart'), { type: 'line', data: { labels, datasets: pDts }, options: { spanGaps: true }});
+            chartsInstance.p = new Chart($('perimetersChart'), { type: 'line', data: { datasets: pDts }, options: opts(true) });
         }
 
         function buildMarcasCharts() {
@@ -1399,7 +1731,7 @@
 
         function renderChartsMarcas() {
             const meso = $('marcasFilter').value;
-            const data = profileData()[meso];
+            const data = datedOnly(profileData()[meso]);
             Object.keys(chartsInstance).filter(k => k.startsWith('m')).forEach(k => { if (chartsInstance[k]) chartsInstance[k].destroy(); delete chartsInstance[k]; });
 
             const isEmpty = !data || data.length === 0;
@@ -1409,14 +1741,13 @@
             if (isEmpty || !setupChartDefaults()) return;
 
             const { color: themeColor, bg: themeColorBg } = themeColors();
-            const labels = data.map(d => d.fecha);
-
             lifts().forEach((key, i) => {
                 const n = i + 1;
+                const points = data.map(d => ({ x: dateTs(d), y: d['ex' + n + '_kg'] }));
                 chartsInstance['m' + n] = new Chart($('chartEx' + n), {
                     type: 'line',
-                    data: { labels, datasets: [{ label: LIFTS[key].name, data: data.map(d => d['ex' + n + '_kg']), borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true, pointRadius: 5, pointBackgroundColor: '#fff' }] },
-                    options: { responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => {
+                    data: { datasets: [{ label: LIFTS[key].name, data: points, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true, pointRadius: 5, pointBackgroundColor: '#fff' }] },
+                    options: { responsive: true, scales: { x: timeAxis(points) }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: tooltipTitle, label: ctx => {
                         let base = formatNumUI(ctx.parsed.y) + ' kg';
                         const reps = meso === 'VL' ? data[ctx.dataIndex]['ex' + n + '_reps'] : '';
                         return reps ? `${base} (${reps} reps)` : base;

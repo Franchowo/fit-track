@@ -14,9 +14,7 @@
 // cabeceras de las hojas de marcas: "Sentadilla" y, en Volumen, "Sentadilla Reps".
 var PROFILE_LIFTS = {
   'FRAN':    ['Sentadilla', 'Press Banca', 'Peso Muerto'],
-  'MAMÁ':    ['Sentadilla', 'Press Banca', 'Peso Muerto'],
-  'CLAUDIA': ['Sentadilla', 'Fondos', 'Peso Muerto'],
-  'MIGUEL':  ['Pull-up', 'Muscle-up', 'Fondos', 'Sentadilla']
+  'MAMÁ':    ['Sentadilla', 'Press Banca', 'Peso Muerto']
 };
 var MESOS = ['FB', 'VL', 'PK'];
 
@@ -152,6 +150,7 @@ function marcasColumns(headers, profile, meso) {
 }
 
 function sheetFor(data) {
+  if (!PROFILE_LIFTS.hasOwnProperty(data.profile)) throw new Error('Perfil desconocido: ' + data.profile);
   var name = data.type === 'marcas' ? data.profile + '_' + data.mesociclo_marca : data.profile;
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
   if (!sheet) throw new Error('Hoja no encontrada: ' + name);

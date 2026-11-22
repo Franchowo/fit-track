@@ -8,7 +8,7 @@
 ## Diagnóstico rápido
 
 **Lo que funciona bien**
-- Concepto claro y muy enfocado: registro físico + toma de marcas por mesociclo, para 4 personas.
+- Concepto claro y muy enfocado: registro físico + toma de marcas por mesociclo, para la familia (perfiles FRAN y MAMÁ; Claudia y Miguel se eliminaron en noviembre de 2026).
 - Backend gratuito y sin servidor (Google Sheets + Apps Script); los datos siguen siendo editables a mano.
 - Identidad visual con personalidad: modo oscuro, *glassmorphism*, un color por perfil.
 - Pensada para el móvil: inputs grandes, `inputmode="decimal"`, barra de navegación inferior.
@@ -140,7 +140,7 @@ Con esto desaparecen los `if (isMiguel)` / `isClaudia` repartidos por `updateExe
 | 4.8 | **Recordatorios** | Avisos tipo "Toca medición semanal" (notificaciones *push* de la PWA, o un email desde un *trigger* de Apps Script). | Medio | M |
 | 4.9 | **Fotos de progreso** | Antes/después por fecha, guardadas en Google Drive. | Medio | L |
 | 4.10 | **Exportar** CSV o PDF del informe del mesociclo | Para compartirlo con un entrenador o nutricionista. | Bajo | S |
-| 4.11 | **Vista familiar / ranking amistoso** (opcional) | Gamificación entre los 4 perfiles: rachas, PRs del mes. | Bajo | M |
+| 4.11 | **Vista familiar / ranking amistoso** (opcional) | Gamificación entre los perfiles: rachas, PRs del mes. | Bajo | M |
 
 ---
 

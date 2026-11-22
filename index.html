@@ -521,8 +521,9 @@
         };
         // El orden de "lifts" corresponde a las columnas ex1, ex2... de la hoja
         const PROFILES = {
-            'FRAN':    { slug: 'fran',    color: '#00f3ff', rgb: '0, 243, 255',   icon: 'fa-user-ninja',      lifts: ['squat', 'bench', 'deadlift'] },
-            'MAMÁ':    { slug: 'mama',    color: '#ff00ea', rgb: '255, 0, 234',   icon: 'fa-user-astronaut',  lifts: ['squat', 'bench', 'deadlift'] }
+            // sex: 'M' hombre / 'F' mujer (solo se usa para la puntuación DOTS)
+            'FRAN':    { slug: 'fran',    color: '#00f3ff', rgb: '0, 243, 255',   icon: 'fa-user-ninja',      sex: 'M', lifts: ['squat', 'bench', 'deadlift'] },
+            'MAMÁ':    { slug: 'mama',    color: '#ff00ea', rgb: '255, 0, 234',   icon: 'fa-user-astronaut',  sex: 'F', lifts: ['squat', 'bench', 'deadlift'] }
         };
         const MESO_NAMES = { FB: 'Fuerza Base', VL: 'Volumen', PK: 'Peaking' };
         const TABS = { resumen: ['general'], registrar: ['fisico', 'marcas'], progreso: ['fisico', 'marcas'], historial: ['fisico', 'fb', 'vl', 'pk'] };
@@ -1923,6 +1924,20 @@
             return { value: Math.round(bests.reduce((sum, b) => sum + b.e1rm, 0) * 10) / 10, bests };
         }
 
+        // Puntuación DOTS (IPF): compara la fuerza entre personas de distinto peso y sexo.
+        // DOTS = total × 500 / (a + b·P + c·P² + d·P³ + e·P⁴), con P = peso corporal acotado.
+        const DOTS_COEF = {
+            M: { a: -307.75076, b: 24.0900756, c: -0.1918759221, d: 0.0007391293, e: -0.000001093, min: 40, max: 210 },
+            F: { a: -57.96288, b: 13.6175032, c: -0.1126655495, d: 0.0005158568, e: -0.0000010706, min: 40, max: 150 }
+        };
+        function dots(total, bodyweight, sex) {
+            const k = DOTS_COEF[sex];
+            if (!k || total == null || bodyweight == null) return null;
+            const w = Math.min(Math.max(bodyweight, k.min), k.max);
+            const den = k.a + k.b * w + k.c * w ** 2 + k.d * w ** 3 + k.e * w ** 4;
+            return den > 0 ? Math.round(total * 500 / den * 10) / 10 : null;
+        }
+
         // Cada vez que un ejercicio supera su mejor 1RM estimado anterior
         function prEvents() {
             const ev = [];
@@ -2098,12 +2113,14 @@
             const pct = lastFisicoValue('grasa_pct');
             const total = strengthTotal();
             const rel = total && lastW ? Math.round(total.value / lastW.v * 100) / 100 : null;
+            const dotsScore = total && lastW ? dots(total.value, lastW.v, PROFILES[currentProfile].sex) : null;
             const kpi = (label, value, sub) => `<div class="glass kpi-card"><div class="kpi-label">${label}</div><div class="kpi-value small">${value}</div><div class="kpi-sub">${sub}</div></div>`;
             $('res-kpis').innerHTML =
                 kpi('Peso', lastW ? formatNumUI(lastW.v) + ' kg' : '--', esc(wSub)) +
                 kpi('% Graso', pct != null ? formatNumUI(pct) + ' %' : '--', 'última medición') +
                 kpi('Total', total ? formatNumUI(total.value) + ' kg' : '--', total ? 'suma de mejores 1RM' : 'faltan marcas') +
-                kpi('Fuerza relativa', rel != null ? '× ' + formatNumUI(rel) : '--', 'total ÷ peso corporal');
+                kpi('Puntos DOTS', dotsScore != null ? formatNumUI(dotsScore) : '--',
+                    rel != null ? `Total = ${formatNumUI(rel)} × tu peso` : (total ? 'falta tu peso' : 'faltan marcas'));
 
             // Objetivos
             const g = goals();

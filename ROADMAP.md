@@ -132,7 +132,7 @@ Con esto desaparecen los `if (isMiguel)` / `isClaudia` repartidos por `updateExe
 |---|---------------|-----------------|---------|----------|
 | 4.1 ✅ | **1RM estimado** (Epley/Brzycki) para las marcas de VL con reps | Permite comparar FB, VL y PK en una misma escala. | Alto | S |
 | 4.2 ✅ | **Récords personales y "Total"** (S+B+D) | Es la métrica estrella en *powerlifting*; también da motivación. | Alto | S |
-| 4.3 ✅ | **Fuerza relativa** (kg / peso corporal; DOTS pendiente: necesita el sexo de cada perfil) | Une los dos dominios de la app: físico y marcas. | Medio | S |
+| 4.3 ✅ | **Fuerza relativa** (Total / peso corporal y puntos DOTS) | Une los dos dominios de la app: físico y marcas. | Medio | S |
 | 4.4 ✅ | **Pantalla de inicio "Resumen"** | Tarjeta por perfil con último registro, tendencia de 4 semanas, días desde la última medición y PRs recientes. | Alto | M |
 | 4.5 ✅ | **Comparar mesociclos** | Superponer la progresión de FB contra la de PK del ciclo anterior. | Medio | M |
 | 4.6 ✅ | **Objetivos** | "Peso objetivo 75 kg", "Sentadilla 140 kg", con una barra de progreso y una fecha estimada según la tendencia. | Alto | M |

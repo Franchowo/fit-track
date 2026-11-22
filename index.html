@@ -279,14 +279,14 @@
                     <div id="res-goals"></div>
                 </div>
                 <div class="glass res-card">
-                    <div class="res-card-head"><h3>Récords</h3><span class="res-note">1RM estimado</span></div>
+                    <div class="res-card-head"><h3>Récords</h3><span class="res-note">tomas de marcas</span></div>
                     <div id="res-records"></div>
                 </div>
                 <div class="glass res-card">
                     <div class="res-card-head"><h3>Récords recientes</h3><span class="res-note">últimos 60 días</span></div>
                     <div id="res-prs"></div>
                 </div>
-                <p class="table-hint">En Fuerza Base y Peaking la marca se toma como tu máximo; en Volumen el 1RM se estima con la fórmula de Epley (hasta 12 reps).</p>
+                <p class="table-hint">Récords, Total y DOTS salen de las tomas de marcas (Fuerza Base y Peaking). Volumen son pesos de entrenamiento y solo se usan en la comparativa de Progreso.</p>
             </div>
         </section>
 
@@ -1043,9 +1043,13 @@
             return null;
         }
 
+        // Mesociclos que son "toma de marcas": de ellos salen récords, Total, DOTS y objetivos.
+        // Volumen (VL) son pesos de entrenamiento: solo se usa para estimar el 1RM en la comparativa.
+        const MARK_MESOS = ['FB', 'PK'];
+
         function getPR(n) {
             let best = null;
-            ['FB', 'VL', 'PK'].forEach(m => (profileData()[m] || []).forEach(d => {
+            MARK_MESOS.forEach(m => (profileData()[m] || []).forEach(d => {
                 const v = toNum(d['ex' + n + '_kg']);
                 if (v != null && (best == null || v > best)) best = v;
             }));
@@ -1420,7 +1424,7 @@
             if (result.status === 'success' || result.status === 'network') {
                 // Récords batidos (solo si ya había una marca anterior con la que comparar)
                 const records = [];
-                if (mode === 'marcas') lifts().forEach((key, i) => {
+                if (mode === 'marcas' && MARK_MESOS.includes(payload.mesociclo_marca)) lifts().forEach((key, i) => {
                     const kg = toNum(payload[`ex${i + 1}_kg`]);
                     if (kg != null && prevPRs[i] != null && kg > prevPRs[i]) records.push(`${LIFTS[key].name} ${formatNumUI(kg)} kg`);
                 });
@@ -1912,9 +1916,12 @@
             return out.sort((a, b) => a.ts - b.ts);
         }
 
+        // Solo tomas de marcas (FB y PK), con el peso realmente levantado
+        function markSeries(n) { return liftSeries(n).filter(p => MARK_MESOS.includes(p.meso)); }
+
         function bestLift(n) {
             let best = null;
-            liftSeries(n).forEach(p => { if (p.e1rm != null && (!best || p.e1rm > best.e1rm)) best = p; });
+            markSeries(n).forEach(p => { if (p.e1rm != null && (!best || p.e1rm > best.e1rm)) best = p; });
             return best;
         }
 
@@ -1943,7 +1950,7 @@
             const ev = [];
             lifts().forEach((key, i) => {
                 let best = null;
-                liftSeries(i + 1).forEach(p => {
+                markSeries(i + 1).forEach(p => {
                     if (p.e1rm == null) return;
                     if (best != null && p.e1rm > best) ev.push(Object.assign({ lift: LIFTS[key].name, prev: best }, p));
                     if (best == null || p.e1rm > best) best = p.e1rm;
@@ -1991,7 +1998,7 @@
         }
         function goalSeries(key) {
             if (key === 'peso') return weightSeries();
-            return liftSeries(+key.slice(2)).filter(p => p.e1rm != null).map(p => ({ ts: p.ts, v: p.e1rm }));
+            return markSeries(+key.slice(2)).map(p => ({ ts: p.ts, v: p.e1rm }));
         }
 
         function goalProgress(key, goal) {
@@ -2024,7 +2031,7 @@
             const g = goals();
             $('goals-fields').innerHTML = goalKeys().map(key => {
                 const cur = goalCurrent(key);
-                const label = key === 'peso' ? 'Peso objetivo' : `${goalLabel(key)} · 1RM objetivo`;
+                const label = key === 'peso' ? 'Peso objetivo' : `${goalLabel(key)} · marca objetivo`;
                 const val = g[key] ? formatNumUI(g[key].target) : '';
                 return `<div class="form-group"><label for="g_${key}">${esc(label)} <span class="unit">(kg)</span></label>
                     <input type="text" inputmode="decimal" class="input-large" id="g_${key}" value="${esc(val)}" placeholder="${cur != null ? 'Actual: ' + esc(formatNumUI(cur)) : ''}"></div>`;
@@ -2118,7 +2125,7 @@
             $('res-kpis').innerHTML =
                 kpi('Peso', lastW ? formatNumUI(lastW.v) + ' kg' : '--', esc(wSub)) +
                 kpi('% Graso', pct != null ? formatNumUI(pct) + ' %' : '--', 'última medición') +
-                kpi('Total', total ? formatNumUI(total.value) + ' kg' : '--', total ? 'suma de mejores 1RM' : 'faltan marcas') +
+                kpi('Total', total ? formatNumUI(total.value) + ' kg' : '--', total ? 'suma de mejores marcas' : 'faltan marcas') +
                 kpi('Puntos DOTS', dotsScore != null ? formatNumUI(dotsScore) : '--',
                     rel != null ? `Total = ${formatNumUI(rel)} × tu peso` : (total ? 'falta tu peso' : 'faltan marcas'));
 
@@ -2130,7 +2137,7 @@
                 const pc = Math.round(pr.pct * 100);
                 const eta = pr.reached ? '¡Conseguido! 🎉' : pr.eta === 'lejos' ? 'Al ritmo actual, más de 2 años' : pr.eta ? 'Fecha estimada: ' + fmtTs(pr.eta) : 'Aún sin tendencia hacia el objetivo';
                 return `<div class="goal-row">
-                    <div class="goal-head"><span>${esc(goalLabel(key))}${key !== 'peso' ? ' <span class="unit">(1RM)</span>' : ''}</span><span><strong>${formatNumUI(pr.cur)}</strong> → ${formatNumUI(pr.target)} kg</span></div>
+                    <div class="goal-head"><span>${esc(goalLabel(key))}${key !== 'peso' ? ' <span class="unit">(marca)</span>' : ''}</span><span><strong>${formatNumUI(pr.cur)}</strong> → ${formatNumUI(pr.target)} kg</span></div>
                     <div class="progress${pr.reached ? ' done' : ''}" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pc}" aria-label="Progreso de ${esc(goalLabel(key))}"><div style="width:${pc}%"></div></div>
                     <div class="goal-foot">${pc} % · ${eta}</div></div>`;
             });
@@ -2141,16 +2148,15 @@
             const recRows = lifts().map((key, i) => {
                 const b = bestLift(i + 1);
                 if (!b) return `<div class="res-row"><span>${esc(LIFTS[key].name)}<span class="res-sub">Sin marcas</span></span><span class="res-val">--</span></div>`;
-                const how = b.meso === 'VL' ? `VL · ${formatNumUI(b.kg)} kg × ${esc(b.reps)}` : `${b.meso} · marca`;
-                return `<div class="res-row"><span>${esc(LIFTS[key].name)}<span class="res-sub">${how} · ${esc(b.fecha)}</span></span><span class="res-val">${formatNumUI(b.e1rm)} kg</span></div>`;
+                return `<div class="res-row"><span>${esc(LIFTS[key].name)}<span class="res-sub">${MESO_NAMES[b.meso]} · ${esc(b.fecha)}</span></span><span class="res-val">${formatNumUI(b.kg)} kg</span></div>`;
             });
-            if (total) recRows.push(`<div class="res-row"><span><strong>Total</strong><span class="res-sub">Suma de los mejores 1RM</span></span><span class="res-val">${formatNumUI(total.value)} kg</span></div>`);
+            if (total) recRows.push(`<div class="res-row"><span><strong>Total</strong><span class="res-sub">Suma de las mejores marcas</span></span><span class="res-val">${formatNumUI(total.value)} kg</span></div>`);
             $('res-records').innerHTML = recRows.join('');
 
             // Récords recientes
             const recent = prEvents().filter(e => daysSince(e.ts) <= 60).slice(0, 5);
             $('res-prs').innerHTML = recent.length ? recent.map(e =>
-                `<div class="res-row"><span>🏆 ${esc(e.lift)}<span class="res-sub">${esc(e.fecha)} · ${e.meso}${e.meso === 'VL' ? ` · ${formatNumUI(e.kg)} kg × ${esc(e.reps)}` : ''}</span></span><span class="res-val">${formatNumUI(e.e1rm)} kg <span class="unit">(+${formatNumUI(Math.round((e.e1rm - e.prev) * 10) / 10)})</span></span></div>`
+                `<div class="res-row"><span>🏆 ${esc(e.lift)}<span class="res-sub">${esc(e.fecha)} · ${MESO_NAMES[e.meso]}</span></span><span class="res-val">${formatNumUI(e.e1rm)} kg <span class="unit">(+${formatNumUI(Math.round((e.e1rm - e.prev) * 10) / 10)})</span></span></div>`
             ).join('') : '<p class="res-empty">Sin récords en los últimos 60 días. ¡A por ellos!</p>';
         }
 

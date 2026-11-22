@@ -126,20 +126,20 @@ Con esto desaparecen los `if (isMiguel)` / `isClaudia` repartidos por `updateExe
 
 ---
 
-## Fase 4 · Valor de producto: de "registrar" a "entender" (semanas 9–14)
+## Fase 4 · Valor de producto: de "registrar" a "entender" (semanas 9–14) — ✅ completada salvo 4.8 (push), 4.9 y 4.11
 
 | # | Funcionalidad | Por qué importa | Impacto | Esfuerzo |
 |---|---------------|-----------------|---------|----------|
-| 4.1 | **1RM estimado** (Epley/Brzycki) para las marcas de VL con reps | Permite comparar FB, VL y PK en una misma escala. | Alto | S |
-| 4.2 | **Récords personales y "Total"** (S+B+D) | Es la métrica estrella en *powerlifting*; también da motivación. | Alto | S |
-| 4.3 | **Fuerza relativa** (kg / peso corporal, DOTS) | Une los dos dominios de la app: físico y marcas. | Medio | S |
-| 4.4 | **Pantalla de inicio "Resumen"** | Tarjeta por perfil con último registro, tendencia de 4 semanas, días desde la última medición y PRs recientes. | Alto | M |
-| 4.5 | **Comparar mesociclos** | Superponer la progresión de FB contra la de PK del ciclo anterior. | Medio | M |
-| 4.6 | **Objetivos** | "Peso objetivo 75 kg", "Sentadilla 140 kg", con una barra de progreso y una fecha estimada según la tendencia. | Alto | M |
-| 4.7 | **Tendencia suavizada del peso** (media móvil de 7 días o EWMA) | Las básculas tienen mucho ruido; ver la tendencia evita frustraciones. | Medio | S |
-| 4.8 | **Recordatorios** | Avisos tipo "Toca medición semanal" (notificaciones *push* de la PWA, o un email desde un *trigger* de Apps Script). | Medio | M |
+| 4.1 ✅ | **1RM estimado** (Epley/Brzycki) para las marcas de VL con reps | Permite comparar FB, VL y PK en una misma escala. | Alto | S |
+| 4.2 ✅ | **Récords personales y "Total"** (S+B+D) | Es la métrica estrella en *powerlifting*; también da motivación. | Alto | S |
+| 4.3 ✅ | **Fuerza relativa** (Total / peso corporal y puntos DOTS) | Une los dos dominios de la app: físico y marcas. | Medio | S |
+| 4.4 ✅ | **Pantalla de inicio "Resumen"** | Tarjeta por perfil con último registro, tendencia de 4 semanas, días desde la última medición y PRs recientes. | Alto | M |
+| 4.5 ✅ | **Comparar mesociclos** | Superponer la progresión de FB contra la de PK del ciclo anterior. | Medio | M |
+| 4.6 ✅ | **Objetivos** | "Peso objetivo 75 kg", "Sentadilla 140 kg", con una barra de progreso y una fecha estimada según la tendencia. | Alto | M |
+| 4.7 ✅ | **Tendencia suavizada del peso** (media móvil de 7 días o EWMA) | Las básculas tienen mucho ruido; ver la tendencia evita frustraciones. | Medio | S |
+| 4.8 ◐ | **Recordatorios** (hecho: aviso "Toca medición" dentro de la app; pendiente: notificaciones push o email) | Avisos tipo "Toca medición semanal" (notificaciones *push* de la PWA, o un email desde un *trigger* de Apps Script). | Medio | M |
 | 4.9 | **Fotos de progreso** | Antes/después por fecha, guardadas en Google Drive. | Medio | L |
-| 4.10 | **Exportar** CSV o PDF del informe del mesociclo | Para compartirlo con un entrenador o nutricionista. | Bajo | S |
+| 4.10 ✅ | **Exportar** CSV (PDF pendiente) del informe del mesociclo | Para compartirlo con un entrenador o nutricionista. | Bajo | S |
 | 4.11 | **Vista familiar / ranking amistoso** (opcional) | Gamificación entre los perfiles: rachas, PRs del mes. | Bajo | M |
 
 ---

@@ -2,10 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#020617">
     <title>FitTrack Pro</title>
-    <link rel="icon" type="image/png" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
@@ -22,11 +23,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
         button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
         :focus-visible { outline: 3px solid var(--theme); outline-offset: 2px; }
-        body { background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%); color: var(--text-main); min-height: 100vh; padding-bottom: 100px; overflow-x: hidden; }
+        body { background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-darker) 100%); color: var(--text-main); min-height: 100vh; padding-bottom: calc(100px + env(safe-area-inset-bottom)); overflow-x: hidden; }
         .glass { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 20px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2); }
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
-        header { padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); }
+        header { padding: calc(20px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 20px max(20px, env(safe-area-inset-left)); text-align: center; position: sticky; top: 0; z-index: 100; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); }
         h1 { font-weight: 800; font-size: 1.8rem; letter-spacing: 1px; color: #ffffff; display: flex; justify-content: center; align-items: center; gap: 10px; }
         h1 i { color: #ffffff; font-size: 1.5rem; transform: rotate(15deg); }
         .profile-badge { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 18px; border-radius: 30px; font-size: 0.9rem; margin-top: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; background: rgba(var(--theme-rgb), 0.15); border: 1px solid var(--theme); color: var(--theme); }
@@ -70,7 +71,11 @@
         .login-box .lock-icon { font-size: 3rem; color: var(--theme); margin-bottom: 15px; }
         .login-box label { display: block; color: var(--text-muted); margin-bottom: 25px; }
         .login-error { color: var(--danger); font-weight: bold; margin-top: 15px; min-height: 1.2em; }
-        .btn-logout { position: absolute; right: 12px; top: 18px; width: 44px; height: 44px; color: var(--text-muted); font-size: 1.3rem; }
+        .btn-logout { position: absolute; right: max(12px, env(safe-area-inset-right)); top: calc(18px + env(safe-area-inset-top)); width: 44px; height: 44px; color: var(--text-muted); font-size: 1.3rem; }
+        .btn-pending { position: absolute; left: max(12px, env(safe-area-inset-left)); top: calc(18px + env(safe-area-inset-top)); min-width: 44px; height: 44px; padding: 0 10px; border-radius: 22px; display: inline-flex; align-items: center; gap: 6px; color: var(--warning); background: rgba(251, 191, 36, 0.12); border: 1px solid rgba(251, 191, 36, 0.4); font-weight: 800; font-size: 0.95rem; }
+        .btn-pending.syncing i { animation: pulse 1s ease-in-out infinite; }
+        @keyframes pulse { 50% { opacity: 0.3; } }
+        .pending-icon { color: var(--warning); margin-left: 6px; font-size: 0.8rem; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
         /* Asistente por pasos */
@@ -134,7 +139,7 @@
         .skeleton-table { height: 320px; }
 
         /* Navegación inferior */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 80px; display: flex; justify-content: space-around; align-items: stretch; background: rgba(2, 6, 23, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(15px); z-index: 1000; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: calc(80px + env(safe-area-inset-bottom)); padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); display: flex; justify-content: space-around; align-items: stretch; background: rgba(2, 6, 23, 0.95); border-top: 1px solid var(--glass-border); backdrop-filter: blur(15px); z-index: 1000; }
         .nav-item { color: var(--text-muted); flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; transition: 0.3s; }
         .nav-item i { font-size: 1.45rem; }
         .nav-item span { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; }
@@ -142,7 +147,7 @@
         .nav-item.active i { text-shadow: 0 0 15px rgba(var(--theme-rgb), 0.5); transform: translateY(-2px); }
 
         /* Toasts */
-        .toast-region { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); width: calc(100% - 32px); max-width: 560px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; pointer-events: none; }
+        .toast-region { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%); width: calc(100% - 32px); max-width: 560px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; pointer-events: none; }
         .toast { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: rgba(15, 23, 42, 0.97); border: 1px solid var(--glass-border); border-left: 4px solid var(--theme); box-shadow: 0 10px 30px rgba(0,0,0,0.45); font-weight: 600; animation: toast-in 0.25s ease-out; }
         .toast > i { font-size: 1.2rem; color: var(--theme); }
         .toast-msg { flex: 1; line-height: 1.35; }
@@ -155,7 +160,7 @@
 
         /* Hoja inferior de perfiles */
         .sheet-backdrop { position: fixed; inset: 0; z-index: 3000; background: rgba(2, 6, 23, 0.7); display: flex; align-items: flex-end; justify-content: center; }
-        .sheet { width: 100%; max-width: 600px; border-radius: 24px 24px 0 0; padding: 12px 20px 28px; background: rgba(15, 23, 42, 0.98); animation: sheet-in 0.25s ease-out; }
+        .sheet { width: 100%; max-width: 600px; border-radius: 24px 24px 0 0; padding: 12px 20px calc(28px + env(safe-area-inset-bottom)); background: rgba(15, 23, 42, 0.98); animation: sheet-in 0.25s ease-out; }
         .sheet-handle { width: 44px; height: 5px; border-radius: 5px; background: var(--glass-border); margin: 0 auto 16px; }
         .sheet h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 16px; text-align: center; }
         .sheet-profiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
@@ -178,6 +183,7 @@
 <body>
 
     <header>
+        <button type="button" id="btn-pending" class="btn-pending hidden" onclick="flushQueue({ manual: true })"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i><span id="pending-count">0</span></button>
         <h1>FitTrack <i class="fa-solid fa-bolt" aria-hidden="true"></i></h1>
         <button type="button" id="active-profile-badge" class="profile-badge hidden" onclick="openProfileSheet()" aria-haspopup="dialog">
             <span class="sr-only">Perfil activo:</span> <span id="active-profile-name"></span> <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
@@ -419,8 +425,8 @@
         let currentStep = 1;
         let chartsInstance = {};
         let historyDataCache = null;
-        let dataState = 'idle'; // 'idle' | 'loading' | 'error'
-        let refreshPromise = null;
+        const loadState = {};      // por perfil: 'idle' | 'loading' | 'error'
+        const refreshPromises = {}; // peticiones en curso, por perfil
         const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         const $ = id => document.getElementById(id);
@@ -438,6 +444,7 @@
         const KEY_STORAGE = 'fittrack_access_key';
         const CACHE_STORAGE = 'fittrack_cache_v1';
         const LAST_PROFILE_STORAGE = 'fittrack_last_profile';
+        const QUEUE_STORAGE = 'fittrack_queue_v1';
         function getKey() { return storeGet(KEY_STORAGE) || ''; }
         function setKey(k) { storeSet(KEY_STORAGE, k); }
         function clearKey() { storeDel(KEY_STORAGE); }
@@ -446,15 +453,22 @@
         function loadCache() {
             try { const c = JSON.parse(storeGet(CACHE_STORAGE)); return c && c.data ? c.data : null; } catch (e) { return null; }
         }
-        function setData(data) {
-            historyDataCache = data;
-            storeSet(CACHE_STORAGE, JSON.stringify({ ts: Date.now(), data }));
+        function persistCache() {
+            if (historyDataCache) storeSet(CACHE_STORAGE, JSON.stringify({ ts: Date.now(), data: historyDataCache }));
+        }
+        // Fusiona los perfiles recibidos con los que ya había en caché
+        function mergeData(partial) {
+            historyDataCache = Object.assign({}, historyDataCache || {}, partial || {});
+            persistCache();
         }
 
-        // Devuelve { status: 'ok' | 'unauthorized' | 'network', data }
-        async function fetchHistory(key) {
+        // Devuelve { status: 'ok' | 'unauthorized' | 'network', data }.
+        // Con "profile" solo se descarga ese perfil ('none' = solo comprobar la clave).
+        async function fetchHistory(key, profile) {
             try {
-                const response = await fetch(APPS_SCRIPT_URL + '?key=' + encodeURIComponent(key));
+                let url = APPS_SCRIPT_URL + '?key=' + encodeURIComponent(key);
+                if (profile) url += '&profile=' + encodeURIComponent(profile);
+                const response = await fetch(url);
                 const result = await response.json();
                 if (result.status === 'success') return { status: 'ok', data: result.data };
                 if (result.status === 'unauthorized') return { status: 'unauthorized' };
@@ -462,32 +476,127 @@
             } catch (e) { return { status: 'network' }; }
         }
 
-        // Descarga el historial en segundo plano y repinta solo si ha cambiado
-        async function refreshData({ silent = false } = {}) {
-            if (refreshPromise) return refreshPromise;
-            dataState = 'loading';
-            refreshPromise = (async () => {
-                const r = await fetchHistory(getKey());
+        // Descarga el historial de un perfil en segundo plano y repinta solo si ha cambiado
+        async function refreshData({ silent = false, profile = currentProfile } = {}) {
+            if (!profile || !getKey()) return;
+            if (refreshPromises[profile]) return refreshPromises[profile];
+            loadState[profile] = 'loading';
+            refreshPromises[profile] = (async () => {
+                const r = await fetchHistory(getKey(), profile);
                 if (r.status === 'ok') {
-                    const changed = JSON.stringify(r.data) !== JSON.stringify(historyDataCache);
-                    setData(r.data);
-                    dataState = 'idle';
-                    if (changed) renderCurrent();
+                    const before = historyDataCache ? JSON.stringify(historyDataCache[profile]) : '';
+                    mergeData(r.data);
+                    loadState[profile] = 'idle';
+                    if (profile === currentProfile && JSON.stringify(historyDataCache[profile]) !== before) renderCurrent();
                 } else if (r.status === 'unauthorized') {
-                    dataState = 'idle';
+                    loadState[profile] = 'idle';
                     showToast('Tu clave de acceso ya no es válida', 'error');
                     logout();
                 } else {
-                    dataState = 'error';
-                    if (!historyDataCache) renderCurrent();
-                    else if (!silent) showToast('Sin conexión: mostrando los datos guardados', 'info');
+                    loadState[profile] = 'error';
+                    if (profile === currentProfile) {
+                        if (!hasProfileData()) renderCurrent();
+                        else if (!silent) showToast('Sin conexión: mostrando los datos guardados', 'info', { id: 'offline' });
+                    }
                 }
                 return r.status;
             })();
-            try { return await refreshPromise; } finally { refreshPromise = null; }
+            try { return await refreshPromises[profile]; } finally { delete refreshPromises[profile]; }
         }
 
-        function retryLoad() { dataState = 'idle'; renderCurrent(); }
+        function hasProfileData() { return !!(historyDataCache && historyDataCache[currentProfile]); }
+        function retryLoad() { loadState[currentProfile] = 'idle'; renderCurrent(); }
+
+        // ---- COLA DE ENVÍOS SIN CONEXIÓN ----
+        // Si al guardar no hay red, el registro se guarda aquí y se reenvía automáticamente.
+        // Cada registro lleva un id único: el Apps Script ignora los duplicados.
+        let queue = loadQueue();
+        let flushing = false;
+        function loadQueue() { try { return JSON.parse(storeGet(QUEUE_STORAGE)) || []; } catch (e) { return []; } }
+        function persistQueue() {
+            if (queue.length) storeSet(QUEUE_STORAGE, JSON.stringify(queue)); else storeDel(QUEUE_STORAGE);
+            updatePendingUI();
+        }
+        function newId() {
+            try { if (crypto.randomUUID) return crypto.randomUUID(); } catch (e) {}
+            return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+        }
+
+        function updatePendingUI() {
+            const btn = $('btn-pending');
+            const n = queue.length;
+            btn.classList.toggle('hidden', !n || !getKey() || !$('view-login').classList.contains('hidden'));
+            btn.classList.toggle('syncing', flushing);
+            $('pending-count').innerText = n;
+            const label = `${n} registro${n === 1 ? '' : 's'} pendiente${n === 1 ? '' : 's'} de enviar. Pulsa para reintentar.`;
+            btn.setAttribute('aria-label', label);
+            btn.title = label;
+        }
+
+        // Devuelve el JSON del servidor, o { status: 'network' } si no hubo respuesta válida
+        async function sendPayload(payload) {
+            try {
+                // text/plain evita el preflight CORS (Apps Script no lo soporta) y permite leer la respuesta
+                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({}, payload, { key: getKey() })) });
+                return await response.json();
+            } catch (e) { return { status: 'network' }; }
+        }
+
+        // Añade el registro ya guardado en el servidor a la caché local (se ve al momento)
+        function applyToCache(payload) {
+            if (!historyDataCache || !historyDataCache[payload.profile]) return;
+            const bucket = payload.type === 'fisico' ? 'fisico' : payload.mesociclo_marca;
+            const pd = historyDataCache[payload.profile];
+            pd[bucket] = (pd[bucket] || []).concat([recordFromPayload(payload)]);
+            persistCache();
+        }
+
+        async function flushQueue({ manual = false } = {}) {
+            if (flushing || !queue.length || !getKey()) return;
+            flushing = true; updatePendingUI();
+            let sent = [], failed = [], offline = false;
+            try {
+                for (const item of [...queue]) {
+                    if (item.failed && !manual) continue;
+                    const r = await sendPayload(item.payload);
+                    if (r.status === 'success') {
+                        queue = queue.filter(q => q.id !== item.id);
+                        applyToCache(item.payload);
+                        sent.push(item);
+                        persistQueue();
+                    } else if (r.status === 'unauthorized') {
+                        showToast('Tu clave de acceso ya no es válida. Los registros pendientes se enviarán cuando vuelvas a entrar.', 'error');
+                        flushing = false;
+                        logout();
+                        return;
+                    } else if (r.status === 'network') {
+                        offline = true;
+                        break;
+                    } else {
+                        item.failed = true;
+                        item.error = r.message || 'Error del servidor';
+                        failed.push(item);
+                        persistQueue();
+                    }
+                }
+            } finally { flushing = false; updatePendingUI(); }
+
+            if (sent.length) {
+                showToast(sent.length === 1 ? 'Registro pendiente enviado' : `${sent.length} registros pendientes enviados`, 'success', { id: 'queue' });
+                renderCurrent();
+                [...new Set(sent.map(i => i.payload.profile))].forEach(p => refreshData({ silent: true, profile: p }));
+            }
+            if (failed.length) {
+                showToast(`El servidor rechazó ${failed.length === 1 ? 'un registro' : failed.length + ' registros'}: ${failed[0].error}`, 'error', {
+                    id: 'queue-fail', action: { label: 'Descartar', fn: () => { queue = queue.filter(q => !q.failed); persistQueue(); renderCurrent(); } }
+                });
+            }
+            if (manual && offline && !sent.length) showToast('Sigue sin conexión. Se reintentará automáticamente.', 'info', { id: 'queue' });
+        }
+
+        window.addEventListener('online', () => flushQueue());
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') flushQueue(); });
+        setInterval(() => { if (queue.length) flushQueue(); }, 60000);
 
         // ---- FEEDBACK ----
         function showToast(msg, type = 'info', opts = {}) {
@@ -519,6 +628,7 @@
             ['view-loading', 'view-login', 'view-profiles', 'view-app'].forEach(v => $(v).classList.toggle('hidden', v !== id));
             $('btn-logout').classList.toggle('hidden', id !== 'view-profiles');
             $('active-profile-badge').classList.toggle('hidden', id !== 'view-app');
+            updatePendingUI();
         }
 
         function routeHash(parts) { return '#/' + parts.join('/'); }
@@ -535,13 +645,19 @@
         function applyRoute() {
             closeProfileSheet(false);
             if (!getKey()) { showView('view-login'); return; }
-            const [s, tabRaw, modeRaw] = location.hash.replace(/^#\/?/, '').split('/');
+            let [s, tabRaw, modeRaw] = location.hash.replace(/^#\/?/, '').split('/');
+            const rawSlug = s;
+            // Accesos directos del icono: "_ultimo" = el último perfil usado
+            if (s === '_ultimo') {
+                const last = storeGet(LAST_PROFILE_STORAGE);
+                s = last && PROFILES[last] ? PROFILES[last].slug : '';
+            }
             const profile = Object.keys(PROFILES).find(k => PROFILES[k].slug === s);
             if (!profile) { currentProfile = ''; showView('view-profiles'); return; }
 
             const tab = TABS[tabRaw] ? tabRaw : 'registrar';
             const mode = TABS[tab].includes(modeRaw) ? modeRaw : tabModes[tab];
-            if (tab !== tabRaw || mode !== modeRaw) history.replaceState(null, '', routeHash([s, tab, mode]));
+            if (s !== rawSlug || tab !== tabRaw || mode !== modeRaw) history.replaceState(null, '', routeHash([s, tab, mode]));
 
             if (profile !== currentProfile) activateProfile(profile);
             currentTab = tab;
@@ -594,10 +710,11 @@
 
         // Muestra esqueleto / error si aún no hay datos. Devuelve true si se puede pintar.
         function ensureData(skeletonId, errorId) {
-            const has = !!historyDataCache;
-            $(skeletonId).classList.toggle('hidden', has || dataState === 'error');
-            $(errorId).classList.toggle('hidden', has || dataState !== 'error');
-            if (!has && dataState === 'idle') refreshData();
+            const has = hasProfileData();
+            const state = loadState[currentProfile] || 'idle';
+            $(skeletonId).classList.toggle('hidden', has || state === 'error');
+            $(errorId).classList.toggle('hidden', has || state !== 'error');
+            if (!has && state === 'idle') refreshData();
             return has;
         }
 
@@ -630,6 +747,7 @@
             resetForm('marcas', { keepDraft: true });
             const restored = ['fisico', 'marcas'].filter(restoreDraft);
             onMesoChange();
+            refreshData({ silent: true, profile });
             if (restored.length) {
                 showToast('Borrador recuperado', 'info', { id: 'draft', action: { label: 'Descartar', fn: () => restored.forEach(m => resetForm(m)) } });
             }
@@ -661,14 +779,16 @@
             btn.disabled = true;
             const original = btn.innerHTML;
             btn.innerHTML = '<span class="loader"></span> Comprobando...';
-            const res = await fetchHistory(key);
+            const last = storeGet(LAST_PROFILE_STORAGE);
+            const res = await fetchHistory(key, last && PROFILES[last] ? last : 'none');
             btn.disabled = false;
             btn.innerHTML = original;
             if (res.status === 'ok') {
                 setKey(key);
-                setData(res.data);
+                mergeData(res.data);
                 $('login-key').value = '';
                 routeOnStart();
+                flushQueue();
             } else if (res.status === 'unauthorized') {
                 err.innerText = 'Clave incorrecta';
             } else {
@@ -680,8 +800,9 @@
             clearKey();
             storeDel(CACHE_STORAGE);
             Object.keys(PROFILES).forEach(n => ['fisico', 'marcas'].forEach(m => storeDel(`fittrack_draft_${PROFILES[n].slug}_${m}`)));
+            // La cola de pendientes NO se borra: se enviará al volver a entrar
             historyDataCache = null;
-            dataState = 'idle';
+            Object.keys(loadState).forEach(k => delete loadState[k]);
             currentProfile = '';
             destroyCharts();
             history.replaceState(null, '', location.pathname + location.search);
@@ -692,18 +813,11 @@
             buildProfileButtons();
             const key = getKey();
             if (!key) { showView('view-login'); return; }
+            // Se pinta al instante con la caché; cada perfil se actualiza en segundo plano al abrirlo.
+            // Sin red también se entra: la clave guardada ya se validó antes.
             historyDataCache = loadCache();
-            if (historyDataCache) {
-                // Pintamos al instante con la caché y actualizamos en segundo plano
-                routeOnStart();
-                refreshData({ silent: true });
-                return;
-            }
-            const r = await fetchHistory(key);
-            if (r.status === 'unauthorized') { logout(); return; }
-            if (r.status === 'ok') setData(r.data);
-            // Fallo de red: dejamos entrar (la clave guardada ya se validó antes)
             routeOnStart();
+            flushQueue();
         }
 
         // ---- UTILIDADES ----
@@ -731,7 +845,18 @@
         }
 
         function isoToShort(iso) { const [y, m, d] = String(iso).split('-'); return (y && m && d) ? `${d}/${m}/${y.slice(-2)}` : iso; }
-        function profileData() { return (historyDataCache && historyDataCache[currentProfile]) || {}; }
+        // Datos del perfil activo + registros pendientes de enviar (marcados con _pending)
+        function profileData() {
+            const base = (historyDataCache && historyDataCache[currentProfile]) || {};
+            const pending = queue.filter(q => q.payload.profile === currentProfile);
+            if (!pending.length) return base;
+            const out = Object.assign({}, base);
+            pending.forEach(q => {
+                const bucket = q.payload.type === 'fisico' ? 'fisico' : q.payload.mesociclo_marca;
+                out[bucket] = (out[bucket] || []).concat([Object.assign(recordFromPayload(q.payload), { _pending: true })]);
+            });
+            return out;
+        }
         function grasaPctOf(d) { return d.grasa_pct != null ? d.grasa_pct : d.imc; }
         function fisicoValue(d, key) { return key === 'grasa_pct' ? grasaPctOf(d) : d[key]; }
 
@@ -1064,7 +1189,7 @@
                 return r;
             }
             const r = { fecha: isoToShort(p.fecha) };
-            lifts().forEach((_, i) => {
+            PROFILES[p.profile].lifts.forEach((_, i) => {
                 const n = i + 1;
                 r[`ex${n}_kg`] = toNum(p[`ex${n}_kg`]);
                 if (p.mesociclo_marca === 'VL') r[`ex${n}_reps`] = p[`ex${n}_reps`] || '';
@@ -1085,7 +1210,7 @@
             btn.disabled = true;
 
             const profile = currentProfile;
-            let payload = { key: getKey(), profile, type: mode };
+            let payload = { id: newId(), profile, type: mode };
 
             if (mode === 'fisico') {
                 payload.fecha = $('f_fecha').value;
@@ -1103,18 +1228,18 @@
             }
             const prevPRs = mode === 'marcas' ? lifts().map((_, i) => getPR(i + 1)) : [];
 
-            // text/plain evita el preflight CORS (Apps Script no lo soporta) y permite leer la respuesta
-            let result = null;
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-                result = await response.json();
-            } catch (error) {
-                result = { status: 'network' };
-            } finally {
-                btn.innerHTML = originalText; btn.disabled = false;
-            }
+            const result = await sendPayload(payload);
+            btn.innerHTML = originalText; btn.disabled = false;
 
-            if (result.status === 'success') {
+            const queueIt = () => { queue.push({ id: payload.id, payload, ts: Date.now() }); persistQueue(); };
+            const finish = () => {
+                resetForm(mode);
+                if (mode === 'marcas') $('marcasFilter').value = payload.mesociclo_marca;
+                tabModes.progreso = mode;
+                navigate([slug(), 'progreso', mode]);
+            };
+
+            if (result.status === 'success' || result.status === 'network') {
                 // Récords batidos (solo si ya había una marca anterior con la que comparar)
                 const records = [];
                 if (mode === 'marcas') lifts().forEach((key, i) => {
@@ -1122,27 +1247,24 @@
                     if (kg != null && prevPRs[i] != null && kg > prevPRs[i]) records.push(`${LIFTS[key].name} ${formatNumUI(kg)} kg`);
                 });
 
-                // Inserción optimista en la caché: el progreso se ve al momento
-                if (historyDataCache && historyDataCache[profile]) {
-                    const bucket = mode === 'fisico' ? 'fisico' : payload.mesociclo_marca;
-                    historyDataCache[profile][bucket] = (historyDataCache[profile][bucket] || []).concat([recordFromPayload(payload)]);
-                    setData(historyDataCache);
+                if (result.status === 'success') {
+                    applyToCache(payload); // el progreso se ve al momento
+                    haptic(records.length ? [30, 60, 30] : 15);
+                    if (!records.length) showToast('Datos guardados correctamente', 'success', { id: 'save' });
+                } else {
+                    // Sin red: se guarda en el móvil y se enviará solo cuando vuelva la conexión
+                    queueIt();
+                    haptic(15);
+                    showToast('Sin conexión: guardado en el móvil. Se enviará automáticamente.', 'info', { id: 'save' });
                 }
-
-                if (records.length) { haptic([30, 60, 30]); showToast('¡Nuevo récord! ' + records.join(' · '), 'pr'); }
-                else { haptic(15); showToast('Datos guardados correctamente', 'success'); }
-
-                resetForm(mode);
-                if (mode === 'marcas') $('marcasFilter').value = payload.mesociclo_marca;
-                tabModes.progreso = mode;
-                navigate([slug(), 'progreso', mode]);
-                refreshData({ silent: true });
+                if (records.length) showToast('¡Nuevo récord! ' + records.join(' · '), 'pr');
+                finish();
+                if (result.status === 'success') refreshData({ silent: true });
             } else if (result.status === 'unauthorized') {
-                showToast('Tu clave de acceso ya no es válida. No se ha guardado nada.', 'error');
+                queueIt();
+                showToast('Tu clave de acceso ya no es válida. El registro se ha guardado en el móvil y se enviará cuando vuelvas a entrar.', 'error');
+                resetForm(mode);
                 logout();
-            } else if (result.status === 'network') {
-                showFormError(mode, 'No se pudo conectar con el servidor. Tus datos siguen en el formulario.');
-                showToast('Sin conexión: no se ha guardado', 'error', { id: 'save', action: { label: 'Reintentar', fn: saveDataToSheet } });
             } else {
                 showFormError(mode, 'El servidor no guardó los datos' + (result.message ? ': ' + result.message : '.') + ' Tus datos siguen en el formulario.');
             }
@@ -1155,8 +1277,11 @@
             if (has) renderTable();
         }
 
+        function pendingMark(d) {
+            return d._pending ? '<i class="fa-solid fa-clock pending-icon" role="img" aria-label="Pendiente de enviar" title="Pendiente de enviar"></i>' : '';
+        }
+
         function renderTable() {
-            if (!historyDataCache) return;
             const thead = $('tableHead');
             const tbody = $('tableBody');
             const mode = tabModes.historial;
@@ -1169,7 +1294,7 @@
                 thead.innerHTML = `<tr><th scope="col">Fecha</th><th scope="col">Meso.</th><th scope="col">Edad</th><th scope="col">Peso</th><th scope="col">% Graso</th><th scope="col">Músculo</th><th scope="col">Hueso</th><th scope="col">Víscera</th><th scope="col">Grasa</th><th scope="col">Pecho</th><th scope="col">Hombros</th><th scope="col">Bíceps</th><th scope="col">Abdomen</th><th scope="col">Pierna</th></tr>`;
                 if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(14, 'fisico'); return; }
                 tbody.innerHTML = dataToRender.map(d =>
-                    `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}</td><td>${esc(d.mesociclo)}</td><td>${esc(d.edad)}</td><td style="font-weight:bold;">${n(d.peso)}</td><td>${esc(grasaPctOf(d))}</td><td>${n(d.musculo)}</td><td>${n(d.hueso)}</td><td>${n(d.viscera)}</td><td>${n(d.grasa)}</td><td>${n(d.pecho)}</td><td>${n(d.hombros)}</td><td>${n(d.biceps)}</td><td>${n(d.abdomen)}</td><td>${n(d.pierna)}</td></tr>`
+                    `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}${pendingMark(d)}</td><td>${esc(d.mesociclo)}</td><td>${esc(d.edad)}</td><td style="font-weight:bold;">${n(d.peso)}</td><td>${esc(grasaPctOf(d))}</td><td>${n(d.musculo)}</td><td>${n(d.hueso)}</td><td>${n(d.viscera)}</td><td>${n(d.grasa)}</td><td>${n(d.pecho)}</td><td>${n(d.hombros)}</td><td>${n(d.biceps)}</td><td>${n(d.abdomen)}</td><td>${n(d.pierna)}</td></tr>`
                 ).join('');
             } else {
                 const isVL = key === 'VL';
@@ -1177,7 +1302,7 @@
                 thead.innerHTML = '<tr><th scope="col">Fecha</th>' + names.map(nm => `<th scope="col">${esc(nm)} (kg)</th>${isVL ? '<th scope="col">Reps</th>' : ''}`).join('') + '</tr>';
                 if (dataToRender.length === 0) { tbody.innerHTML = emptyRow(1 + names.length * (isVL ? 2 : 1), 'marcas'); return; }
                 tbody.innerHTML = dataToRender.map(d => {
-                    let tdHtml = `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}</td>`;
+                    let tdHtml = `<tr><td style="color:var(--theme); font-weight:bold;">${esc(d.fecha)}${pendingMark(d)}</td>`;
                     for (let i = 1; i <= names.length; i++) {
                         tdHtml += `<td style="font-weight:bold;">${n(d['ex' + i + '_kg'])}</td>`;
                         if (isVL) tdHtml += `<td>${esc(d['ex' + i + '_reps'] || '-')}</td>`;
@@ -1216,7 +1341,6 @@
         }
 
         function renderChartsFisico() {
-            if (!historyDataCache) return;
             // Destruir primero: así nunca quedan en pantalla las gráficas de otro perfil
             ['w', 'c', 'p'].forEach(k => { if (chartsInstance[k]) { chartsInstance[k].destroy(); chartsInstance[k] = null; } });
 
@@ -1274,7 +1398,6 @@
         }
 
         function renderChartsMarcas() {
-            if (!historyDataCache) return;
             const meso = $('marcasFilter').value;
             const data = profileData()[meso];
             Object.keys(chartsInstance).filter(k => k.startsWith('m')).forEach(k => { if (chartsInstance[k]) chartsInstance[k].destroy(); delete chartsInstance[k]; });
@@ -1299,6 +1422,16 @@
                         return reps ? `${base} (${reps} reps)` : base;
                     } } } } }
                 });
+            });
+        }
+
+        // ---- SERVICE WORKER (app instalable y disponible sin conexión) ----
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+            navigator.serviceWorker.addEventListener('message', e => {
+                if (e.data && e.data.type === 'update-available') {
+                    showToast('Hay una nueva versión de FitTrack', 'info', { id: 'update', duration: 15000, action: { label: 'Recargar', fn: () => location.reload() } });
+                }
             });
         }
 

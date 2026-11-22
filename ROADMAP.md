@@ -75,16 +75,16 @@
 
 ---
 
-## Fase 2 · PWA real y fiabilidad (semanas 4–6)
+## Fase 2 · PWA real y fiabilidad (semanas 4–6) — ✅ completada
 
 | # | Mejora | Detalle | Impacto | Esfuerzo |
 |---|--------|---------|---------|----------|
-| 2.1 | **Service Worker** | Precachear el *app shell* (HTML, CSS, JS, iconos, Chart.js). La app abre al instante y sin conexión. Sin SW, Android tampoco ofrece una instalación completa. | Alto | M |
-| 2.2 | **Cola de envíos offline** | Si no hay red, guardar el registro en IndexedDB, mostrar "Pendiente de sincronizar (1)" y reintentar al volver la conexión (`online` / Background Sync). | **Muy alto** | M |
+| 2.1 ✅ | **Service Worker** | Precachear el *app shell* (HTML, CSS, JS, iconos, Chart.js). La app abre al instante y sin conexión. Sin SW, Android tampoco ofrece una instalación completa. | Alto | M |
+| 2.2 ✅ | **Cola de envíos offline** | Si no hay red, guardar el registro en IndexedDB, mostrar "Pendiente de sincronizar (1)" y reintentar al volver la conexión (`online` / Background Sync). | **Muy alto** | M |
 | 2.3 ✅ | **Caché del historial (stale-while-revalidate)** | Hoy cada cambio de perfil borra la caché (`resetApp`) y vuelve a descargar los 4 perfiles completos (2–5 s en Apps Script). Guardar en `localStorage`, pintar al momento y refrescar en segundo plano. | Alto | S |
-| 2.4 | **Manifest completo** | Iconos separados de 192 y 512 px, más uno `maskable` (ahora es un único PNG de 230 KB para todo). Añadir `id`, `scope`, `description`, `screenshots`, `shortcuts` ("Registrar marcas") y un `theme_color` coherente con el fondo. | Medio | S |
-| 2.5 | **Safe areas en iOS** | Con `black-translucent`, la cabecera queda bajo el *notch* y la barra inferior sobre el indicador de inicio. Usar `viewport-fit=cover` y `env(safe-area-inset-*)`. | Medio | S |
-| 2.6 | **Pedir solo el perfil activo** | `doGet?profile=FRAN` para no descargar los datos de las 4 personas. | Medio | S |
+| 2.4 ✅ | **Manifest completo** (pendiente: `screenshots`) | Iconos separados de 192 y 512 px, más uno `maskable` (ahora es un único PNG de 230 KB para todo). Añadir `id`, `scope`, `description`, `screenshots`, `shortcuts` ("Registrar marcas") y un `theme_color` coherente con el fondo. | Medio | S |
+| 2.5 ✅ | **Safe areas en iOS** | Con `black-translucent`, la cabecera queda bajo el *notch* y la barra inferior sobre el indicador de inicio. Usar `viewport-fit=cover` y `env(safe-area-inset-*)`. | Medio | S |
+| 2.6 ✅ | **Pedir solo el perfil activo** | `doGet?profile=FRAN` para no descargar los datos de las 4 personas. | Medio | S |
 
 ---
 

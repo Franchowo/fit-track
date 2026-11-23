@@ -237,7 +237,7 @@ async function saveDataToSheet() {
             haptic(15);
             showToast('Sin conexión: guardado en el móvil. Se enviará automáticamente.', 'info', { id: 'save' });
         }
-        if (records.length) showToast('¡Nuevo récord! ' + records.join(' · '), 'pr');
+        if (records.length) { showToast('¡Nuevo récord! ' + records.join(' · '), 'pr'); celebrate(); }
         finish();
         if (result.status === 'success') refreshData({ silent: true });
     } else if (result.status === 'unauthorized') {
@@ -248,6 +248,26 @@ async function saveDataToSheet() {
     } else {
         showFormError(mode, 'El servidor no guardó los datos' + (result.message ? ': ' + result.message : '.') + ' Tus datos siguen en el formulario.');
     }
+}
+
+// Confeti breve al batir un récord (se omite con "reducir movimiento")
+function celebrate() {
+    if (reduceMotion) return;
+    const box = document.createElement('div');
+    box.className = 'confetti';
+    box.setAttribute('aria-hidden', 'true');
+    const colors = [1, 2, 3, 4, 5].map(seriesColor).concat(cssVar('--theme'));
+    for (let i = 0; i < 36; i++) {
+        const c = document.createElement('i');
+        c.style.left = Math.random() * 100 + '%';
+        c.style.background = colors[i % colors.length];
+        c.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px');
+        c.style.setProperty('--rot', (Math.random() * 720 - 360) + 'deg');
+        c.style.animationDelay = (Math.random() * 0.25) + 's';
+        box.appendChild(c);
+    }
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 1900);
 }
 
 // ---- EDITAR Y BORRAR ----

@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#020617">
+    <meta name="theme-color" content="#020617" id="meta-theme-color">
+    <!-- Tema elegido (claro / oscuro) antes de pintar nada, para que no parpadee -->
+    <script>try { var t = localStorage.getItem('fittrack_theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <title>FitTrack Pro</title>
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -13,7 +18,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js" integrity="sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM" crossorigin="anonymous"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/app.css?v=39e943e4dc">
+    <link rel="stylesheet" href="css/app.css?v=b6e7060098">
 </head>
 <body>
 
@@ -141,7 +146,7 @@
             </div>
 
             <!-- MARCAS -->
-            <div id="form-marcas" class="hidden glass" style="padding: 30px 20px;">
+            <div id="form-marcas" class="hidden glass panel">
                 <div class="edit-banner hidden" id="edit-banner-marcas" role="status"><span><i class="fa-solid fa-pen" aria-hidden="true"></i><span class="edit-text"></span></span><button type="button" onclick="cancelEdit(true)">Cancelar</button></div>
                 <div class="form-group"><label for="m_fecha">Fecha toma de marcas</label><input type="date" class="input-large" id="m_fecha"></div>
                 <div class="form-group">
@@ -197,7 +202,7 @@
             </div>
 
             <div id="dash-marcas" class="hidden">
-                <div class="analytics-header" style="justify-content:center;">
+                <div class="analytics-header center">
                     <select class="filter-select" id="marcasFilter" aria-label="Mesociclo" onchange="renderChartsMarcas()">
                         <option value="FB">Fuerza Base</option>
                         <option value="VL">Volumen</option>
@@ -216,7 +221,7 @@
         </section>
 
         <!-- PESTAÑA HISTORIAL -->
-        <section id="tab-historial" class="container hidden" style="max-width: 900px;" aria-label="Historial">
+        <section id="tab-historial" class="container container-wide hidden" aria-label="Historial">
             <div class="sub-nav" role="tablist" aria-label="Tipo de historial">
                 <button type="button" role="tab" class="sub-nav-btn" data-mode="fisico" onclick="setMode('fisico')">Físico</button>
                 <button type="button" role="tab" class="sub-nav-btn" data-mode="fb" onclick="setMode('fb')">Fuerza Base</button>
@@ -230,13 +235,14 @@
                 <button type="button" class="btn-cta" onclick="retryLoad()"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reintentar</button>
             </div>
             <p class="table-hint hidden" id="table-hint">Toca un registro para editarlo o borrarlo.</p>
+            <div class="history-list" id="history-list" aria-label="Registros"></div>
             <div class="glass table-container" id="detalle-content">
                 <table class="data-table">
                     <thead id="tableHead"></thead>
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
-            <div style="text-align:center;"><button type="button" class="btn-cta secondary hidden" id="btn-export" onclick="exportCsv()"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV</button></div>
+            <div class="center-row"><button type="button" class="btn-cta secondary hidden" id="btn-export" onclick="exportCsv()"><i class="fa-solid fa-file-csv" aria-hidden="true"></i> Exportar CSV</button></div>
         </section>
 
         <nav class="bottom-nav" aria-label="Navegación principal">
@@ -255,6 +261,12 @@
             <div class="sheet-handle" aria-hidden="true"></div>
             <h2 id="sheet-title">Cambiar perfil</h2>
             <div class="sheet-profiles" id="sheet-profiles"></div>
+            <p class="sheet-section" id="theme-label">Apariencia</p>
+            <div class="segmented" role="radiogroup" aria-labelledby="theme-label" id="theme-picker">
+                <button type="button" role="radio" data-theme-pref="auto" onclick="setThemePref('auto')"><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i> Auto</button>
+                <button type="button" role="radio" data-theme-pref="light" onclick="setThemePref('light')"><i class="fa-solid fa-sun" aria-hidden="true"></i> Claro</button>
+                <button type="button" role="radio" data-theme-pref="dark" onclick="setThemePref('dark')"><i class="fa-solid fa-moon" aria-hidden="true"></i> Oscuro</button>
+            </div>
             <button type="button" class="btn-sheet-logout" onclick="closeProfileSheet(); logout();"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Cerrar sesión</button>
         </div>
     </div>
@@ -286,7 +298,7 @@
             <div class="sheet-handle" aria-hidden="true"></div>
             <h2 id="dots-title" tabindex="-1">Puntos DOTS</h2>
             <div class="info-body" id="dots-body"></div>
-            <div class="record-actions" style="margin-top: 18px;">
+            <div class="record-actions mt-4">
                 <button type="button" class="btn-save" onclick="closeSheet('dots-sheet')">Entendido</button>
             </div>
         </div>
@@ -300,7 +312,7 @@
             <p class="record-note">Deja un campo vacío para quitar ese objetivo.</p>
             <div id="goals-fields"></div>
             <div class="form-error hidden" id="form-error-goals" role="alert"></div>
-            <div class="record-actions" style="margin-top: 10px;">
+            <div class="record-actions mt-3">
                 <button type="button" class="btn-back" onclick="closeSheet('goals-sheet')">Cancelar</button>
                 <button type="button" class="btn-save btn-solid" id="btn-goals-save" onclick="saveGoalsForm()"><i class="fa-solid fa-check" aria-hidden="true"></i> Guardar</button>
             </div>
@@ -309,14 +321,14 @@
 
     <div id="toast-region" class="toast-region" aria-live="polite"></div>
 
-    <script src="js/config.js?v=059a041aab"></script>
+    <script src="js/config.js?v=771579bf71"></script>
     <script src="js/data.js?v=c3f35ff69d"></script>
-    <script src="js/ui.js?v=61a3d78668"></script>
+    <script src="js/ui.js?v=e4acac35e6"></script>
     <script src="js/utils.js?v=3f56483331"></script>
-    <script src="js/forms.js?v=34cff7463d"></script>
-    <script src="js/history.js?v=7accdd9edc"></script>
-    <script src="js/charts.js?v=792c4e06d2"></script>
-    <script src="js/analytics.js?v=5ff0fb706b"></script>
+    <script src="js/forms.js?v=47c1563834"></script>
+    <script src="js/history.js?v=008796cb29"></script>
+    <script src="js/charts.js?v=302a68b7f2"></script>
+    <script src="js/analytics.js?v=11d20e43f8"></script>
     <script src="js/main.js?v=e000174ba4"></script>
 </body>
 </html>

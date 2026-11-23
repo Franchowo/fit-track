@@ -5,7 +5,7 @@
 //   avisa a la app para ofrecer "Recargar".
 // - css/ y js/ llevan una huella en la URL (?v=...), así que son inmutables: caché primero.
 //   Nunca se mezcla un index.html nuevo con un JS viejo.
-// - Librerías de CDN (Chart.js, Font Awesome y sus fuentes): caché primero.
+// - Librerías de CDN (Chart.js, Font Awesome, la fuente Inter): caché primero.
 // - El Apps Script (datos) NUNCA se cachea aquí: de eso se encarga la propia app.
 //
 // Sube SHELL_VERSION solo si cambias la lista de archivos fijos de SHELL_FILES.
@@ -26,7 +26,7 @@ const CDN_FILES = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
 ];
-const CDN_HOSTS = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com'];
+const CDN_HOSTS = ['cdn.jsdelivr.net', 'cdnjs.cloudflare.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 const ASSET_RE = /^\/(?:.*\/)?(?:css|js)\/[^/]+$/;
 
 const scopeUrl = path => new URL(path, self.registration.scope).href;

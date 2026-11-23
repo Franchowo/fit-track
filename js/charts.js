@@ -20,16 +20,42 @@ function destroyCharts() {
     chartsInstance = {};
 }
 
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
 function themeColors() {
-    const cs = getComputedStyle(document.documentElement);
-    return { color: cs.getPropertyValue('--theme').trim(), bg: `rgba(${cs.getPropertyValue('--theme-rgb').trim()}, 0.15)` };
+    return { color: cssVar('--theme'), bg: `rgba(${cssVar('--theme-rgb')}, 0.15)` };
 }
 
+// Paleta categórica validada para daltonismo (modo oscuro y claro, ver css/app.css).
+// El color sigue a la serie, nunca a su posición: cada perímetro y mesociclo tiene el suyo.
+function seriesColor(n) { return cssVar('--series-' + n); }
+
+// Estilo común de las gráficas: se recalcula en cada pintado para seguir al tema
 function setupChartDefaults() {
     if (typeof Chart === 'undefined') return false;
-    Chart.defaults.color = '#94a3b8';
-    Chart.defaults.font.family = "'Segoe UI', sans-serif";
-    if (reduceMotion) Chart.defaults.animation = false;
+    const d = Chart.defaults;
+    d.color = cssVar('--chart-text');
+    d.borderColor = cssVar('--chart-grid');
+    d.font.family = getComputedStyle(document.body).fontFamily;
+    d.font.size = 12;
+    d.elements.line.borderWidth = 2;
+    d.elements.point.radius = 4;
+    d.elements.point.hoverRadius = 6;
+    // Tooltip con solo acercarse al punto (no hace falta acertar encima)
+    d.interaction.mode = 'nearest';
+    d.interaction.axis = 'x';
+    d.interaction.intersect = false;
+    d.plugins.tooltip.backgroundColor = cssVar('--tooltip-bg');
+    d.plugins.tooltip.titleColor = cssVar('--tooltip-text');
+    d.plugins.tooltip.bodyColor = cssVar('--tooltip-text');
+    d.plugins.tooltip.padding = 10;
+    d.plugins.tooltip.cornerRadius = 8;
+    d.plugins.legend.labels.boxWidth = 12;
+    d.plugins.legend.labels.boxHeight = 12;
+    d.plugins.legend.labels.useBorderRadius = true;
+    d.plugins.legend.labels.borderRadius = 3;
+    d.scale.grid.drawTicks = false;
+    if (reduceMotion) d.animation = false;
     return true;
 }
 
@@ -91,22 +117,23 @@ function renderChartsFisico() {
     const firstTs = pd.length ? dateTs(pd[0]) : 0;
     const trendPts = allW.map((d, i) => ({ x: dateTs(d), y: trendAll[i] })).filter(p => p.x >= firstTs);
     const wDatasets = [{ label: 'Peso', data: pts('peso'), borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true }];
-    if (trendPts.length > 1) wDatasets.push({ label: 'Tendencia', data: trendPts, borderColor: 'rgba(226, 232, 240, 0.8)', backgroundColor: 'rgba(226, 232, 240, 0.8)', borderDash: [6, 4], pointRadius: 0, tension: 0.3, fill: false });
+    const ref = cssVar('--chart-ref');
+    if (trendPts.length > 1) wDatasets.push({ label: 'Tendencia', data: trendPts, borderColor: ref, backgroundColor: ref, borderDash: [6, 4], pointRadius: 0, tension: 0.3, fill: false });
     const wGoal = goalLine('peso', xAxis);
     if (wGoal) wDatasets.push(wGoal);
     chartsInstance.w = new Chart($('weightChart'), { type: 'line', data: { datasets: wDatasets }, options: opts(wDatasets.length > 1) });
     chartsInstance.c = new Chart($('compChart'), { type: 'line', data: { datasets: [
-        { label: 'Músculo', data: pts('musculo'), borderColor: themeColor, backgroundColor: themeColor, tension: 0.3, spanGaps: true },
-        { label: 'Grasa', data: pts('grasa'), borderColor: '#cbd5e1', backgroundColor: '#cbd5e1', tension: 0.3, spanGaps: true }
+        { label: 'Músculo', data: pts('musculo'), borderColor: seriesColor(1), backgroundColor: seriesColor(1), tension: 0.3, spanGaps: true },
+        { label: 'Grasa', data: pts('grasa'), borderColor: seriesColor(2), backgroundColor: seriesColor(2), tension: 0.3, spanGaps: true }
     ] }, options: opts(true) });
 
     let pDts = [];
     const addP = (lbl, key, col) => pDts.push({ label: lbl, data: pts(key), borderColor: col, backgroundColor: col, tension: 0.3, spanGaps: true });
-    if (pFilter === 'all' || pFilter === 'pecho') addP('Pecho', 'pecho', '#f43f5e');
-    if (pFilter === 'all' || pFilter === 'hombros') addP('Hombros', 'hombros', '#3b82f6');
-    if (pFilter === 'all' || pFilter === 'biceps') addP('Bíceps', 'biceps', '#10b981');
-    if (pFilter === 'all' || pFilter === 'abdomen') addP('Abdomen', 'abdomen', '#eab308');
-    if (pFilter === 'all' || pFilter === 'pierna') addP('Pierna', 'pierna', '#a855f7');
+    if (pFilter === 'all' || pFilter === 'pecho') addP('Pecho', 'pecho', seriesColor(1));
+    if (pFilter === 'all' || pFilter === 'hombros') addP('Hombros', 'hombros', seriesColor(2));
+    if (pFilter === 'all' || pFilter === 'biceps') addP('Bíceps', 'biceps', seriesColor(3));
+    if (pFilter === 'all' || pFilter === 'abdomen') addP('Abdomen', 'abdomen', seriesColor(4));
+    if (pFilter === 'all' || pFilter === 'pierna') addP('Pierna', 'pierna', seriesColor(5));
     chartsInstance.p = new Chart($('perimetersChart'), { type: 'line', data: { datasets: pDts }, options: opts(true) });
 }
 
@@ -135,7 +162,7 @@ function renderChartsMarcas() {
         const points = data.map(d => ({ x: dateTs(d), y: d['ex' + n + '_kg'] }));
         chartsInstance['m' + n] = new Chart($('chartEx' + n), {
             type: 'line',
-            data: { datasets: [{ label: LIFTS[key].name, data: points, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true, pointRadius: 5, pointBackgroundColor: '#fff' }] },
+            data: { datasets: [{ label: LIFTS[key].name, data: points, borderColor: themeColor, backgroundColor: themeColorBg, tension: 0.3, fill: true, spanGaps: true, pointBackgroundColor: themeColor }] },
             options: { responsive: true, scales: { x: timeAxis(points) }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: tooltipTitle, label: ctx => {
                 let base = formatNumUI(ctx.parsed.y) + ' kg';
                 const reps = meso === 'VL' ? data[ctx.dataIndex]['ex' + n + '_reps'] : '';
@@ -153,8 +180,7 @@ function renderMesoComparison() {
     $('marcas-empty').classList.toggle('hidden', !isEmpty);
     $('marcas-charts').classList.toggle('hidden', isEmpty);
     if (isEmpty || !setupChartDefaults()) return;
-    const { color: themeColor } = themeColors();
-    const colors = { FB: themeColor, VL: '#a855f7', PK: '#f59e0b' };
+    const colors = { FB: seriesColor(1), VL: seriesColor(2), PK: seriesColor(3) };
     lifts().forEach((key, i) => {
         const n = i + 1;
         const all = series[i].map(p => ({ x: p.ts, y: p.e1rm, p }));
@@ -162,7 +188,7 @@ function renderMesoComparison() {
         const xAxis = timeAxis(all);
         const datasets = ['FB', 'VL', 'PK'].map(m => ({
             label: MESO_NAMES[m], data: all.filter(a => a.p.meso === m),
-            borderColor: colors[m], backgroundColor: colors[m], tension: 0.3, pointRadius: 5
+            borderColor: colors[m], backgroundColor: colors[m], tension: 0.3
         })).filter(d => d.data.length);
         const g = goalLine('ex' + n, xAxis);
         if (g) datasets.push(g);

@@ -144,7 +144,7 @@ Con esto desaparecen los `if (isMiguel)` / `isClaudia` repartidos por `updateExe
 
 ---
 
-## Fase 5 · Design system y pulido visual (en paralelo, a partir de la fase 1)
+## Fase 5 · Design system y pulido visual (en paralelo, a partir de la fase 1) — ✅ completada (salvo cambiar Font Awesome por SVG y el conteo animado de KPIs)
 
 - **Tokens de diseño**: escala de espaciado (4/8/12/16/24/32), radios (10/14/20), tipografía (12/14/16/20/28/36) y colores semánticos (`--success`, `--danger`, `--warning`). Hoy hay muchos valores sueltos y estilos *inline* (`style="padding: 30px 20px;"`).
 - **Tipografía**: cargar una fuente con cifras tabulares (Inter o Manrope, con `font-variant-numeric: tabular-nums`) para que los KPIs y las tablas no "bailen". `Segoe UI` no existe en iOS ni Android.

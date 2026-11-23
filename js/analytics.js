@@ -138,7 +138,8 @@ function goalProgress(key, goal) {
 function goalLine(key, xAxis) {
     const g = goals()[key];
     if (!g || xAxis.min == null) return null;
-    return { label: 'Objetivo', data: [{ x: xAxis.min, y: g.target }, { x: xAxis.max, y: g.target }], borderColor: 'rgba(251, 191, 36, 0.9)', backgroundColor: 'rgba(251, 191, 36, 0.9)', borderDash: [3, 4], pointRadius: 0, fill: false };
+    const c = cssVar('--text-main');
+    return { label: 'Objetivo', data: [{ x: xAxis.min, y: g.target }, { x: xAxis.max, y: g.target }], borderColor: c, backgroundColor: c, borderWidth: 1.5, borderDash: [2, 4], pointRadius: 0, pointHoverRadius: 0, fill: false };
 }
 
 function openGoalsSheet() {
@@ -301,7 +302,7 @@ function openDotsInfo() {
                 <div><span>Sexo</span><strong>${sex === 'F' ? 'Mujer' : 'Hombre'}</strong></div>
                 <div><span>Tus puntos</span><strong>${formatNumUI(score)}</strong></div>
             </div>
-            <p style="margin-top: 10px;">Tu Total equivale a <strong>${formatNumUI(Math.round(total.value / lastW.v * 100) / 100)} veces tu peso</strong>. Con tu peso actual, <strong>cada kilo más en el Total suma unos ${formatNumUI(perKg)} puntos</strong>.</p>`;
+            <p class="mt-3">Tu Total equivale a <strong>${formatNumUI(Math.round(total.value / lastW.v * 100) / 100)} veces tu peso</strong>. Con tu peso actual, <strong>cada kilo más en el Total suma unos ${formatNumUI(perKg)} puntos</strong>.</p>`;
     } else {
         const missing = [];
         if (!lastW) missing.push('registrar tu peso en <strong>Físico</strong>');
@@ -323,7 +324,7 @@ function openDotsInfo() {
             const range = l.max === Infinity ? `más de ${from}` : `${from}–${l.max}`;
             return `<li${i === level ? ' class="current" aria-current="true"' : ''}><span>${l.name}${i === level ? ' · tú' : ''}</span><span>${range}</span></li>`;
         }).join('')}</ul>
-        <p style="margin-top: 8px;">Guía orientativa, no oficial. Lo más útil es comparar <strong>tus propios puntos con el tiempo</strong>: si suben, eres más fuerte para tu peso.</p>
+        <p class="mt-3">Guía orientativa, no oficial. Lo más útil es comparar <strong>tus propios puntos con el tiempo</strong>: si suben, eres más fuerte para tu peso.</p>
         <h3>A tener en cuenta</h3>
         <p>Es una estimación: usa tu último peso y tus mejores marcas aunque sean de días distintos, y no sustituye la puntuación de una competición oficial.</p>`;
     // El foco va al título (no al botón del final) para que la hoja se lea desde el principio

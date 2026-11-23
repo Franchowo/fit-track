@@ -72,14 +72,14 @@ const server = spawn('python3', ['-m', 'http.server', '8765', '--bind', '127.0.0
   check(await p.isVisible('#btn-pending') && await p.textContent('#pending-count') === '1', 'Indicador: 1 pendiente');
   check(p.url().endsWith('#/fran/progreso/marcas') && await p.evaluate(() => chartsInstance.m1.data.datasets[0].data.some(d => d.y === 105)), 'El pendiente aparece en la gráfica');
   await p.click('.nav-item[data-tab=historial]'); await p.click('#tab-historial [data-mode=fb]');
-  check(await p.locator('#tableBody .pending-icon').count() === 1, 'Historial marca la fila como pendiente');
+  check(await p.locator('#history-list .pending-icon').count() === 1, 'Historial marca la fila como pendiente');
 
   // Reinicio de la app sin conexión: la cola sobrevive
   postMode = 'network'; await ctx.setOffline(true);
   await p.reload(); await p.waitForSelector('#view-app:not(.hidden)', { timeout: 5000 });
   check(true, 'La app abre sin conexión (service worker)');
   check(await p.evaluate(() => typeof Chart === 'function'), 'Chart.js disponible sin conexión');
-  check(await p.textContent('#pending-count') === '1' && await p.locator('#tableBody .pending-icon').count() === 1, 'La cola sobrevive al reinicio');
+  check(await p.textContent('#pending-count') === '1' && await p.locator('#history-list .pending-icon').count() === 1, 'La cola sobrevive al reinicio');
   await p.click('#btn-pending'); await p.waitForTimeout(300);
   check((await toast()).includes('Sigue sin conexión'), 'Reintento manual sin red avisa');
 
@@ -88,8 +88,8 @@ const server = spawn('python3', ['-m', 'http.server', '8765', '--bind', '127.0.0
   await p.waitForTimeout(600);
   check((await toast()).includes('Registro pendiente enviado'), 'Envío automático al volver la conexión');
   check(fbRows() === before + 1, `Sin duplicados en el servidor (${fbRows() - before} fila)`);
-  check(await p.isHidden('#btn-pending') && await p.locator('#tableBody .pending-icon').count() === 0, 'Indicador y marca de pendiente desaparecen');
-  check((await p.textContent('#tableBody')).includes('105'), 'El registro sigue en el historial');
+  check(await p.isHidden('#btn-pending') && await p.locator('#history-list .pending-icon').count() === 0, 'Indicador y marca de pendiente desaparecen');
+  check((await p.textContent('#history-list')).includes('105'), 'El registro sigue en el historial');
 
   // Error del servidor al vaciar la cola → Descartar
   await p.click('.nav-item[data-tab=registrar]'); await p.click('#tab-registrar [data-mode=fisico]');

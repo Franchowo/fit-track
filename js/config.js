@@ -13,8 +13,9 @@ const LIFTS = {
 // El orden de "lifts" corresponde a las columnas ex1, ex2... de la hoja
 const PROFILES = {
     // sex: 'M' hombre / 'F' mujer (solo se usa para la puntuación DOTS)
-    'FRAN':    { slug: 'fran',    color: '#00f3ff', rgb: '0, 243, 255',   icon: 'fa-user-ninja',      sex: 'M', lifts: ['squat', 'bench', 'deadlift'] },
-    'MAMÁ':    { slug: 'mama',    color: '#ff00ea', rgb: '255, 0, 234',   icon: 'fa-user-astronaut',  sex: 'F', lifts: ['squat', 'bench', 'deadlift'] }
+    // color/rgb: modo oscuro · colorLight/rgbLight: modo claro (más oscuro para que se lea sobre blanco)
+    'FRAN':    { slug: 'fran',    color: '#00f3ff', rgb: '0, 243, 255',   colorLight: '#0e7490', rgbLight: '14, 116, 144', icon: 'fa-user-ninja',      sex: 'M', lifts: ['squat', 'bench', 'deadlift'] },
+    'MAMÁ':    { slug: 'mama',    color: '#ff00ea', rgb: '255, 0, 234',   colorLight: '#a21caf', rgbLight: '162, 28, 175', icon: 'fa-user-astronaut',  sex: 'F', lifts: ['squat', 'bench', 'deadlift'] }
 };
 const MESO_NAMES = { FB: 'Fuerza Base', VL: 'Volumen', PK: 'Peaking' };
 const TABS = { resumen: ['general'], registrar: ['fisico', 'marcas'], progreso: ['fisico', 'marcas'], historial: ['fisico', 'fb', 'vl', 'pk'] };

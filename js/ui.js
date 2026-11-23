@@ -88,7 +88,14 @@ function routeOnStart() {
 
 window.addEventListener('hashchange', applyRoute);
 
+let lastShownTab = null;
 function showTab() {
+    // Transición suave solo al cambiar de pestaña (no al repintar la misma)
+    if (lastShownTab !== currentTab) {
+        const sec = $('tab-' + currentTab);
+        sec.classList.remove('tab-enter'); void sec.offsetWidth; sec.classList.add('tab-enter');
+        lastShownTab = currentTab;
+    }
     Object.keys(TABS).forEach(t => {
         $('tab-' + t).classList.toggle('hidden', t !== currentTab);
         const nav = document.querySelector(`.nav-item[data-tab="${t}"]`);
@@ -124,12 +131,15 @@ function ensureData(skeletonId, errorId) {
 }
 
 // ---- PERFILES ----
+// Colores de un perfil para los botones (oscuro y claro; el CSS elige según el tema)
+function profileVars(p) { return `--p-d:${p.color}; --p-d-rgb:${p.rgb}; --p-l:${p.colorLight}; --p-l-rgb:${p.rgbLight}`; }
+
 function buildProfileButtons() {
     $('profile-selector').innerHTML = Object.entries(PROFILES).map(([name, p]) =>
-        `<button type="button" class="glass profile-btn" style="--p:${p.color}; --p-rgb:${p.rgb}" onclick="chooseProfile('${name}')"><i class="fa-solid ${p.icon}" aria-hidden="true"></i> ${name}</button>`
+        `<button type="button" class="glass profile-btn" style="${profileVars(p)}" onclick="chooseProfile('${name}')"><i class="fa-solid ${p.icon}" aria-hidden="true"></i> ${name}</button>`
     ).join('');
     $('sheet-profiles').innerHTML = Object.entries(PROFILES).map(([name, p]) =>
-        `<button type="button" class="sheet-profile" data-profile="${name}" style="--p:${p.color}; --p-rgb:${p.rgb}" onclick="chooseProfile('${name}')"><i class="fa-solid ${p.icon}" aria-hidden="true"></i>${name}</button>`
+        `<button type="button" class="sheet-profile" data-profile="${name}" style="${profileVars(p)}" onclick="chooseProfile('${name}')"><i class="fa-solid ${p.icon}" aria-hidden="true"></i>${name}</button>`
     ).join('');
 }
 
@@ -139,8 +149,10 @@ function activateProfile(profile) {
     storeSet(LAST_PROFILE_STORAGE, profile);
     const p = PROFILES[profile];
     const root = document.documentElement;
-    root.style.setProperty('--theme', p.color);
-    root.style.setProperty('--theme-rgb', p.rgb);
+    root.style.setProperty('--theme-d', p.color);
+    root.style.setProperty('--theme-d-rgb', p.rgb);
+    root.style.setProperty('--theme-l', p.colorLight);
+    root.style.setProperty('--theme-l-rgb', p.rgbLight);
     $('active-profile-name').innerText = profile;
 
     destroyCharts();
@@ -173,6 +185,29 @@ function closeSheet(id, restoreFocus = true) {
     sheet.classList.add('hidden');
     if (restoreFocus && sheetReturnFocus && sheetReturnFocus.isConnected) sheetReturnFocus.focus();
 }
+// ---- APARIENCIA: automático (según el sistema), claro u oscuro ----
+const THEME_STORAGE = 'fittrack_theme';
+const darkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+function getThemePref() { const t = storeGet(THEME_STORAGE); return t === 'light' || t === 'dark' ? t : 'auto'; }
+function isLightTheme() {
+    const pref = getThemePref();
+    return pref === 'light' || (pref === 'auto' && !!darkQuery && !darkQuery.matches);
+}
+function applyTheme() {
+    const pref = getThemePref();
+    if (pref === 'auto') delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = pref;
+    $('meta-theme-color').setAttribute('content', isLightTheme() ? '#f1f5f9' : '#020617');
+    document.querySelectorAll('#theme-picker [data-theme-pref]').forEach(b =>
+        b.setAttribute('aria-checked', b.dataset.themePref === pref ? 'true' : 'false'));
+}
+function setThemePref(pref) {
+    if (pref === 'auto') storeDel(THEME_STORAGE); else storeSet(THEME_STORAGE, pref);
+    applyTheme();
+    renderCurrent(); // las gráficas toman los colores del tema nuevo
+}
+if (darkQuery && darkQuery.addEventListener) darkQuery.addEventListener('change', () => { if (getThemePref() === 'auto') { applyTheme(); renderCurrent(); } });
+
 function openProfileSheet() {
     document.querySelectorAll('.sheet-profile').forEach(b => b.setAttribute('aria-current', b.dataset.profile === currentProfile ? 'true' : 'false'));
     openSheet('profile-sheet', document.querySelector('.sheet-profile[aria-current="true"]') || document.querySelector('.sheet-profile'));
@@ -221,6 +256,7 @@ function logout() {
 }
 
 async function initAuth() {
+    applyTheme();
     buildProfileButtons();
     const key = getKey();
     if (!key) { showView('view-login'); return; }

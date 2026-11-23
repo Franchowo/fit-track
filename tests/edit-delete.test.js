@@ -40,7 +40,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m
     }
     return r.fulfill({ body: '' }); });
   const toast = () => p.textContent('#toast-region');
-  const firstCells = () => p.$$eval('#tableBody tr', trs => trs.map(t => t.children[0].textContent.trim()));
+  const firstCells = () => p.$$eval('#history-list .rec-card', cs => cs.map(c => c.querySelector('.rec-date').textContent.trim()));
   await p.goto('http://app.test/'); await p.fill('#login-key', 'k'); await p.click('#btn-login');
   await p.click('#profile-selector button:has-text("FRAN")'); await p.waitForTimeout(300);
   await p.click('.nav-item[data-tab=registrar]'); await p.waitForTimeout(150);
@@ -57,7 +57,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m
   check(await p.isVisible('#table-hint'), 'Pista "Toca un registro"');
 
   // Editar
-  await p.click('#tableBody tr >> nth=1');
+  await p.click('#history-list .rec-card >> nth=1');
   check(await p.isVisible('#record-sheet') && (await p.textContent('#record-title')).includes('15/10/26'), 'Detalle del registro');
   check((await p.textContent('#record-summary')).includes('14,5%') && (await p.textContent('#record-summary')).includes('79 kg'), 'Resumen con % graso y peso');
   await p.click('#btn-rec-edit'); await p.waitForTimeout(150);
@@ -69,20 +69,20 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m
   check((await toast()).includes('Cambios guardados') && p.url().endsWith('/historial/fisico'), 'Guardado → vuelve al historial');
   check(sheets.FRAN.rows[3][3] === 79.6 && sheets.FRAN.rows.length === 4, 'La fila correcta cambia en la hoja (sin filas nuevas)');
   check(Math.abs(sheets.FRAN.rows[3][4] - 0.145) < 1e-9, 'IMC se mantiene como porcentaje');
-  check((await p.textContent('#tableBody')).includes('79,6'), 'El historial muestra el cambio');
+  check((await p.textContent('#history-list')).includes('79,6'), 'El historial muestra el cambio');
   check(await p.isHidden('#edit-banner-fisico') && (await p.textContent('#btn-submit-fis')).includes('Sincronizar'), 'Sale del modo edición');
 
   // Conflicto: alguien cambia la fila en la hoja después de cargarla
   sheets.FRAN.rows[2][3] = 77.7;
-  await p.click('#tableBody tr >> nth=0'); await p.click('#btn-rec-edit');
+  await p.click('#history-list .rec-card >> nth=0'); await p.click('#btn-rec-edit');
   await p.click('.step-dot[data-step="2"]'); await p.fill('#f_peso', '76'); await p.click('.step-dot[data-step="3"]');
   await p.click('#btn-submit-fis'); await p.waitForTimeout(400);
   check((await toast()).includes('ha cambiado en la hoja') && sheets.FRAN.rows[2][3] === 77.7, 'Conflicto detectado: la hoja no se sobrescribe');
-  check((await p.textContent('#tableBody')).includes('77,7'), 'Tras el conflicto se recargan los datos');
+  check((await p.textContent('#history-list')).includes('77,7'), 'Tras el conflicto se recargan los datos');
 
   // Borrador intacto al editar y cancelar
   await p.click('.nav-item[data-tab=registrar]'); await p.click('#tab-registrar [data-mode=fisico]'); await p.fill('#f_edad', '33');
-  await p.click('.nav-item[data-tab=historial]'); await p.click('#tableBody tr >> nth=0'); await p.click('#btn-rec-edit');
+  await p.click('.nav-item[data-tab=historial]'); await p.click('#history-list .rec-card >> nth=0'); await p.click('#btn-rec-edit');
   check(await p.inputValue('#f_edad') === '30', 'Al editar se ve el registro, no el borrador');
   await p.click('#edit-banner-fisico button'); await p.waitForTimeout(200);
   check(p.url().endsWith('/historial/fisico'), 'Cancelar vuelve al historial');
@@ -91,26 +91,26 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m
 
   // Borrar (con confirmación) y editar una fila que estaba debajo
   await p.click('.nav-item[data-tab=historial]');
-  await p.click('#tableBody tr >> nth=2'); // 01/10/26 (fila 2 de la hoja)
+  await p.click('#history-list .rec-card >> nth=2'); // 01/10/26 (fila 2 de la hoja)
   await p.click('#btn-rec-delete');
   check(await p.isVisible('#record-confirm') && sheets.FRAN.rows.length === 4, 'Pide confirmación antes de borrar');
   await p.click('#btn-rec-confirm'); await p.waitForTimeout(300);
   check(sheets.FRAN.rows.length === 3 && !sheets.FRAN.rows.some(r => r[3] === 80), 'Fila borrada de la hoja');
   check((await toast()).includes('Registro borrado') && (await firstCells()).length === 2, 'Historial actualizado');
-  await p.click('#tableBody tr >> nth=1'); await p.click('#btn-rec-edit');   // 15/10 (ahora fila 3 de la hoja)
+  await p.click('#history-list .rec-card >> nth=1'); await p.click('#btn-rec-edit');   // 15/10 (ahora fila 3 de la hoja)
   await p.click('.step-dot[data-step="2"]'); await p.fill('#f_peso', '79,9'); await p.click('.step-dot[data-step="3"]');
   await p.click('#btn-submit-fis'); await p.waitForTimeout(300);
   check(sheets.FRAN.rows[2][3] === 79.9 && sheets.FRAN.rows[1][3] === 77.7, 'Tras borrar, editar la fila de debajo toca la fila correcta');
 
   // Marcas VL: editar reps
-  await p.click('#tab-historial [data-mode=vl]'); await p.click('#tableBody tr >> nth=0'); await p.click('#btn-rec-edit');
+  await p.click('#tab-historial [data-mode=vl]'); await p.click('#history-list .rec-card >> nth=0'); await p.click('#btn-rec-edit');
   check(await p.inputValue('#m_ex1_reps') === '8' && await p.isDisabled('#m_mesociclo'), 'Marcas: reps cargadas y mesociclo bloqueado');
   await p.fill('#m_ex1_reps', '9'); await p.click('#btn-submit-marcas'); await p.waitForTimeout(300);
   check(sheets.FRAN_VL.rows[1][2] === 9 && sheets.FRAN_VL.rows.length === 2, 'VL: reps editadas en su columna');
   check(!(await p.isDisabled('#m_mesociclo')), 'Mesociclo desbloqueado al terminar');
 
   // Teclado: Enter abre, Escape cierra
-  await p.focus('#tableBody tr >> nth=0'); await p.keyboard.press('Enter');
+  await p.focus('#history-list .rec-card >> nth=0'); await p.keyboard.press('Enter');
   check(await p.isVisible('#record-sheet'), 'Enter en una fila abre el detalle');
   await p.keyboard.press('Escape'); check(await p.isHidden('#record-sheet'), 'Escape lo cierra');
 
@@ -118,14 +118,14 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m
   await p.click('.nav-item[data-tab=registrar]'); await p.click('#tab-registrar [data-mode=marcas]'); await p.selectOption('#m_mesociclo', 'FB');
   await p.fill('#m_ex1_kg', '90'); offline = true; await p.click('#btn-submit-marcas'); await p.waitForTimeout(300);
   await p.click('.nav-item[data-tab=historial]'); await p.click('#tab-historial [data-mode=fb]');
-  await p.click('#tableBody tr >> nth=0');
+  await p.click('#history-list .rec-card >> nth=0');
   check((await p.textContent('#record-title')).includes('pendiente') && !(await p.isDisabled('#btn-rec-edit')), 'Pendiente: editable sin conexión');
   await p.click('#btn-rec-edit'); await p.fill('#m_ex1_kg', '95'); await p.click('#btn-submit-marcas'); await p.waitForTimeout(200);
   check(await p.evaluate(() => queue.length === 1 && queue[0].payload.ex1_kg === '95'), 'Edición de un pendiente actualiza la cola');
-  await p.click('#tableBody tr >> nth=0'); await p.click('#btn-rec-delete'); await p.click('#btn-rec-confirm'); await p.waitForTimeout(200);
+  await p.click('#history-list .rec-card >> nth=0'); await p.click('#btn-rec-delete'); await p.click('#btn-rec-confirm'); await p.waitForTimeout(200);
   check(await p.evaluate(() => queue.length === 0) && await p.isHidden('#btn-pending'), 'Borrar un pendiente lo quita de la cola');
   // Sin red no se puede editar un registro guardado
-  await p.click('#tab-historial [data-mode=vl]'); await p.click('#tableBody tr >> nth=0'); await p.click('#btn-rec-edit');
+  await p.click('#tab-historial [data-mode=vl]'); await p.click('#history-list .rec-card >> nth=0'); await p.click('#btn-rec-edit');
   await p.click('#btn-submit-marcas'); await p.waitForTimeout(200);
   check((await p.textContent('#form-error-marcas')).includes('hace falta conexión') && await p.isVisible('#edit-banner-marcas'), 'Sin red: aviso y los cambios se quedan en el formulario');
   await p.click('#edit-banner-marcas button'); offline = false;
@@ -134,7 +134,7 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m
   // Backend antiguo (sin fila/huella) → no editable, con explicación
   stripRows = true; await p.evaluate(() => { localStorage.removeItem('fittrack_cache_v1'); }); await p.reload(); await p.waitForTimeout(500);
   await p.click('.nav-item[data-tab=historial]'); await p.click('#tab-historial [data-mode=fisico]'); await p.waitForTimeout(200);
-  await p.click('#tableBody tr >> nth=0');
+  await p.click('#history-list .rec-card >> nth=0');
   check(await p.isDisabled('#btn-rec-edit') && (await p.textContent('#record-note')).includes('Apps Script'), 'Backend antiguo: edición desactivada con explicación');
 
   // Móvil con un registro pendiente de un perfil eliminado

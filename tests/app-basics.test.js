@@ -116,10 +116,10 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m
 
   // historial vacío y XSS en FRAN
   await p.click('.nav-item[data-tab=historial]'); await p.waitForTimeout(200);
-  check((await p.textContent('#tableBody')).includes('Aún no hay registros'), 'Historial vacío con CTA');
+  check((await p.textContent('#history-list')).includes('Aún no hay registros'), 'Historial vacío con CTA');
   await p.click('#active-profile-badge'); await p.click('.sheet-profile[data-profile="FRAN"]'); await p.waitForTimeout(200);
-  check(await p.evaluate(() => !window.__xss && !document.querySelector('#tableBody img')), 'HTML escapado');
-  check((await p.textContent('#tableBody')).includes('14,5%'), 'grasa_pct en historial');
+  check(await p.evaluate(() => !window.__xss && !document.querySelector('#tableBody img') && !document.querySelector('#history-list img')), 'HTML escapado');
+  check((await p.textContent('#history-list')).includes('14,5%'), 'grasa_pct en historial');
 
   // marcas: récord, stepper, PR al guardar
   await p.click('.nav-item[data-tab=registrar]'); await p.click('#tab-registrar [data-mode=marcas]');

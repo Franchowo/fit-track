@@ -49,6 +49,17 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m
   // DOTS calculado a mano con los coeficientes oficiales (hombre, 79 kg, total 325)
   const dm = 325 * 500 / (-307.75076 + 24.0900756 * 79 - 0.1918759221 * 79 ** 2 + 0.0007391293 * 79 ** 3 - 0.000001093 * 79 ** 4);
   check(kpis.includes('Puntos DOTS') && kpis.includes((Math.round(dm * 10) / 10).toString().replace('.', ',')), 'DOTS hombre: ' + dm.toFixed(1));
+  // Botón de información del DOTS
+  await p.click('#res-kpis .info-btn');
+  const info = (await T('#dots-body')).replace(/\s+/g, ' ');
+  const perKg = (Math.round(Math.round(dm * 10) / 10 / 325 * 100) / 100).toString().replace('.', ',');
+  check(await p.evaluate(() => document.activeElement.id === 'dots-title' && document.querySelector('#dots-sheet .sheet').scrollTop === 0), 'La hoja se abre por el principio');
+  check(await p.isVisible('#dots-sheet') && info.includes('Federación Internacional de Powerlifting') && info.includes('DOTS = Total × 500 ÷ f(peso corporal)'), 'Info DOTS: qué es y cómo se calcula');
+  check(info.includes('325 kg') && info.includes('79 kg') && info.includes('Hombre') && info.includes((Math.round(dm * 10) / 10).toString().replace('.', ',')), 'Info DOTS: tus números');
+  check(info.includes(`unos ${perKg} puntos`) && info.includes('4,11 veces tu peso'), 'Info DOTS: puntos por cada kilo más (' + perKg + ')');
+  check(await p.textContent('#dots-body .level-list li.current') === 'Intermedio · tú200–300', 'Info DOTS: nivel resaltado (Intermedio)');
+  await p.keyboard.press('Escape');
+  check(await p.isHidden('#dots-sheet') && await p.evaluate(() => document.activeElement.classList.contains('info-btn')), 'Escape cierra y devuelve el foco al botón');
   const df = await p.evaluate(() => [dots(200, 60, 'F'), dots(200, 60, 'M'), dots(300, 250, 'M') === dots(300, 210, 'M'), dots(null, 60, 'F')]);
   check(Math.abs(df[0] - 221.7) < 0.15 && df[1] < df[0] && df[2] === true && df[3] === null, 'DOTS mujer (200 kg a 60 kg ≈ 221,7), distinto de hombre, peso acotado: ' + df.join(' · '));
   const rec = await T('#res-records');
@@ -128,6 +139,10 @@ let fails = 0; const check = (c, m) => { console.log((c ? 'OK   ' : 'FAIL ') + m
   check(h2.includes('Aún no hay mediciones') && h2.includes('registra la primera') && (await T('#res-kpis')).includes('faltan marcas'), 'Perfil vacío: resumen con invitaciones');
   await p.click('#res-hero .btn-cta >> nth=0'); await p.waitForTimeout(150);
   check(p.url().endsWith('#/mama/registrar/fisico'), 'Botón rápido "Físico" lleva al registro');
+  await p.click('.nav-item[data-tab=resumen]'); await p.click('#res-kpis .info-btn');
+  const infoEmpty = await T('#dots-body');
+  check(infoEmpty.includes('registrar tu peso') && infoEmpty.includes('cada ejercicio') && infoEmpty.includes('Mujer') === false && await p.locator('#dots-body .level-list li.current').count() === 0, 'Info DOTS sin datos: explica qué falta');
+  await p.click('#dots-sheet .btn-save'); check(await p.isHidden('#dots-sheet'), 'Botón "Entendido" cierra');
 
   check(scriptUrls.length > 3 && scriptUrls.every(u => !u.includes('key=')), `La clave nunca viaja en la URL (${scriptUrls.length} peticiones)`);
   console.log(fails ? `\n${fails} FALLOS` : '\nTODO OK'); await b.close(); process.exit(fails ? 1 : 0);

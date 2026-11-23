@@ -175,6 +175,20 @@ select.input-large { appearance: none; }
 .res-card-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
 .res-card h3 { font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--theme); }
 .res-note { color: var(--text-muted); font-size: 0.8rem; }
+.info-btn { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin: -14px -12px -14px -6px; color: var(--theme); font-size: 1rem; vertical-align: middle; }
+#dots-title:focus { outline: none; }
+.info-body { color: var(--text-main); line-height: 1.5; font-size: 0.95rem; }
+.info-body h3 { color: var(--theme); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin: 18px 0 8px; }
+.info-body p { margin-bottom: 8px; color: var(--text-muted); }
+.info-body p strong { color: var(--text-main); }
+.info-formula { padding: 10px 14px; border-radius: 12px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); font-weight: 700; text-align: center; margin: 4px 0 8px; }
+.info-mine { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.info-mine div { padding: 10px 12px; border-radius: 12px; background: rgba(var(--theme-rgb), 0.08); border: 1px solid rgba(var(--theme-rgb), 0.25); }
+.info-mine span { display: block; color: var(--text-muted); font-size: 0.8rem; }
+.info-mine strong { font-size: 1.1rem; }
+.level-list { list-style: none; }
+.level-list li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; border-radius: 10px; color: var(--text-muted); }
+.level-list li.current { background: rgba(var(--theme-rgb), 0.15); border: 1px solid var(--theme); color: var(--text-main); font-weight: 700; }
 .btn-link { min-height: 44px; padding: 0 6px; color: var(--theme); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
 .res-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--glass-border); }
 .res-row:last-child { border-bottom: none; }

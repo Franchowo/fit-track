@@ -240,7 +240,7 @@ function renderResumen() {
         kpi('Peso', lastW ? formatNumUI(lastW.v) + ' kg' : '--', esc(wSub)) +
         kpi('% Graso', pct != null ? formatNumUI(pct) + ' %' : '--', 'última medición') +
         kpi('Total', total ? formatNumUI(total.value) + ' kg' : '--', total ? 'suma de mejores marcas' : 'faltan marcas') +
-        kpi('Puntos DOTS', dotsScore != null ? formatNumUI(dotsScore) : '--',
+        kpi('Puntos DOTS <button type="button" class="info-btn" onclick="openDotsInfo()" aria-label="¿Qué son los puntos DOTS?" title="¿Qué son los puntos DOTS?"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></button>', dotsScore != null ? formatNumUI(dotsScore) : '--',
             rel != null ? `Total = ${formatNumUI(rel)} × tu peso` : (total ? 'falta tu peso' : 'faltan marcas'));
 
     // Objetivos
@@ -272,6 +272,63 @@ function renderResumen() {
     $('res-prs').innerHTML = recent.length ? recent.map(e =>
         `<div class="res-row"><span>🏆 ${esc(e.lift)}<span class="res-sub">${esc(e.fecha)} · ${MESO_NAMES[e.meso]}</span></span><span class="res-val">${formatNumUI(e.e1rm)} kg <span class="unit">(+${formatNumUI(Math.round((e.e1rm - e.prev) * 10) / 10)})</span></span></div>`
     ).join('') : '<p class="res-empty">Sin récords en los últimos 60 días. ¡A por ellos!</p>';
+}
+
+// ---- INFORMACIÓN: QUÉ SON LOS PUNTOS DOTS ----
+// Guía orientativa (no oficial) para situar la puntuación
+const DOTS_LEVELS = [
+    { max: 200, name: 'Iniciación' },
+    { max: 300, name: 'Intermedio' },
+    { max: 400, name: 'Avanzado' },
+    { max: 500, name: 'Nivel competición nacional' },
+    { max: Infinity, name: 'Élite internacional' }
+];
+
+function openDotsInfo() {
+    const sex = PROFILES[currentProfile].sex;
+    const ws = weightSeries();
+    const lastW = ws.length ? ws[ws.length - 1] : null;
+    const total = strengthTotal();
+    const score = total && lastW ? dots(total.value, lastW.v, sex) : null;
+    const level = score != null ? DOTS_LEVELS.findIndex(l => score < l.max) : -1;
+
+    let mine;
+    if (score != null) {
+        const perKg = Math.round(score / total.value * 100) / 100;
+        mine = `<div class="info-mine">
+                <div><span>Total</span><strong>${formatNumUI(total.value)} kg</strong></div>
+                <div><span>Peso corporal</span><strong>${formatNumUI(lastW.v)} kg</strong></div>
+                <div><span>Sexo</span><strong>${sex === 'F' ? 'Mujer' : 'Hombre'}</strong></div>
+                <div><span>Tus puntos</span><strong>${formatNumUI(score)}</strong></div>
+            </div>
+            <p style="margin-top: 10px;">Tu Total equivale a <strong>${formatNumUI(Math.round(total.value / lastW.v * 100) / 100)} veces tu peso</strong>. Con tu peso actual, <strong>cada kilo más en el Total suma unos ${formatNumUI(perKg)} puntos</strong>.</p>`;
+    } else {
+        const missing = [];
+        if (!lastW) missing.push('registrar tu peso en <strong>Físico</strong>');
+        if (!total) missing.push('tener una marca de Fuerza Base o Peaking en <strong>cada ejercicio</strong>');
+        mine = `<p>Para calcular tus puntos te falta ${missing.join(' y ')}.</p>`;
+    }
+
+    $('dots-body').innerHTML = `
+        <h3>¿Qué es?</h3>
+        <p>Una puntuación para <strong>comparar la fuerza entre personas de distinto peso y sexo</strong>. Cuanto más pesa alguien, más kilos suele levantar; el DOTS corrige ese efecto para que las puntuaciones se puedan comparar entre sí. Es la fórmula que usa la Federación Internacional de Powerlifting (IPF) para elegir al mejor levantador "libra por libra".</p>
+        <h3>¿Cómo se calcula?</h3>
+        <div class="info-formula">DOTS = Total × 500 ÷ f(peso corporal)</div>
+        <p><strong>Total</strong> es la suma de tus mejores marcas de sentadilla, press banca y peso muerto (Fuerza Base y Peaking). <strong>f</strong> es una curva distinta para hombres y para mujeres que crece con el peso corporal.</p>
+        <h3>Tus números</h3>
+        ${mine}
+        <h3>¿Cómo interpretarlo?</h3>
+        <ul class="level-list">${DOTS_LEVELS.map((l, i) => {
+            const from = i === 0 ? 0 : DOTS_LEVELS[i - 1].max;
+            const range = l.max === Infinity ? `más de ${from}` : `${from}–${l.max}`;
+            return `<li${i === level ? ' class="current" aria-current="true"' : ''}><span>${l.name}${i === level ? ' · tú' : ''}</span><span>${range}</span></li>`;
+        }).join('')}</ul>
+        <p style="margin-top: 8px;">Guía orientativa, no oficial. Lo más útil es comparar <strong>tus propios puntos con el tiempo</strong>: si suben, eres más fuerte para tu peso.</p>
+        <h3>A tener en cuenta</h3>
+        <p>Es una estimación: usa tu último peso y tus mejores marcas aunque sean de días distintos, y no sustituye la puntuación de una competición oficial.</p>`;
+    // El foco va al título (no al botón del final) para que la hoja se lea desde el principio
+    openSheet('dots-sheet', $('dots-title'));
+    $('dots-sheet').querySelector('.sheet').scrollTop = 0;
 }
 
 // ---- EXPORTAR CSV (abre bien en Excel y Google Sheets en español) ----

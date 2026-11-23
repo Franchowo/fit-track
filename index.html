@@ -13,7 +13,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.js" integrity="sha384-zYPBGXwO4633CABX/5Spf6emCKUJCfoOkhOMYyxMsatqQZPnDblmmOewfjsIVWCM" crossorigin="anonymous"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/app.css?v=d4bdf731db">
+    <link rel="stylesheet" href="css/app.css?v=39e943e4dc">
 </head>
 <body>
 
@@ -280,6 +280,18 @@
         </div>
     </div>
 
+    <!-- Hoja inferior: qué son los puntos DOTS -->
+    <div id="dots-sheet" class="sheet-backdrop hidden" onclick="if (event.target === this) closeSheet('dots-sheet')">
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="dots-title">
+            <div class="sheet-handle" aria-hidden="true"></div>
+            <h2 id="dots-title" tabindex="-1">Puntos DOTS</h2>
+            <div class="info-body" id="dots-body"></div>
+            <div class="record-actions" style="margin-top: 18px;">
+                <button type="button" class="btn-save" onclick="closeSheet('dots-sheet')">Entendido</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Hoja inferior: objetivos -->
     <div id="goals-sheet" class="sheet-backdrop hidden" onclick="if (event.target === this) closeSheet('goals-sheet')">
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="goals-title">
@@ -304,7 +316,7 @@
     <script src="js/forms.js?v=34cff7463d"></script>
     <script src="js/history.js?v=7accdd9edc"></script>
     <script src="js/charts.js?v=792c4e06d2"></script>
-    <script src="js/analytics.js?v=97bf6da20e"></script>
+    <script src="js/analytics.js?v=5ff0fb706b"></script>
     <script src="js/main.js?v=e000174ba4"></script>
 </body>
 </html>
